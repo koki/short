@@ -1,0 +1,5 @@
+package: github.com/koki/shorter-hand
+import:
+- package: github.com/golang/glog
+- package: github.com/spf13/cobra
+  version: ^0.0.1
