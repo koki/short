@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -19,7 +18,8 @@ var (
 		
 Full documentation available at https://docs.koki.io/short
 `,
-		RunE: short,
+		RunE:         short,
+		SilenceUsage: true,
 		Example: `
   # Find the shorthand representation of kubernetes objects
   short man pod
@@ -75,19 +75,16 @@ func short(c *cobra.Command, args []string) error {
 		if len(args) == 1 {
 			if args[0] != "-" {
 				//this check ensures that we do not have any dangling args at the end
-				return fmt.Errorf("unrecognized key/value %s", args[0])
+				return util.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
 			} else if len(filenames) > 0 {
 				//if '-' is specified at the end, then we expect the value to be streamed in
-				return fmt.Errorf("cannot specify both filenames and stdin (- at the end denotes stdin)")
+				return util.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
 			}
 		} else { //more than one dangling arg left. Abort!
-			return fmt.Errorf("unrecognized keys/values %q", args)
+			return util.UsageErrorf(c.CommandPath(), "unexpected values %q", args)
 		}
 	}
 
-	// No errors should be returned after this point. Returning error from this function
-	// results in the help message for the root command to be thrown out. Since validation
-	// phase is already done above, we use util.ExitWithErr(msg string) from here onwards.
 	useStdin := false
 
 	if len(args) == 1 && args[0] == "-" {
@@ -98,7 +95,7 @@ func short(c *cobra.Command, args []string) error {
 	// parse input data from one of the sources - files or stdin
 	glog.V(3).Info("parsing input data")
 	if _, err := parser.Parse(filenames, useStdin); err != nil {
-		util.ExitWithErr(err)
+		return util.UsageErrorf(c.CommandPath(), err)
 	}
 	return nil
 }
