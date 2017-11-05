@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"flag"
+
 	"github.com/spf13/cobra"
 )
 
@@ -51,6 +53,12 @@ func init() {
 	RootCmd.Flags().BoolVarP(&kubeNative, "kube-native", "k", false, "convert to kube-native syntax")
 	RootCmd.Flags().StringSliceVarP(&filenames, "filenames", "f", nil, "path or url to input files to read manifests")
 	RootCmd.Flags().StringVarP(&output, "output", "o", "", "output to filename instead of stdin")
+
+	//parse the go default flagset to get flags for glog and other packages in future
+	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
+
+	//defaulting this to true so that logs are printed to console
+	flag.Set("logtostderr", "true")
 
 	RootCmd.AddCommand(versionCmd)
 	//RootCmd.AddCommand(manCommand)
