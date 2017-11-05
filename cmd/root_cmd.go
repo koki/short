@@ -94,8 +94,12 @@ func short(c *cobra.Command, args []string) error {
 
 	// parse input data from one of the sources - files or stdin
 	glog.V(3).Info("parsing input data")
-	if _, err := parser.Parse(filenames, useStdin); err != nil {
+	data, err := parser.Parse(filenames, useStdin)
+	if err != nil {
 		return util.UsageErrorf(c.CommandPath(), err)
 	}
+
+	glog.Errorf("len=%d %#v", len(data), data)
+
 	return nil
 }

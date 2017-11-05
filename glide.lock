@@ -1,12 +1,20 @@
-hash: 7b16e78fe7d947956e26bd4c7643aae839aa657be8c54bce6e336e7c8d283cfa
-updated: 2017-11-04T23:35:53.030060936-07:00
+hash: 4c69b3e700e1237615401a9844cc0aecb946f66e4a04513277fb7ec7657a216e
+updated: 2017-11-05T07:48:29.78529941-08:00
 imports:
+- name: github.com/ghodss/yaml
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/spf13/cobra
   version: b3426bbac13d7110c4d8fce456ea0012f79f3b8b
 - name: github.com/spf13/pflag
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
+- name: gopkg.in/yaml.v2
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+- name: k8s.io/apimachinery
+  version: 8a1a257c3a3503c77f25e5802e96e89a2a11ad61
+  subpackages:
+  - pkg/util/yaml
 testImports: []
