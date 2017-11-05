@@ -7,7 +7,7 @@ import (
 var (
 	RootCmd = &cobra.Command{
 		Use:   "short",
-		Short: "Manageable Kubernetes manifests using koki/shorthand",
+		Short: "Manageable Kubernetes manifests using koki/short",
 		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax. 
 		
 Full documentation available at https://docs.koki.io/short
