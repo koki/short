@@ -1,6 +1,7 @@
 package: github.com/koki/shorter-hand
 import:
 - package: github.com/golang/glog
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - package: github.com/spf13/cobra
   version: b3426bbac13d7110c4d8fce456ea0012f79f3b8b
 - package: github.com/spf13/pflag
