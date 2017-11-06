@@ -56,6 +56,8 @@ func parseStream(streams []io.ReadCloser) ([]map[string]interface{}, error) {
 			if err == nil {
 				structs = append(structs, into)
 			}
+			// TBD: Add support for v1.List type by flattening it
+			// and then converting them to individual objects
 		}
 	}
 	return structs, nil

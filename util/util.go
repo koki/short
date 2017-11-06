@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/golang/glog"
 )
@@ -13,6 +14,14 @@ func ExitWithErr(msg interface{}) {
 }
 
 func UsageErrorf(commandPath, f interface{}, args ...interface{}) error {
+	return errorf(fmt.Sprintf("See '%s -h' for help and examples", commandPath), f, args...)
+}
+
+func TypeErrorf(t reflect.Type, f interface{}, args ...interface{}) error {
+	return errorf(fmt.Sprintf("Unknown type '%s'", t), f, args...)
+}
+
+func errorf(addedMsg, f interface{}, args ...interface{}) error {
 	format := ""
 	switch f.(type) {
 	case string:
@@ -26,5 +35,5 @@ func UsageErrorf(commandPath, f interface{}, args ...interface{}) error {
 	}
 
 	msg := fmt.Sprintf(format, args...)
-	return fmt.Errorf("%s\n See '%s -h' for help and examples", msg, commandPath)
+	return fmt.Errorf("%s\n %s", msg, addedMsg)
 }
