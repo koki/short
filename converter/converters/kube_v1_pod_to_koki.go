@@ -6,6 +6,6 @@ import (
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.Pod, error) {
+func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	return nil, nil
 }
