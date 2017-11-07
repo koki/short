@@ -1,26 +1,22 @@
 package types
 
-import (
-	"net/url"
-)
-
 type Action struct {
-	Command []string  `json:"command,omitempty"`
-	Net     NetAction `json:"net,omitempty"`
+	Command []string   `json:"command,omitempty"`
+	Net     *NetAction `json:"net,omitempty"`
 }
 
 type NetAction struct {
-	Headers map[string]string `json:"headers,omitempty"`
-	URL     url.URL           `json:"net,omitempty"`
-	Scheme  HttpScheme        `json:"scheme,omitempty"`
+	Headers []string   `json:"headers,omitempty"`
+	URL     string     `json:"url,omitempty"`
+	Method  HTTPMethod `json:"method,omitempty"`
 }
 
-type HttpScheme string
+type HTTPMethod string
 
 const (
-	HttpGetScheme    HttpScheme = "GET"
-	HttpPutScheme    HttpScheme = "PUT"
-	HttpPostScheme   HttpScheme = "POST"
-	HttpHeadScheme   HttpScheme = "HEAD"
-	HttpDeleteScheme HttpScheme = "DELETE"
+	HTTPGetMethod    HTTPMethod = "GET"
+	HTTPPutMethod    HTTPMethod = "PUT"
+	HTTPPostMethod   HTTPMethod = "POST"
+	HTTPHeadMethod   HTTPMethod = "HEAD"
+	HTTPDeleteMethod HTTPMethod = "DELETE"
 )

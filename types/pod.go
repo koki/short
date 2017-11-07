@@ -1,8 +1,7 @@
 package types
 
 import (
-	"net"
-	"time"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodWrapper struct {
@@ -10,45 +9,47 @@ type PodWrapper struct {
 }
 
 type Pod struct {
-	Version                string                 `json:"version,omitempty"`
-	Cluster                string                 `json:"cluster,omitempty"`
-	Name                   string                 `json:"name,omitempty"`
-	Namespace              string                 `json:"namespace,omitempty"`
-	Labels                 map[string]interface{} `json:"labels,omitempty"`
-	Annotations            map[string]interface{} `json:"annotations,omitempty"`
-	Affinity               []Affinity             `json:"affinity,omitempty"`
-	Containers             []Container            `json:"containers,omitempty"`
-	DNSPolicy              DNSPolicy              `json:"dns_policy,omitempty"`
-	HostAlias              []string               `json:"host_alias,omitempty"`
-	HostMode               []HostMode             `json:"host_mode,omitempty"`
-	Hostname               string                 `json:"hostname,omitempty"`
-	Registries             []string               `json:"registries,omitempty"`
-	RestartPolicy          RestartPolicy          `json:"restart_policy,omitempty"`
-	SchedulerName          string                 `json:"scheduler_name,omitempty"`
-	Account                string                 `json:"account,omitempty"`
-	Tolerations            []Toleration           `json:"tolerations,omitempty"`
-	TerminationGracePeriod int                    `json:"termination_grace_period,omitempty"`
-	ActiveDeadline         int                    `json:"active_deadline,omitempty"`
-	Node                   string                 `json:"node,omitempty"`
-	Priority               Priority               `json:"priority,omitempty"`
-	Conditions             []PodCondition         `json:"condition,omitempty"`
-	NodeIP                 net.IP                 `json:"node_ip,omitempty"`
-	StartTime              time.Time              `json:"start_time,omitempty"`
-	Message                string                 `json:"message,omitempty"`
-	Phase                  PodPhase               `json:"phase,omitempty"`
-	IP                     string                 `json:"ip,omitempty"`
-	QOS                    PodQOSClass            `json:"qos,omitempty"`
-	Reason                 string                 `json:"reason,omitempty"`
+	Version                string            `json:"version,omitempty"`
+	Cluster                string            `json:"cluster,omitempty"`
+	Name                   string            `json:"name,omitempty"`
+	Namespace              string            `json:"namespace,omitempty"`
+	Labels                 map[string]string `json:"labels,omitempty"`
+	Annotations            map[string]string `json:"annotations,omitempty"`
+	Affinity               []Affinity        `json:"affinity,omitempty"`
+	Containers             []Container       `json:"containers,omitempty"`
+	DNSPolicy              DNSPolicy         `json:"dns_policy,omitempty"`
+	HostAliases            []string          `json:"host_alias,omitempty"`
+	HostMode               []HostMode        `json:"host_mode,omitempty"`
+	Hostname               string            `json:"hostname,omitempty"`
+	Registries             []string          `json:"registry_secrets,omitempty"`
+	RestartPolicy          RestartPolicy     `json:"restart_policy,omitempty"`
+	SchedulerName          string            `json:"scheduler_name,omitempty"`
+	Account                string            `json:"account,omitempty"`
+	Tolerations            []Toleration      `json:"tolerations,omitempty"`
+	TerminationGracePeriod *int64            `json:"termination_grace_period,omitempty"`
+	ActiveDeadline         *int64            `json:"active_deadline,omitempty"`
+	Node                   string            `json:"node,omitempty"`
+	Priority               *Priority         `json:"priority,omitempty"`
+	Conditions             []PodCondition    `json:"condition,omitempty"`
+	NodeIP                 string            `json:"node_ip,omitempty"`
+	StartTime              *metav1.Time      `json:"start_time,omitempty"`
+	Msg                    string            `json:"msg,omitempty"`
+	Phase                  PodPhase          `json:"phase,omitempty"`
+	IP                     string            `json:"ip,omitempty"`
+	QOS                    PodQOSClass       `json:"qos,omitempty"`
+	Reason                 string            `json:"reason,omitempty"`
+	FSGID                  *int64            `json:"fs_gid,omitempty"`
+	GIDs                   []int64           `json:"gids,omitempty"`
 }
 
 type Priority struct {
-	Value int    `json:"value,omitempty"`
+	Value *int32 `json:"value,omitempty"`
 	Class string `json:"class,omitempty"`
 }
 
 type PodCondition struct {
-	LastProbeTime      time.Time        `json:"last_probe_time,omitempty"`
-	LastTransitionTime time.Time        `json:"last_transition_time,omitempty"`
+	LastProbeTime      metav1.Time      `json:"last_probe_time,omitempty"`
+	LastTransitionTime metav1.Time      `json:"last_transition_time,omitempty"`
 	Msg                string           `json:"msg,omitempty"`
 	Reason             string           `json:"reason,omitempty"`
 	Status             ConditionStatus  `json:"status,omitempty"`
