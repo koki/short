@@ -1,6 +1,8 @@
 package types
 
+type Selector string
+
 type Toleration struct {
-	GracePeriod int    `json:"grace_period,omitempty"`
-	Selector    string `json:"selector,omitempty"`
+	ExpiryAfter *int64 `json:"expiry_after,omitempty"`
+	Selector    `json:",inline"`
 }

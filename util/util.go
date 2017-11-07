@@ -21,6 +21,10 @@ func TypeErrorf(t reflect.Type, f interface{}, args ...interface{}) error {
 	return errorf(fmt.Sprintf("Unknown type '%s'", t), f, args...)
 }
 
+func TypeValueErrorf(obj, f interface{}, args ...interface{}) error {
+	return errorf(fmt.Sprintf("Unknown value for type '%s'", reflect.TypeOf(obj)), f, args...)
+}
+
 func errorf(addedMsg, f interface{}, args ...interface{}) error {
 	format := ""
 	switch f.(type) {
