@@ -28,19 +28,18 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	}
 	kokiPod.Affinity = affinity
 
-	dependsOn := ""
-	var kokiContainers []types.Container
+	var initContainers []types.Container
 	for i := range pod.Spec.InitContainers {
 		container := pod.Spec.InitContainers[i]
 		kokiContainer, err := convertContainer(&container)
 		if err != nil {
 			return nil, err
 		}
-		kokiContainer.DependsOn = dependsOn
-		dependsOn = kokiContainer.Name
-		kokiContainers = append(kokiContainers, *kokiContainer)
+		initContainers = append(initContainers, *kokiContainer)
 	}
+	kokiPod.InitContainers = initContainers
 
+	var kokiContainers []types.Container
 	for i := range pod.Spec.Containers {
 		container := pod.Spec.Containers[i]
 		kokiContainer, err := convertContainer(&container)
