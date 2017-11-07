@@ -281,7 +281,11 @@ func convertLifecycleAction(lcHandler *v1.Handler) (*types.Action, error) {
 			if ps.HTTPGet.Host != "" {
 				host = ps.HTTPGet.Host
 			}
-			hostPort = fmt.Sprintf("%s:%s", host, ps.HTTPGet.Port.String())
+			port := "80"
+			if ps.HTTPGet.Port.String() != "" {
+				port = ps.HTTPGet.Port.String()
+			}
+			hostPort = fmt.Sprintf("%s:%s", host, port)
 
 			var headers []string
 

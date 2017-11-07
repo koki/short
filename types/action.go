@@ -6,17 +6,6 @@ type Action struct {
 }
 
 type NetAction struct {
-	Headers []string   `json:"headers,omitempty"`
-	URL     string     `json:"url,omitempty"`
-	Method  HTTPMethod `json:"method,omitempty"`
+	Headers []string `json:"headers,omitempty"`
+	URL     string   `json:"url,omitempty"`
 }
-
-type HTTPMethod string
-
-const (
-	HTTPGetMethod    HTTPMethod = "GET"
-	HTTPPutMethod    HTTPMethod = "PUT"
-	HTTPPostMethod   HTTPMethod = "POST"
-	HTTPHeadMethod   HTTPMethod = "HEAD"
-	HTTPDeleteMethod HTTPMethod = "DELETE"
-)
