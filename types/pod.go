@@ -19,7 +19,7 @@ type Pod struct {
 	Containers             []Container       `json:"containers,omitempty"`
 	InitContainers         []Container       `json:"init_containers,omitempty"`
 	DNSPolicy              DNSPolicy         `json:"dns_policy,omitempty"`
-	HostAliases            []string          `json:"host_alias,omitempty"`
+	HostAliases            []string          `json:"host_aliases,omitempty"`
 	HostMode               []HostMode        `json:"host_mode,omitempty"`
 	Hostname               string            `json:"hostname,omitempty"`
 	Registries             []string          `json:"registry_secrets,omitempty"`
