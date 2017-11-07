@@ -74,9 +74,12 @@ func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
 		fields := strings.SplitN(alias, " ", 2)
 		if len(fields) == 2 {
 			hostAlias.IP = strings.TrimSpace(fields[0])
-			hostNames := strings.Split(fields[1], " ")
+			hostNames := strings.Split(strings.TrimSpace(fields[1]), " ")
 			for i := range hostNames {
-				hostAlias.Hostnames = append(hostAlias.Hostnames, hostNames[i])
+				hostname := hostNames[i]
+				if hostname != "" || hostname != " " {
+					hostAlias.Hostnames = append(hostAlias.Hostnames, hostname)
+				}
 			}
 		} else {
 			return nil, util.TypeValueErrorf(alias, "Unexpected value %s", alias)
