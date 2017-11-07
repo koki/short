@@ -560,7 +560,7 @@ func convertVolumeMounts(mounts []v1.VolumeMount) ([]types.VolumeMount, error) {
 			}
 		} else {
 			trailer = fmt.Sprintf("%s", mount.SubPath)
-			if access == "rw" {
+			if access == "ro" {
 				trailer = fmt.Sprintf("%s:%s", trailer, access)
 			}
 		}
@@ -926,15 +926,12 @@ func convertHostAliases(aliases []v1.HostAlias) []string {
 	var kokiAliases []string
 	for i := range aliases {
 		alias := aliases[i]
-		aliasStr := fmt.Sprintf("%s,", alias.IP)
-		if aliasStr == "," {
-			aliasStr = ""
-		}
+		aliasStr := fmt.Sprintf("%s", alias.IP)
 		// Do not add empty/invalid entries
 		if aliasStr == "" || len(alias.Hostnames) == 0 {
 			continue
 		}
-		kokiAliases = append(kokiAliases, fmt.Sprintf("%s\t%s", aliasStr, strings.Join(alias.Hostnames, ",")))
+		kokiAliases = append(kokiAliases, fmt.Sprintf("%s %s", aliasStr, strings.Join(alias.Hostnames, " ")))
 	}
 	return kokiAliases
 }

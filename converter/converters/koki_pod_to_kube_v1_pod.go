@@ -46,8 +46,8 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	kubePod.Spec.InitContainers = initContainers
 
 	var kubeContainers []v1.Container
-	for i := range kokiPod.InitContainers {
-		container := kokiPod.InitContainers[i]
+	for i := range kokiPod.Containers {
+		container := kokiPod.Containers[i]
 		kubeContainer, err := revertKokiContainer(container)
 		if err != nil {
 			return nil, err
@@ -56,7 +56,34 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	}
 	kubePod.Spec.Containers = kubeContainers
 
+	hostAliases, err := revertHostAliases(kokiPod.HostAliases)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.HostAliases = hostAliases
+
 	return kubePod, nil
+}
+
+func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
+	var hostAliases []v1.HostAlias
+	for i := range aliases {
+		alias := aliases[i]
+		hostAlias := v1.HostAlias{}
+
+		fields := strings.SplitN(alias, " ", 2)
+		if len(fields) == 2 {
+			hostAlias.IP = strings.TrimSpace(fields[0])
+			hostNames := strings.Split(fields[1], " ")
+			for i := range hostNames {
+				hostAlias.Hostnames = append(hostAlias.Hostnames, hostNames[i])
+			}
+		} else {
+			return nil, util.TypeValueErrorf(alias, "Unexpected value %s", alias)
+		}
+		hostAliases = append(hostAliases, hostAlias)
+	}
+	return hostAliases, nil
 }
 
 func revertKokiContainer(container types.Container) (v1.Container, error) {
@@ -102,13 +129,56 @@ func revertKokiContainer(container types.Container) (v1.Container, error) {
 	kubeContainer.TerminationMessagePath = container.TerminationMsgPath
 	kubeContainer.TerminationMessagePolicy = revertTerminationMsgPolicy(container.TerminationMsgPolicy)
 	kubeContainer.ImagePullPolicy = revertImagePullPolicy(container.Pull)
+	kubeContainer.VolumeMounts = revertVolumeMounts(container.VolumeMounts)
 
-	// TODO: VolumeMounts
+	kubeContainer.Stdin = container.Stdin
+	kubeContainer.StdinOnce = container.StdinOnce
+	kubeContainer.TTY = container.TTY
+
 	// TODO: LifeCycle
 	// TODO: SecurityContext
-	// TODO: Stdin, StdinOnce, TTY
 
 	return kubeContainer, nil
+}
+
+func revertVolumeMounts(mounts []types.VolumeMount) []v1.VolumeMount {
+	var kubeMounts []v1.VolumeMount
+	for i := range mounts {
+		mount := mounts[i]
+		kubeMount := v1.VolumeMount{}
+		kubeMount.MountPropagation = revertMountPropagation(mount.Propagation)
+		kubeMount.MountPath = mount.MountPath
+
+		fields := strings.Split(mount.Store, ":")
+		if len(fields) == 1 {
+			kubeMount.Name = mount.Store
+		} else if len(fields) == 2 {
+			kubeMount.Name = fields[0]
+			if fields[1] == "ro" {
+				kubeMount.ReadOnly = true
+			} else {
+				kubeMount.SubPath = fields[2]
+			}
+		} else if len(fields) == 3 {
+			kubeMount.Name = fields[0]
+			kubeMount.SubPath = fields[1]
+			kubeMount.ReadOnly = true
+		}
+		kubeMounts = append(kubeMounts, kubeMount)
+	}
+	return kubeMounts
+}
+
+func revertMountPropagation(prop types.MountPropagation) *v1.MountPropagationMode {
+	var mode v1.MountPropagationMode
+
+	if prop == types.MountPropagationHostToContainer {
+		mode = v1.MountPropagationHostToContainer
+	}
+	if prop == types.MountPropagationBidirectional {
+		mode = v1.MountPropagationBidirectional
+	}
+	return &mode
 }
 
 func revertImagePullPolicy(policy types.PullPolicy) v1.PullPolicy {
@@ -317,9 +387,9 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 					ValueFrom: &v1.EnvVarSource{
 						ConfigMapKeyRef: &v1.ConfigMapKeySelector{
 							LocalObjectReference: v1.LocalObjectReference{
-								Name: fields[2],
+								Name: fields[1],
 							},
-							Key:      fields[3],
+							Key:      fields[2],
 							Optional: e.Required,
 						},
 					},
@@ -353,9 +423,9 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 					ValueFrom: &v1.EnvVarSource{
 						SecretKeyRef: &v1.SecretKeySelector{
 							LocalObjectReference: v1.LocalObjectReference{
-								Name: fields[2],
+								Name: fields[1],
 							},
-							Key:      fields[3],
+							Key:      fields[2],
 							Optional: e.Required,
 						},
 					},
