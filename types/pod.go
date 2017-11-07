@@ -17,6 +17,7 @@ type Pod struct {
 	Annotations            map[string]string `json:"annotations,omitempty"`
 	Affinity               []Affinity        `json:"affinity,omitempty"`
 	Containers             []Container       `json:"containers,omitempty"`
+	InitContainers         []Container       `json:"init_containers, omitempty"`
 	DNSPolicy              DNSPolicy         `json:"dns_policy,omitempty"`
 	HostAliases            []string          `json:"host_alias,omitempty"`
 	HostMode               []HostMode        `json:"host_mode,omitempty"`

@@ -14,7 +14,6 @@ type Container struct {
 	CPU                  *CPU                     `json:"cpu,omitempty"`
 	Mem                  *Mem                     `json:"mem,omitempty"`
 	Name                 string                   `json:"name,omitempty"`
-	DependsOn            string                   `json:"depends_on,omitempty"`
 	AddCapabilities      []string                 `json:"cap_add,omitempty"`
 	DelCapabilities      []string                 `json:"cap_drop,omitempty"`
 	Privileged           *bool                    `json:"privileged,omitempty"`
