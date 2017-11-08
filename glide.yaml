@@ -8,3 +8,4 @@ import:
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
 - package: k8s.io/api
   version: 218912509d74a117d05a718bb926d0948e531c20
+- package: github.com/kr/pretty

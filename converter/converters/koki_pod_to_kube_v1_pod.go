@@ -20,6 +20,7 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	kubePod.Name = kokiPod.Name
 	kubePod.Namespace = kokiPod.Namespace
 	kubePod.APIVersion = kokiPod.Version
+	kubePod.Kind = "Pod"
 	kubePod.ClusterName = kokiPod.Cluster
 	kubePod.Labels = kokiPod.Labels
 	kubePod.Annotations = kokiPod.Annotations

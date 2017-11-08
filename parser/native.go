@@ -25,10 +25,15 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 	}
 
 	for k := range objMap {
-		if k == "pod" {
+		switch k {
+		case "pod":
 			pod := &types.PodWrapper{}
 			err := json.Unmarshal(bytes, pod)
 			return pod, err
+		case "service":
+			service := &types.ServiceWrapper{}
+			err := json.Unmarshal(bytes, service)
+			return service, err
 		}
 
 		if k == "replicaSet" {

@@ -1,11 +1,184 @@
 package converters
 
 import (
-	"github.com/koki/short/types"
+	"fmt"
+	"net"
 
 	"k8s.io/api/core/v1"
+
+	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1_Service_to_Koki_Service(service *v1.Service) (*types.Service, error) {
-	return nil, nil
+func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.ServiceWrapper, error) {
+	var err error
+	kokiWrapper := &types.ServiceWrapper{}
+	kokiService := &kokiWrapper.Service
+
+	kokiService.Name = kubeService.Name
+	kokiService.Namespace = kubeService.Namespace
+	kokiService.Version = kubeService.APIVersion
+	kokiService.Cluster = kubeService.ClusterName
+	kokiService.Labels = kubeService.Labels
+	kokiService.Annotations = kubeService.Annotations
+
+	if kubeService.Spec.Type == v1.ServiceTypeExternalName {
+		kokiService.ExternalName = kubeService.Spec.ExternalName
+		return kokiWrapper, nil
+	}
+
+	kokiService.PodLabels = kubeService.Spec.Selector
+	kokiService.ClusterIP = types.ClusterIP(kubeService.Spec.ClusterIP)
+	kokiService.ExternalIPs = convertExternalIPs(kubeService.Spec.ExternalIPs)
+	convertSessionAffinityInto(&kubeService.Spec, kokiService)
+	kokiService.PublishNotReadyAddresses = kubeService.Spec.PublishNotReadyAddresses
+
+	kokiService.ExternalTrafficPolicy, err = convertExternalTrafficPolicy(kubeService.Spec.ExternalTrafficPolicy)
+	if err != nil {
+		return nil, err
+	}
+
+	err = convertPortsInto(kubeService.Spec.Ports, kokiService)
+	if err != nil {
+		return nil, err
+	}
+
+	if kubeService.Spec.Type == v1.ServiceTypeLoadBalancer {
+		kokiService.LoadBalancer, err = convertLoadBalancer(kubeService)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return kokiWrapper, nil
+}
+
+func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, error) {
+	if len(kubeIngress) == 0 {
+		return nil, nil
+	}
+
+	kokiIngress := make([]types.Ingress, len(kubeIngress))
+	for index, singleKubeIngress := range kubeIngress {
+		if len(singleKubeIngress.IP) > 0 {
+			ip := net.ParseIP(singleKubeIngress.IP)
+			if ip == nil {
+				return nil, fmt.Errorf(
+					"Invalid IP (%s) for LoadBalancerIngress",
+					singleKubeIngress.IP)
+			}
+
+			kokiIngress[index] = types.Ingress{IP: ip}
+		} else {
+			kokiIngress[index] = types.Ingress{
+				Hostname: singleKubeIngress.Hostname,
+			}
+		}
+	}
+
+	return kokiIngress, nil
+}
+
+func convertLoadBalancerSources(kubeSources []string) []types.CIDR {
+	kokiCIDRs := make([]types.CIDR, len(kubeSources))
+	for i, kubeSource := range kubeSources {
+		kokiCIDRs[i] = types.CIDR(kubeSource)
+	}
+
+	return kokiCIDRs
+}
+
+func convertLoadBalancer(kubeService *v1.Service) (*types.LoadBalancer, error) {
+	var err error
+	kokiLB := &types.LoadBalancer{}
+	kokiLB.IP = types.IPAddr(kubeService.Spec.LoadBalancerIP)
+	kokiLB.Ingress, err = convertIngress(kubeService.Status.LoadBalancer.Ingress)
+	if err != nil {
+		return nil, err
+	}
+	kokiLB.Allowed = convertLoadBalancerSources(kubeService.Spec.LoadBalancerSourceRanges)
+	kokiLB.HealthCheckNodePort = kubeService.Spec.HealthCheckNodePort
+
+	return kokiLB, nil
+}
+
+func convertPort(kubePort v1.ServicePort) (*types.ServicePort, error) {
+	kokiPort := &types.ServicePort{}
+	kokiPort.Expose = kubePort.Port
+	kokiPort.PodPort = kubePort.TargetPort
+
+	kokiPort.NodePort = kubePort.NodePort
+	if kubePort.Protocol != "" {
+		switch kubePort.Protocol {
+		case v1.ProtocolTCP:
+			kokiPort.Protocol = types.ProtocolTCP
+		case v1.ProtocolUDP:
+			kokiPort.Protocol = types.ProtocolUDP
+		default:
+			return nil, fmt.Errorf(
+				"unrecognized ServicePort Protocol (%#v)",
+				kubePort.Protocol)
+		}
+	}
+
+	return kokiPort, nil
+}
+
+func convertPortsInto(kubePorts []v1.ServicePort, into *types.Service) error {
+	if len(kubePorts) == 1 && len(kubePorts[0].Name) == 0 {
+		kokiPort, err := convertPort(kubePorts[0])
+		if err != nil {
+			return err
+		}
+
+		// Just one port, and it has no name.
+		into.Port = kokiPort
+		return nil
+	}
+
+	kokiPorts := make(map[string]types.ServicePort, len(kubePorts))
+	for _, kubePort := range kubePorts {
+		kokiPort, err := convertPort(kubePort)
+		if err != nil {
+			return err
+		}
+
+		kokiPorts[kubePort.Name] = *kokiPort
+	}
+
+	into.Ports = kokiPorts
+	return nil
+}
+
+func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType) (types.ExternalTrafficPolicy, error) {
+	switch kubePolicy {
+	case "":
+		return types.ExternalTrafficPolicyNil, nil
+	case v1.ServiceExternalTrafficPolicyTypeLocal:
+		return types.ExternalTrafficPolicyLocal, nil
+	case v1.ServiceExternalTrafficPolicyTypeCluster:
+		return types.ExternalTrafficPolicyCluster, nil
+	default:
+		return "", fmt.Errorf("unrecognized ServiceExternalTrafficPolicyType (%s)", kubePolicy)
+	}
+}
+
+func convertSessionAffinityInto(kubeSpec *v1.ServiceSpec, into *types.Service) {
+	if kubeSpec.SessionAffinity == v1.ServiceAffinityClientIP {
+		if kubeSpec.SessionAffinityConfig != nil && kubeSpec.SessionAffinityConfig.ClientIP != nil && kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds != nil {
+			into.ClientIPAffinity = types.ClientIPAffinitySeconds(
+				int(*kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds))
+			return
+		}
+
+		into.ClientIPAffinity = types.ClientIPAffinityDefault()
+	}
+}
+
+func convertExternalIPs(kubeIPs []string) []types.IPAddr {
+	kokiIPs := make([]types.IPAddr, len(kubeIPs))
+	for i, kubeIP := range kubeIPs {
+		kokiIPs[i] = types.IPAddr(kubeIP)
+	}
+
+	return kokiIPs
 }

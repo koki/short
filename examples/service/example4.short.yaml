@@ -1,0 +1,18 @@
+service:
+  clusterIP: 1.1.1.10
+  externalIPs:
+  - 1.1.1.1
+  externalTrafficPolicy: Local
+  loadBalancer:
+    allowed:
+    - 0.0.0.0/0
+    ingress:
+    - ingressHostname
+    - 1.2.3.4
+    ip: 100.1.1.1
+  name: example
+  podLabels:
+    labelKey: labelValue
+  ports:
+    http: 80:8080:999
+  version: v1

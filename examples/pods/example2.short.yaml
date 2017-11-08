@@ -1,0 +1,14 @@
+pod:
+  containers:
+  - expose:
+    - port_map: "80"
+      protocol: TCP
+    image: nginx
+    name: nginx
+    readiness_probe:
+      delay: 5
+      timeout: 5
+  labels:
+    name: nginx
+  name: nginx
+  version: v1
