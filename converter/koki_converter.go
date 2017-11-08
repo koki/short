@@ -18,7 +18,6 @@ func detectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	default:
 		return nil, util.TypeErrorf(reflect.TypeOf(kokiObj), "Unsupported Type")
 	}
-	return nil, nil
 }
 
 func detectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
@@ -32,5 +31,4 @@ func detectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	default:
 		return nil, util.TypeErrorf(reflect.TypeOf(kubeObj), "Unsupported Type")
 	}
-	return nil, nil
 }

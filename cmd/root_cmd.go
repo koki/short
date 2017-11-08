@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
@@ -19,8 +18,8 @@ var (
 	RootCmd = &cobra.Command{
 		Use:   "short",
 		Short: "Manageable Kubernetes manifests using koki/short",
-		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax. 
-		
+		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax.
+
 Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
@@ -41,10 +40,14 @@ Full documentation available at https://docs.koki.io/short
 
   # Convert shorthand file to native syntax
   short --kube-native -f pod_short.yaml
-  short -k -f pod_short.yaml
+  short -k -f pod.short.yaml
 
-  # Output to file 
-  short -f pod.yaml -o pod_short.yaml	
+  # Output format
+  short -f pod.yaml -o yaml
+  short -f pod.yaml -o json
+
+  # Output to file (format by file extension)
+  short -f pod.yaml -o pod.short.yaml
 `,
 	}
 
@@ -62,7 +65,7 @@ func init() {
 	// local flags to root command
 	RootCmd.Flags().BoolVarP(&kubeNative, "kube-native", "k", false, "convert to kube-native syntax")
 	RootCmd.Flags().StringSliceVarP(&filenames, "filenames", "f", nil, "path or url to input files to read manifests")
-	RootCmd.Flags().StringVarP(&output, "output", "o", "yaml", "output format (yaml*|json)")
+	RootCmd.Flags().StringVarP(&output, "output", "o", "yaml", "output format (yaml*|json) or output file (foo.yaml|foo.json)")
 	RootCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence output to stdout")
 
 	// parse the go default flagset to get flags for glog and other packages in future
@@ -96,10 +99,6 @@ func short(c *cobra.Command, args []string) error {
 		}
 	}
 
-	if strings.ToLower(output) != "yaml" && strings.ToLower(output) != "json" {
-		return util.UsageErrorf("unexpected value %s for -o --output", output)
-	}
-
 	useStdin := false
 
 	if len(args) == 1 && args[0] == "-" {
@@ -114,17 +113,17 @@ func short(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	var convertedData interface{}
+	var convertedObjs []interface{}
 
 	if kubeNative {
 		glog.V(3).Info("converting input to kubernetes native syntax")
-		convertedData, err = converter.ConvertToKubeNative(data)
+		convertedObjs, err = converter.ConvertToKubeNative(data)
 		if err != nil {
 			return err
 		}
 	} else {
 		glog.V(3).Info("converting input to koki native syntax")
-		convertedData, err = converter.ConvertToKokiNative(data)
+		convertedObjs, err = converter.ConvertToKokiNative(data)
 		if err != nil {
 			return err
 		}
@@ -134,23 +133,22 @@ func short(c *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var outputData []byte
-
-	if strings.ToLower(output) == "yaml" {
-		glog.V(3).Info("marshalling converted data into yaml")
-		outputData, err = yaml.Marshal(convertedData)
-		if err != nil {
-			return err
-		}
-	} else {
-		glog.V(3).Info("marshalling converted data into json")
-		outputData, err = json.MarshalIndent(convertedData, " ", "  ")
-		if err != nil {
-			return err
-		}
+	out, useYaml, err := writerForOutputFlag(output)
+	if err != nil {
+		return err
 	}
 
-	fmt.Printf("%s\n", outputData)
+	if useYaml {
+		glog.V(3).Info("marshalling converted data into yaml")
+		err = writeAsMultiDoc(yaml.Marshal, out, convertedObjs)
+	} else {
+		glog.V(3).Info("marshalling converted data into json")
+		var marshal = func(obj interface{}) ([]byte, error) {
+			return json.MarshalIndent(obj, "", "  ")
+		}
+		err = writeAsMultiDoc(marshal, out, convertedObjs)
+		fmt.Fprintln(out) // Add a newline after the json for prettiness.
+	}
 
-	return nil
+	return err
 }
