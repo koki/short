@@ -43,7 +43,7 @@ func writeAsMultiDoc(marshal func(interface{}) ([]byte, error), out io.Writer, o
 	first := true
 	for _, obj := range objs {
 		if !first {
-			_, err := out.Write([]byte("---"))
+			_, err := out.Write([]byte("---\n"))
 			if err != nil {
 				glog.Error("Failed writing separator: ---")
 				return err

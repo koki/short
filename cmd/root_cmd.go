@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
@@ -144,10 +143,14 @@ func short(c *cobra.Command, args []string) error {
 	} else {
 		glog.V(3).Info("marshalling converted data into json")
 		var marshal = func(obj interface{}) ([]byte, error) {
-			return json.MarshalIndent(obj, "", "  ")
+			b, err := json.MarshalIndent(obj, "", "  ")
+			if err != nil {
+				return nil, err
+			}
+
+			return append(b, '\n'), nil
 		}
 		err = writeAsMultiDoc(marshal, out, convertedObjs)
-		fmt.Fprintln(out) // Add a newline after the json for prettiness.
 	}
 
 	return err
