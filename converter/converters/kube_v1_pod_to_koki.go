@@ -339,7 +339,7 @@ func convertCPU(resources v1.ResourceRequirements) *types.CPU {
 	}
 	if resources.Requests != nil {
 		min := ""
-		if q, ok := resources.Limits["cpu"]; ok {
+		if q, ok := resources.Requests["cpu"]; ok {
 			mark = true
 			min = q.String()
 		}
@@ -364,7 +364,7 @@ func convertMem(resources v1.ResourceRequirements) *types.Mem {
 	}
 	if resources.Requests != nil {
 		min := ""
-		if q, ok := resources.Limits["memory"]; ok {
+		if q, ok := resources.Requests["memory"]; ok {
 			mark = true
 			min = q.String()
 		}
