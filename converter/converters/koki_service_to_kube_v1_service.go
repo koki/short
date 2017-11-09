@@ -86,6 +86,7 @@ func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, erro
 	return kubePort, nil
 }
 
+// Set the Service's Ports and its Type (if there are NodePorts).
 func revertPortsInto(kokiService *types.Service, into *v1.ServiceSpec) error {
 	if kokiService.Port != nil {
 		kubePort, err := revertPort("", kokiService.Port)
@@ -130,6 +131,7 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	}
 }
 
+// Set LoadBalancer fields in Spec and Status.
 func revertLoadBalancerInto(kokiLB *types.LoadBalancer, into *v1.Service) {
 	into.Spec.HealthCheckNodePort = kokiLB.HealthCheckNodePort
 

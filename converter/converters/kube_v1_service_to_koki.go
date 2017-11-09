@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
@@ -29,7 +30,7 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 	kokiService.PodLabels = kubeService.Spec.Selector
 	kokiService.ClusterIP = types.ClusterIP(kubeService.Spec.ClusterIP)
 	kokiService.ExternalIPs = convertExternalIPs(kubeService.Spec.ExternalIPs)
-	convertSessionAffinityInto(&kubeService.Spec, kokiService)
+	kokiService.ClientIPAffinity = convertSessionAffinity(&kubeService.Spec)
 	kokiService.PublishNotReadyAddresses = kubeService.Spec.PublishNotReadyAddresses
 
 	kokiService.ExternalTrafficPolicy, err = convertExternalTrafficPolicy(kubeService.Spec.ExternalTrafficPolicy)
@@ -37,10 +38,12 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 		return nil, err
 	}
 
-	err = convertPortsInto(kubeService.Spec.Ports, kokiService)
+	kokiPort, kokiPorts, err := convertPorts(kubeService.Spec.Ports)
 	if err != nil {
 		return nil, err
 	}
+	kokiService.Port = kokiPort
+	kokiService.Ports = kokiPorts
 
 	if kubeService.Spec.Type == v1.ServiceTypeLoadBalancer {
 		kokiService.LoadBalancer, err = convertLoadBalancer(kubeService)
@@ -119,30 +122,24 @@ func convertPort(kubePort v1.ServicePort) (*types.ServicePort, error) {
 	return kokiPort, nil
 }
 
-func convertPortsInto(kubePorts []v1.ServicePort, into *types.Service) error {
+func convertPorts(kubePorts []v1.ServicePort) (*types.ServicePort, map[string]types.ServicePort, error) {
 	if len(kubePorts) == 1 && len(kubePorts[0].Name) == 0 {
+		// Just one port, and it's unnamed
 		kokiPort, err := convertPort(kubePorts[0])
-		if err != nil {
-			return err
-		}
-
-		// Just one port, and it has no name.
-		into.Port = kokiPort
-		return nil
+		return kokiPort, nil, err
 	}
 
 	kokiPorts := make(map[string]types.ServicePort, len(kubePorts))
 	for _, kubePort := range kubePorts {
 		kokiPort, err := convertPort(kubePort)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		kokiPorts[kubePort.Name] = *kokiPort
 	}
 
-	into.Ports = kokiPorts
-	return nil
+	return nil, kokiPorts, nil
 }
 
 func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType) (types.ExternalTrafficPolicy, error) {
@@ -158,16 +155,18 @@ func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType
 	}
 }
 
-func convertSessionAffinityInto(kubeSpec *v1.ServiceSpec, into *types.Service) {
+// Returns koki ClientIPAffinitySeconds.
+func convertSessionAffinity(kubeSpec *v1.ServiceSpec) *intstr.IntOrString {
 	if kubeSpec.SessionAffinity == v1.ServiceAffinityClientIP {
 		if kubeSpec.SessionAffinityConfig != nil && kubeSpec.SessionAffinityConfig.ClientIP != nil && kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds != nil {
-			into.ClientIPAffinity = types.ClientIPAffinitySeconds(
+			return types.ClientIPAffinitySeconds(
 				int(*kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds))
-			return
 		}
 
-		into.ClientIPAffinity = types.ClientIPAffinityDefault()
+		return types.ClientIPAffinityDefault()
 	}
+
+	return nil
 }
 
 func convertExternalIPs(kubeIPs []string) []types.IPAddr {
