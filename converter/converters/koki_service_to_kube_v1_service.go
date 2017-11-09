@@ -1,7 +1,6 @@
 package converters
 
 import (
-	"fmt"
 	"reflect"
 
 	"k8s.io/api/core/v1"
@@ -80,9 +79,7 @@ func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, erro
 		case types.ProtocolUDP:
 			kubePort.Protocol = v1.ProtocolUDP
 		default:
-			return nil, fmt.Errorf(
-				"unrecognized ServicePort Protocol (%#v)",
-				kokiPort.Protocol)
+			return nil, util.PrettyTypeError(kokiPort, "unrecognized protocol")
 		}
 	}
 
@@ -129,7 +126,7 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	case types.ExternalTrafficPolicyCluster:
 		return v1.ServiceExternalTrafficPolicyTypeCluster, nil
 	default:
-		return "", fmt.Errorf("unrecognized ExternalTrafficPolicy (%s)", policy)
+		return "", util.PrettyTypeError(policy, "unrecognized policy")
 	}
 }
 
@@ -155,9 +152,9 @@ func revertIngress(kokiIngress []types.Ingress) []v1.LoadBalancerIngress {
 	return kubeIngress
 }
 
-func revertLoadBalancerSources(kokiCidrs []types.CIDR) []string {
-	strs := make([]string, len(kokiCidrs))
-	for i, cidr := range kokiCidrs {
+func revertLoadBalancerSources(kokiCIDRs []types.CIDR) []string {
+	strs := make([]string, len(kokiCIDRs))
+	for i, cidr := range kokiCIDRs {
 		strs[i] = string(cidr)
 	}
 
@@ -182,7 +179,7 @@ func revertSessionAffinityInto(kokiAffinity *intstr.IntOrString, into *v1.Servic
 		}
 		return nil
 	default:
-		return fmt.Errorf("unrecognized ClientIPAffinity (%#v)", kokiAffinity)
+		return util.PrettyTypeError(kokiAffinity, "unrecognized client IP affinity")
 	}
 }
 

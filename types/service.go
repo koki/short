@@ -111,6 +111,31 @@ type LoadBalancer struct {
 	Ingress []Ingress `json:"ingress,omitempty"`
 }
 
+func (p *ServicePort) InitProtocolFromString(s string) error {
+	switch s {
+	case "TCP":
+		p.Protocol = ProtocolTCP
+	case "UDP":
+		p.Protocol = ProtocolUDP
+	default:
+		glog.Error("Unrecognized protocol for ServicePort")
+		return fmt.Errorf("unrecognized protocol (%s)", s)
+	}
+
+	return nil
+}
+
+func (p *ServicePort) InitNodePortFromString(s string) error {
+	nodePort, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		glog.Error("Unrecognized node port for ServicePort")
+		return fmt.Errorf("unrecognized node port (%s): %s", s, err.Error())
+	}
+	p.NodePort = int32(nodePort)
+
+	return nil
+}
+
 func (p *ServicePort) InitFromString(s string) error {
 	segments := strings.Split(s, ":")
 	l := len(segments)
@@ -134,23 +159,27 @@ func (p *ServicePort) InitFromString(s string) error {
 
 	p.PodPort = intstr.Parse(segments[1])
 
-	if l >= 3 {
-		nodePort, err := strconv.ParseInt(segments[2], 10, 32)
-		if err != nil {
-			glog.Error("NodePort should be a port number.")
-			return err
+	if l == 3 {
+		err := p.InitNodePortFromString(segments[2])
+		if err == nil {
+			return nil
 		}
-		p.NodePort = int32(nodePort)
+
+		err = p.InitProtocolFromString(segments[2])
+		if err != nil {
+			return fmt.Errorf("unrecognized node port or protocol (%s)", segments[2])
+		}
 	}
 
 	if l == 4 {
-		switch segments[3] {
-		case "TCP":
-			p.Protocol = ProtocolTCP
-		case "UDP":
-			p.Protocol = ProtocolUDP
-		default:
-			return fmt.Errorf("unrecognized Protocol (%s)", segments[3])
+		err := p.InitNodePortFromString(segments[2])
+		if err != nil {
+			return err
+		}
+
+		err = p.InitProtocolFromString(segments[3])
+		if err != nil {
+			return err
 		}
 	}
 
@@ -171,17 +200,15 @@ func (p *ServicePort) UnmarshalJSON(data []byte) error {
 func (p ServicePort) String() string {
 	s := fmt.Sprintf("%d:%s", p.Expose, p.PodPort.String())
 
-	if p.NodePort == 0 {
-		return s
+	if p.NodePort != 0 {
+		s = fmt.Sprintf("%s:%d", s, p.NodePort)
 	}
 
-	s = fmt.Sprintf("%s:%d", s, p.NodePort)
-
-	if p.Protocol == "" {
-		return s
+	if p.Protocol != "" {
+		s = fmt.Sprintf("%s:%s", s, p.Protocol)
 	}
 
-	return fmt.Sprintf("%s:%s", s, p.Protocol)
+	return s
 }
 
 func (p ServicePort) MarshalJSON() ([]byte, error) {

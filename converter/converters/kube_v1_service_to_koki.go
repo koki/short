@@ -1,12 +1,12 @@
 package converters
 
 import (
-	"fmt"
 	"net"
 
 	"k8s.io/api/core/v1"
 
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
 func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.ServiceWrapper, error) {
@@ -62,9 +62,7 @@ func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, erro
 		if len(singleKubeIngress.IP) > 0 {
 			ip := net.ParseIP(singleKubeIngress.IP)
 			if ip == nil {
-				return nil, fmt.Errorf(
-					"Invalid IP (%s) for LoadBalancerIngress",
-					singleKubeIngress.IP)
+				return nil, util.PrettyTypeError(singleKubeIngress, "invalid IP")
 			}
 
 			kokiIngress[index] = types.Ingress{IP: ip}
@@ -114,9 +112,7 @@ func convertPort(kubePort v1.ServicePort) (*types.ServicePort, error) {
 		case v1.ProtocolUDP:
 			kokiPort.Protocol = types.ProtocolUDP
 		default:
-			return nil, fmt.Errorf(
-				"unrecognized ServicePort Protocol (%#v)",
-				kubePort.Protocol)
+			return nil, util.PrettyTypeError(kubePort, "unrecognized protocol")
 		}
 	}
 
@@ -158,7 +154,7 @@ func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType
 	case v1.ServiceExternalTrafficPolicyTypeCluster:
 		return types.ExternalTrafficPolicyCluster, nil
 	default:
-		return "", fmt.Errorf("unrecognized ServiceExternalTrafficPolicyType (%s)", kubePolicy)
+		return "", util.PrettyTypeError(kubePolicy, "unrecognized value")
 	}
 }
 

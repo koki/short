@@ -12,6 +12,7 @@ spec:
     nodePort: 999
     port: 80
     targetPort: 8080
+    protocol: TCP
   selector:
     labelKey: labelValue
   sessionAffinity: ClientIP
