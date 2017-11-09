@@ -149,11 +149,12 @@ func convertContainer(container *v1.Container) (*types.Container, error) {
 	}
 	kokiContainer.Pull = pullPolicy
 
-	lifecycle, err := convertLifecycle(container.Lifecycle)
+	onStart, preStop, err := convertLifecycle(container.Lifecycle)
 	if err != nil {
 		return nil, err
 	}
-	kokiContainer.Lifecycle = lifecycle
+	kokiContainer.OnStart = onStart
+	kokiContainer.PreStop = preStop
 
 	kokiContainer.CPU = convertCPU(container.Resources)
 	kokiContainer.Mem = convertMem(container.Resources)
@@ -232,26 +233,24 @@ func convertPullPolicy(pullPolicy v1.PullPolicy) (types.PullPolicy, error) {
 	return "", util.TypeValueErrorf(pullPolicy, "Conversion for %s unknown", pullPolicy)
 }
 
-func convertLifecycle(lifecycle *v1.Lifecycle) (*types.Lifecycle, error) {
-	lc := &types.Lifecycle{}
-
+func convertLifecycle(lifecycle *v1.Lifecycle) (onStart *types.Action, preStop *types.Action, err error) {
 	if lifecycle == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	actionOnStart, err := convertLifecycleAction(lifecycle.PostStart)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	lc.OnStart = actionOnStart
+	onStart = actionOnStart
 
 	actionPreStop, err := convertLifecycleAction(lifecycle.PreStop)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	lc.PreStop = actionPreStop
+	preStop = actionPreStop
 
-	return lc, nil
+	return onStart, preStop, nil
 }
 
 func convertLifecycleAction(lcHandler *v1.Handler) (*types.Action, error) {
@@ -1003,7 +1002,11 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 			return nil, util.TypeValueErrorf(toleration.Operator, "Unexpected value %s", toleration.Operator)
 		}
 		if tolExpr != "" {
-			tol.Selector = types.Selector(fmt.Sprintf("%s:%s", tolExpr, toleration.Effect))
+			if toleration.Effect != "" {
+				tol.Selector = types.Selector(fmt.Sprintf("%s:%s", tolExpr, toleration.Effect))
+			} else {
+				tol.Selector = types.Selector(tolExpr)
+			}
 			tols = append(tols, tol)
 		}
 	}
@@ -1068,7 +1071,7 @@ func convertPodConditions(conditions []v1.PodCondition) ([]types.PodCondition, e
 			return nil, err
 		}
 		kCond.Type = typ
-		status, err := convertPodConditionStatus(cond.Status)
+		status, err := convertConditionStatus(cond.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -1101,7 +1104,7 @@ func convertPodConditionType(typ v1.PodConditionType) (types.PodConditionType, e
 	return "", util.TypeValueErrorf(typ, "Unexpected value %s", typ)
 }
 
-func convertPodConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
+func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
 	if status == "" {
 		return "", nil
 	}
