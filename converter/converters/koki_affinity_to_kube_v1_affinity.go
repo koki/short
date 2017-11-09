@@ -10,81 +10,84 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
-func Convert_Koki_Affinity_to_Kube_v1_Affinity(a []types.Affinity) (*v1.Affinity, error) {
-	node, pod, antiPod, err := splitAffinities(a)
+func Convert_Koki_Affinity_to_Kube_v1_Affinity(kokiAffinities []types.Affinity) (*v1.Affinity, error) {
+	node, pod, antiPod, err := splitAffinities(kokiAffinities)
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := nodeAffinity(node)
+	kubeNode, err := revertNodeAffinity(node)
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := podAffinity(pod)
+	kubePod, err := revertPodAffinity(pod)
 	if err != nil {
 		return nil, err
 	}
 
-	ap, err := podAntiAffinity(antiPod)
+	kubeAntiPod, err := revertPodAntiAffinity(antiPod)
 	if err != nil {
 		return nil, err
 	}
 
-	if n == nil && p == nil && ap == nil {
+	if kubeNode == nil && kubePod == nil && kubeAntiPod == nil {
 		return nil, nil
 	}
 
 	return &v1.Affinity{
-		NodeAffinity:    n,
-		PodAffinity:     p,
-		PodAntiAffinity: ap,
+		NodeAffinity:    kubeNode,
+		PodAffinity:     kubePod,
+		PodAntiAffinity: kubeAntiPod,
 	}, nil
 }
 
+// PodAffinity is the subset of koki Affinity fields for pod affinity.
 type PodAffinity struct {
 	Affinity   string
 	Topology   string
 	Namespaces []string
 }
 
-func splitAffinities(as []types.Affinity) (node []string, pod, antiPod []PodAffinity, err error) {
+// Separate a generic list of Affinities into a list for each type of Affinity.
+func splitAffinities(affinities []types.Affinity) (node []string, pod, antiPod []PodAffinity, err error) {
 	node = []string{}
 	pod = []PodAffinity{}
 	antiPod = []PodAffinity{}
 
-	for _, a := range as {
+	for _, affinity := range affinities {
 		switch {
-		case len(a.NodeAffinity) > 0:
-			node = append(node, a.NodeAffinity)
-		case len(a.PodAffinity) > 0:
+		case len(affinity.NodeAffinity) > 0:
+			node = append(node, affinity.NodeAffinity)
+		case len(affinity.PodAffinity) > 0:
 			pod = append(pod, PodAffinity{
-				Affinity:   a.PodAffinity,
-				Topology:   a.Topology,
-				Namespaces: a.Namespaces,
+				Affinity:   affinity.PodAffinity,
+				Topology:   affinity.Topology,
+				Namespaces: affinity.Namespaces,
 			})
-		case len(a.PodAntiAffinity) > 0:
+		case len(affinity.PodAntiAffinity) > 0:
 			antiPod = append(antiPod, PodAffinity{
-				Affinity:   a.PodAntiAffinity,
-				Topology:   a.Topology,
-				Namespaces: a.Namespaces,
+				Affinity:   affinity.PodAntiAffinity,
+				Topology:   affinity.Topology,
+				Namespaces: affinity.Namespaces,
 			})
 		default:
-			err = fmt.Errorf("unrecognized affinity %#v", a)
+			err = util.TypeValueErrorf(affinity, "unrecognized %#v", affinity)
 		}
 	}
 
 	return
 }
 
-func podAntiAffinity(as []PodAffinity) (*v1.PodAntiAffinity, error) {
-	if len(as) == 0 {
+func revertPodAntiAffinity(affinities []PodAffinity) (*v1.PodAntiAffinity, error) {
+	if len(affinities) == 0 {
 		return nil, nil
 	}
 
-	hard, soft, err := podAffinities(as)
+	hard, soft, err := splitAndRevertPodAffinity(affinities)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +106,12 @@ func podAntiAffinity(as []PodAffinity) (*v1.PodAntiAffinity, error) {
 	}, nil
 }
 
-func podAffinity(as []PodAffinity) (*v1.PodAffinity, error) {
-	if len(as) == 0 {
+func revertPodAffinity(affinities []PodAffinity) (*v1.PodAffinity, error) {
+	if len(affinities) == 0 {
 		return nil, nil
 	}
 
-	hard, soft, err := podAffinities(as)
+	hard, soft, err := splitAndRevertPodAffinity(affinities)
 	if err != nil {
 		return nil, err
 	}
@@ -127,25 +130,25 @@ func podAffinity(as []PodAffinity) (*v1.PodAffinity, error) {
 	}, nil
 }
 
-func podAffinities(as []PodAffinity) (hard []v1.PodAffinityTerm, soft []v1.WeightedPodAffinityTerm, err error) {
+func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityTerm, soft []v1.WeightedPodAffinityTerm, err error) {
 	hard = []v1.PodAffinityTerm{}
 	soft = []v1.WeightedPodAffinityTerm{}
-	for _, a := range as {
-		segs := strings.Split(a.Affinity, ":")
+	for _, affinity := range affinities {
+		segs := strings.Split(affinity.Affinity, ":")
 		l := len(segs)
 
 		var term *v1.PodAffinityTerm
 		if l < 1 {
-			err = fmt.Errorf("unrecognized PodAffinity %s", a)
+			err = fmt.Errorf("unrecognized PodAffinity %s", affinity)
 			return
 		} else {
-			term, err = podExprs(segs[0])
+			term, err = parsePodExprs(segs[0])
 			if err != nil {
 				return
 			}
 
-			term.TopologyKey = a.Topology
-			term.Namespaces = a.Namespaces
+			term.TopologyKey = affinity.Topology
+			term.Namespaces = affinity.Namespaces
 		}
 
 		if l < 2 {
@@ -153,7 +156,7 @@ func podAffinities(as []PodAffinity) (hard []v1.PodAffinityTerm, soft []v1.Weigh
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = fmt.Errorf("unrecognized NodeAffinity term %s", a)
+				err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
 				return
 			}
 		}
@@ -177,7 +180,7 @@ func podAffinities(as []PodAffinity) (hard []v1.PodAffinityTerm, soft []v1.Weigh
 	return
 }
 
-func podExprs(s string) (*v1.PodAffinityTerm, error) {
+func parsePodExprs(s string) (*v1.PodAffinityTerm, error) {
 	labels := map[string]string{}
 	reqs := []metav1.LabelSelectorRequirement{}
 	segs := strings.Split(s, "&")
@@ -235,12 +238,12 @@ func podExprs(s string) (*v1.PodAffinityTerm, error) {
 	}, nil
 }
 
-func nodeAffinity(as []string) (*v1.NodeAffinity, error) {
-	if len(as) == 0 {
+func revertNodeAffinity(affinities []string) (*v1.NodeAffinity, error) {
+	if len(affinities) == 0 {
 		return nil, nil
 	}
 
-	hard, soft, err := nodeAffinities(as)
+	hard, soft, err := splitAndRevertNodeAffinity(affinities)
 	if err != nil {
 		return nil, err
 	}
@@ -259,19 +262,19 @@ func nodeAffinity(as []string) (*v1.NodeAffinity, error) {
 	}, nil
 }
 
-func nodeAffinities(as []string) (hard []v1.NodeSelectorTerm, soft []v1.PreferredSchedulingTerm, err error) {
+func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm, soft []v1.PreferredSchedulingTerm, err error) {
 	hard = []v1.NodeSelectorTerm{}
 	soft = []v1.PreferredSchedulingTerm{}
-	for _, a := range as {
-		segs := strings.Split(a, ":")
+	for _, affinity := range affinities {
+		segs := strings.Split(affinity, ":")
 		l := len(segs)
 
 		var term *v1.NodeSelectorTerm
 		if l < 1 {
-			err = fmt.Errorf("unrecognized NodeAffinity term %s", a)
+			err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
 			return
 		} else {
-			term, err = nodeExprs(segs[0])
+			term, err = parseNodeExprs(segs[0])
 			if err != nil {
 				return
 			}
@@ -282,7 +285,7 @@ func nodeAffinities(as []string) (hard []v1.NodeSelectorTerm, soft []v1.Preferre
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = fmt.Errorf("unrecognized NodeAffinity term %s", a)
+				err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
 				return
 			}
 		}
@@ -306,7 +309,7 @@ func nodeAffinities(as []string) (hard []v1.NodeSelectorTerm, soft []v1.Preferre
 	return
 }
 
-func nodeExprs(s string) (*v1.NodeSelectorTerm, error) {
+func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	reqs := []v1.NodeSelectorRequirement{}
 	segs := strings.Split(s, "&")
 	for _, seg := range segs {
@@ -354,6 +357,7 @@ func nodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	return &v1.NodeSelectorTerm{reqs}, nil
 }
 
+// Expr is the generic AST format of a koki NodeSelectorRequirement or LabelSelectorRequirement
 type Expr struct {
 	Key    string
 	Op     string
