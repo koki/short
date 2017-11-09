@@ -10,7 +10,8 @@ type Container struct {
 	Env                  []Env                    `json:"env,omitempty"`
 	Image                string                   `json:"image"`
 	Pull                 PullPolicy               `json:"pull,omitempty"`
-	Lifecycle            *Lifecycle               `json:"lifecycle,omitempty"`
+	OnStart              *Action                  `json:"on_start,omitempty"`
+	PreStop              *Action                  `json:"pre_stop,omitempty"`
 	CPU                  *CPU                     `json:"cpu,omitempty"`
 	Mem                  *Mem                     `json:"mem,omitempty"`
 	Name                 string                   `json:"name,omitempty"`

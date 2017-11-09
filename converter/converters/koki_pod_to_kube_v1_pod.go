@@ -62,7 +62,200 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	}
 	kubePod.Spec.HostAliases = hostAliases
 
+	restartPolicy, err := revertRestartPolicy(kokiPod.RestartPolicy)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.RestartPolicy = restartPolicy
+
+	affinity, err := revertAffinity(kokiPod.Affinity)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.Affinity = affinity
+
+	kubePod.Spec.TerminationGracePeriodSeconds = kokiPod.TerminationGracePeriod
+	kubePod.Spec.ActiveDeadlineSeconds = kokiPod.ActiveDeadline
+
+	dnsPolicy, err := revertDNSPolicy(kokiPod.DNSPolicy)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.DNSPolicy = dnsPolicy
+
+	serviceAccount, autoMount, err := revertServiceAccount(kokiPod.Account)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.ServiceAccountName = serviceAccount
+	kubePod.Spec.AutomountServiceAccountToken = autoMount
+	kubePod.Spec.NodeName = kokiPod.Node
+
+	net, pid, ipc, err := revertHostModes(kokiPod.HostMode)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.HostNetwork = net
+	kubePod.Spec.HostPID = pid
+	kubePod.Spec.HostIPC = ipc
+	kubePod.Spec.ImagePullSecrets = revertRegistries(kokiPod.Registries)
+	kubePod.Spec.SchedulerName = kokiPod.SchedulerName
+
+	tolerations, err := revertTolerations(kokiPod.Tolerations)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Spec.Tolerations = tolerations
+
+	if kokiPod.FSGID != nil || kokiPod.GIDs != nil {
+		kubePod.Spec.SecurityContext = &v1.PodSecurityContext{}
+		kubePod.Spec.SecurityContext.FSGroup = kokiPod.FSGID
+		kubePod.Spec.SecurityContext.SupplementalGroups = kokiPod.GIDs
+	}
+
+	if kokiPod.Priority != nil {
+		kubePod.Spec.Priority = kokiPod.Priority.Value
+		kubePod.Spec.PriorityClassName = kokiPod.Priority.Class
+	}
+
 	return kubePod, nil
+}
+
+func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) {
+	var kubeTolerations []v1.Toleration
+
+	for i := range tolerations {
+		toleration := tolerations[i]
+		kubeToleration := v1.Toleration{
+			TolerationSeconds: toleration.ExpiryAfter,
+		}
+
+		fields := strings.Split(string(toleration.Selector), "=")
+		if len(fields) == 1 {
+			kubeToleration.Key = fields[0]
+			kubeToleration.Operator = v1.TolerationOpExists
+		} else if len(fields) == 2 {
+			kubeToleration.Key = fields[0]
+			kubeToleration.Operator = v1.TolerationOpEqual
+			kubeToleration.Value = fields[1]
+		} else {
+			return nil, util.TypeValueErrorf(toleration, "Unexpected toleration selector %s", toleration.Selector)
+		}
+
+		if kubeToleration.Value != "" {
+			fields := strings.Split(kubeToleration.Value, ":")
+			if len(fields) == 2 {
+				kubeToleration.Value = fields[0]
+				switch fields[1] {
+				case "NoSchedule":
+					kubeToleration.Effect = v1.TaintEffectNoSchedule
+				case "PreferNoSchedule":
+					kubeToleration.Effect = v1.TaintEffectPreferNoSchedule
+				case "NoExecute":
+					kubeToleration.Effect = v1.TaintEffectNoExecute
+				default:
+					return nil, util.TypeValueErrorf(toleration, "Unexpected toleration selector %s", toleration.Selector)
+				}
+			} else if len(fields) != 1 {
+				return nil, util.TypeValueErrorf(toleration, "Unexpected toleration effect %s", toleration.Selector)
+			}
+		}
+
+		kubeTolerations = append(kubeTolerations, kubeToleration)
+	}
+
+	return kubeTolerations, nil
+}
+
+func revertRegistries(registries []string) []v1.LocalObjectReference {
+	var kubeRegistries []v1.LocalObjectReference
+
+	for i := range registries {
+		ref := v1.LocalObjectReference{
+			Name: registries[i],
+		}
+		kubeRegistries = append(kubeRegistries, ref)
+	}
+
+	return kubeRegistries
+}
+
+func revertHostModes(modes []types.HostMode) (net bool, pid bool, ipc bool, err error) {
+	for i := range modes {
+		mode := modes[i]
+		switch mode {
+		case types.HostModeNet:
+			net = true
+		case types.HostModePID:
+			pid = true
+		case types.HostModeIPC:
+			ipc = true
+		default:
+			return false, false, false, util.TypeValueErrorf(modes, "Unexpected host mode value %s", mode)
+		}
+	}
+
+	return net, pid, ipc, nil
+}
+
+func revertServiceAccount(account string) (string, *bool, error) {
+	if account == "" {
+		return "", nil, nil
+	}
+
+	var auto bool
+	fields := strings.Split(account, ":")
+	if len(fields) == 2 {
+		if fields[1] == "auto" {
+			auto = true
+		} else {
+			return "", &auto, util.TypeValueErrorf(account, "Unexpected service account automount value %s", fields[1])
+		}
+		return fields[1], &auto, nil
+	} else if len(fields) == 1 {
+		return fields[0], &auto, nil
+	} else {
+		return "", &auto, util.TypeValueErrorf(account, "Unexpected service account value %s", account)
+	}
+
+	return "", &auto, nil
+}
+
+func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
+	if dnsPolicy == "" {
+		return "", nil
+	}
+	if dnsPolicy == types.DNSClusterFirstWithHostNet {
+		return v1.DNSClusterFirstWithHostNet, nil
+	}
+	if dnsPolicy == types.DNSClusterFirst {
+		return v1.DNSClusterFirst, nil
+	}
+	if dnsPolicy == types.DNSDefault {
+		return v1.DNSDefault, nil
+	}
+	return "", util.TypeValueErrorf(dnsPolicy, "Unexpected value %s", dnsPolicy)
+
+}
+
+func revertAffinity(affinities []types.Affinity) (*v1.Affinity, error) {
+	return nil, nil
+}
+
+func revertRestartPolicy(policy types.RestartPolicy) (v1.RestartPolicy, error) {
+	if policy == "" {
+		return "", nil
+	}
+	if policy == types.RestartPolicyAlways {
+		return v1.RestartPolicyAlways, nil
+	}
+	if policy == types.RestartPolicyOnFailure {
+		return v1.RestartPolicyOnFailure, nil
+	}
+	if policy == types.RestartPolicyNever {
+		return v1.RestartPolicyNever, nil
+	}
+	return "", util.TypeValueErrorf(policy, "Unexpected restart policy %s", policy)
 }
 
 func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
@@ -138,10 +331,191 @@ func revertKokiContainer(container types.Container) (v1.Container, error) {
 	kubeContainer.StdinOnce = container.StdinOnce
 	kubeContainer.TTY = container.TTY
 
-	// TODO: LifeCycle
-	// TODO: SecurityContext
+	lc, err := revertLifecycle(container.OnStart, container.PreStop)
+	if err != nil {
+		return v1.Container{}, err
+	}
+	kubeContainer.Lifecycle = lc
+
+	sc, err := revertSecurityContext(container)
+	if err != nil {
+		return v1.Container{}, err
+	}
+	kubeContainer.SecurityContext = sc
 
 	return kubeContainer, nil
+}
+
+func revertSecurityContext(container types.Container) (*v1.SecurityContext, error) {
+	sc := &v1.SecurityContext{}
+
+	var mark bool
+
+	if container.Privileged != nil {
+		sc.Privileged = container.Privileged
+		mark = true
+	}
+
+	if container.AllowEscalation != nil {
+		sc.AllowPrivilegeEscalation = container.AllowEscalation
+		mark = true
+	}
+
+	if container.RO != nil || container.RW != nil {
+		ro := *container.RO
+		rw := *container.RW
+
+		if !((!ro && rw) || (!rw && ro)) {
+			return nil, util.TypeValueErrorf(container, "Conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
+		}
+
+		sc.ReadOnlyRootFilesystem = &ro
+		mark = true
+	}
+
+	if container.ForceNonRoot != nil {
+		sc.RunAsNonRoot = container.ForceNonRoot
+		mark = true
+	}
+
+	if container.UID != nil {
+		sc.RunAsUser = container.UID
+		mark = true
+	}
+
+	if container.AddCapabilities != nil || container.DelCapabilities != nil {
+		caps := &v1.Capabilities{}
+		var capMark bool
+		for i := range container.AddCapabilities {
+			capability := container.AddCapabilities[i]
+			caps.Add = append(caps.Add, v1.Capability(capability))
+			capMark = true
+		}
+
+		for i := range container.DelCapabilities {
+			capability := container.DelCapabilities[i]
+			caps.Drop = append(caps.Drop, v1.Capability(capability))
+			capMark = true
+		}
+
+		if capMark {
+			sc.Capabilities = caps
+			mark = true
+		}
+	}
+
+	if container.SELinux != nil {
+		sc.SELinuxOptions = &v1.SELinuxOptions{
+			User:  container.SELinux.User,
+			Role:  container.SELinux.Role,
+			Type:  container.SELinux.Type,
+			Level: container.SELinux.Level,
+		}
+		mark = true
+	}
+
+	if !mark {
+		return nil, nil
+	}
+	return sc, nil
+}
+
+func revertLifecycle(onStart, preStop *types.Action) (*v1.Lifecycle, error) {
+	var lc *v1.Lifecycle
+
+	kubeOnStart, err := revertLifecycleAction(onStart)
+	if err != nil {
+		return nil, err
+	}
+
+	kubePreStop, err := revertLifecycleAction(preStop)
+	if err != nil {
+		return nil, err
+	}
+
+	if onStart != nil || preStop != nil {
+		lc = &v1.Lifecycle{}
+		lc.PostStart = kubeOnStart
+		lc.PreStop = kubePreStop
+	}
+
+	return lc, nil
+}
+
+func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
+	if action == nil {
+		return nil, nil
+	}
+
+	handler := &v1.Handler{}
+
+	if action.Command != nil {
+		handler.Exec = &v1.ExecAction{
+			Command: action.Command,
+		}
+	}
+
+	if action.Net != nil {
+		urlStruct, err := url.Parse(action.Net.URL)
+		if err != nil {
+			return nil, err
+		}
+		var host string
+		var port intstr.IntOrString
+
+		hostPort := urlStruct.Host
+		fields := strings.Split(hostPort, ":")
+		if len(fields) == 2 {
+			host = fields[0]
+			port = intstr.FromString(fields[1])
+		} else if len(fields) == 1 {
+			host = hostPort
+		} else {
+			return nil, util.TypeValueErrorf(action.Net, "Unexpected HostPort %s", action.Net.URL)
+		}
+
+		if urlStruct.Scheme == "HTTP" || urlStruct.Scheme == "HTTPS" {
+			var scheme v1.URIScheme
+			if urlStruct.Scheme == "HTTP" {
+				scheme = v1.URISchemeHTTP
+			} else {
+				scheme = v1.URISchemeHTTPS
+			}
+
+			path := urlStruct.Path
+
+			var headers []v1.HTTPHeader
+			for i := range action.Net.Headers {
+				header := action.Net.Headers[i]
+				fields := strings.Split(header, ":")
+				if len(fields) != 2 {
+					return nil, util.TypeValueErrorf(action.Net, "Unexpected HTTP Header %s", header)
+				}
+				kubeHeader := v1.HTTPHeader{
+					Name:  fields[0],
+					Value: fields[1],
+				}
+				headers = append(headers, kubeHeader)
+			}
+
+			handler.HTTPGet = &v1.HTTPGetAction{
+				Scheme:      scheme,
+				Path:        path,
+				Port:        port,
+				Host:        host,
+				HTTPHeaders: headers,
+			}
+		} else if urlStruct.Scheme == "TCP" {
+			handler.TCPSocket = &v1.TCPSocketAction{
+				Host: host,
+				Port: port,
+			}
+		} else {
+			return nil, util.TypeValueErrorf(action.Net, "Unexpected URL Scheme %s", urlStruct.Scheme)
+		}
+	}
+
+	return handler, nil
 }
 
 func revertVolumeMounts(mounts []types.VolumeMount) []v1.VolumeMount {
