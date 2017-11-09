@@ -118,7 +118,200 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 		kubePod.Spec.PriorityClassName = kokiPod.Priority.Class
 	}
 
+	kubePod.Status = v1.PodStatus{}
+
+	phase, err := revertPodPhase(kokiPod.Phase)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Status.Phase = phase
+	kubePod.Status.Message = kokiPod.Msg
+	kubePod.Status.Reason = kokiPod.Reason
+	kubePod.Status.HostIP = kokiPod.NodeIP
+	kubePod.Status.PodIP = kokiPod.IP
+
+	qos, err := revertQOSClass(kokiPod.QOS)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Status.QOSClass = qos
+	kubePod.Status.StartTime = kokiPod.StartTime
+
+	conditions, err := revertPodConditions(kokiPod.Conditions)
+	if err != nil {
+		return nil, err
+	}
+	kubePod.Status.Conditions = conditions
+
+	var initContainerStatuses []v1.ContainerStatus
+	for i := range kokiPod.InitContainers {
+		container := kokiPod.InitContainers[i]
+		status, err := revertContainerStatus(container)
+		if err != nil {
+			return nil, err
+		}
+		initContainerStatuses = append(initContainerStatuses, status)
+	}
+	kubePod.Status.InitContainerStatuses = initContainerStatuses
+
+	var containerStatuses []v1.ContainerStatus
+	for i := range kokiPod.Containers {
+		container := kokiPod.Containers[i]
+		status, err := revertContainerStatus(container)
+		if err != nil {
+			return nil, err
+		}
+		if status.ContainerID != "" {
+			containerStatuses = append(containerStatuses, status)
+		}
+	}
+	kubePod.Status.ContainerStatuses = containerStatuses
+
 	return kubePod, nil
+}
+
+func revertContainerStatus(container types.Container) (v1.ContainerStatus, error) {
+	var status v1.ContainerStatus
+
+	status.ContainerID = container.ContainerID
+	status.ImageID = container.ImageID
+	status.RestartCount = container.Restarts
+	status.Ready = container.Ready
+	status.State = revertContainerState(container.CurrentState)
+	status.LastTerminationState = revertContainerState(container.LastState)
+
+	return status, nil
+}
+
+func revertContainerState(state *types.ContainerState) v1.ContainerState {
+	containerState := v1.ContainerState{}
+	if state.Waiting != nil {
+		containerState.Waiting = &v1.ContainerStateWaiting{
+			Reason:  state.Waiting.Reason,
+			Message: state.Waiting.Msg,
+		}
+	}
+	if state.Running != nil {
+		containerState.Running = &v1.ContainerStateRunning{
+			StartedAt: state.Running.StartTime,
+		}
+	}
+	if state.Terminated != nil {
+		containerState.Terminated = &v1.ContainerStateTerminated{
+			StartedAt:  state.Terminated.StartTime,
+			FinishedAt: state.Terminated.FinishTime,
+			Reason:     state.Terminated.Reason,
+			Message:    state.Terminated.Msg,
+			Signal:     state.Terminated.Signal,
+			ExitCode:   state.Terminated.ExitCode,
+		}
+	}
+	return containerState
+}
+
+func revertQOSClass(class types.PodQOSClass) (v1.PodQOSClass, error) {
+	if class == "" {
+		return "", nil
+	}
+	if class == types.PodQOSGuaranteed {
+		return v1.PodQOSGuaranteed, nil
+	}
+	if class == types.PodQOSBurstable {
+		return v1.PodQOSBurstable, nil
+	}
+	if class == types.PodQOSBestEffort {
+		return v1.PodQOSBestEffort, nil
+	}
+	return "", util.TypeValueErrorf(class, "Unexpected value %s", class)
+}
+
+func revertPodPhase(phase types.PodPhase) (v1.PodPhase, error) {
+	if phase == "" {
+		return "", nil
+	}
+	if phase == types.PodPending {
+		return v1.PodPending, nil
+	}
+	if phase == types.PodRunning {
+		return v1.PodRunning, nil
+	}
+	if phase == types.PodSucceeded {
+		return v1.PodSucceeded, nil
+	}
+	if phase == types.PodFailed {
+		return v1.PodFailed, nil
+	}
+	if phase == types.PodUnknown {
+		return v1.PodUnknown, nil
+	}
+	return "", util.TypeValueErrorf(phase, "Unexpected value %s", phase)
+}
+
+func revertPodConditions(conditions []types.PodCondition) ([]v1.PodCondition, error) {
+	var kubeConditions []v1.PodCondition
+
+	for i := range conditions {
+		condition := conditions[i]
+
+		kubeCondition := v1.PodCondition{
+			LastProbeTime:      condition.LastProbeTime,
+			LastTransitionTime: condition.LastTransitionTime,
+			Message:            condition.Msg,
+			Reason:             condition.Reason,
+		}
+
+		podConditionType, err := revertPodConditionType(condition.Type)
+		if err != nil {
+			return nil, err
+		}
+		kubeCondition.Type = podConditionType
+
+		podConditionStatus, err := revertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, err
+		}
+		kubeCondition.Status = podConditionStatus
+
+		kubeConditions = append(kubeConditions, kubeCondition)
+	}
+
+	return kubeConditions, nil
+}
+
+func revertPodConditionType(typ types.PodConditionType) (v1.PodConditionType, error) {
+	if typ == "" {
+		return "", nil
+	}
+	if typ == types.PodScheduled {
+		return v1.PodScheduled, nil
+	}
+	if typ == types.PodReady {
+		return v1.PodReady, nil
+	}
+	if typ == types.PodInitialized {
+		return v1.PodInitialized, nil
+	}
+	if typ == types.PodReasonUnschedulable {
+		return v1.PodReasonUnschedulable, nil
+	}
+	return "", util.TypeValueErrorf(typ, "Unexpected value %s", typ)
+}
+
+func revertConditionStatus(status types.ConditionStatus) (v1.ConditionStatus, error) {
+	if status == "" {
+		return "", nil
+	}
+	if status == types.ConditionTrue {
+		return v1.ConditionTrue, nil
+	}
+	if status == types.ConditionFalse {
+		return v1.ConditionFalse, nil
+	}
+	if status == types.ConditionUnknown {
+		return v1.ConditionUnknown, nil
+	}
+	return "", util.TypeValueErrorf(status, "Unexpected value %s", status)
+
 }
 
 func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) {

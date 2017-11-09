@@ -1071,7 +1071,7 @@ func convertPodConditions(conditions []v1.PodCondition) ([]types.PodCondition, e
 			return nil, err
 		}
 		kCond.Type = typ
-		status, err := convertPodConditionStatus(cond.Status)
+		status, err := convertConditionStatus(cond.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -1104,7 +1104,7 @@ func convertPodConditionType(typ v1.PodConditionType) (types.PodConditionType, e
 	return "", util.TypeValueErrorf(typ, "Unexpected value %s", typ)
 }
 
-func convertPodConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
+func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
 	if status == "" {
 		return "", nil
 	}
