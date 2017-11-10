@@ -138,6 +138,4 @@ imports:
   version: 61b46af70dfed79c6d24530cd23b41440a7f22a5
   subpackages:
   - pkg/common
-testImports:
-- name: github.com/kr/text
-  version: 7cafcd837844e784b526369c9bce262804aebc60
+testImports: []
