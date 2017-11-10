@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/golang/glog"
+	"github.com/kr/pretty"
 )
 
 func ExitWithErr(msg interface{}) {
@@ -25,15 +26,19 @@ func TypeValueErrorf(obj, f interface{}, args ...interface{}) error {
 	return errorf(fmt.Sprintf("Unknown value for type '%s'", reflect.TypeOf(obj)), f, args...)
 }
 
+func PrettyTypeError(obj interface{}, msg string) error {
+	return TypeValueErrorf(obj, pretty.Sprintf("%s (%# v)", msg, obj))
+}
+
 func errorf(addedMsg, f interface{}, args ...interface{}) error {
 	format := ""
-	switch f.(type) {
+	switch f := f.(type) {
 	case string:
-		format = f.(string)
+		format = f
 	case fmt.Stringer:
-		format = f.(fmt.Stringer).String()
+		format = f.String()
 	case error:
-		format = f.(error).Error()
+		format = f.Error()
 	default:
 		glog.Errorf("unrecognized format type %v", f)
 	}

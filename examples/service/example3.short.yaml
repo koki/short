@@ -1,0 +1,11 @@
+service:
+  clientIPAffinitySeconds: Default
+  clusterIP: 1.1.1.10
+  externalIPs:
+  - 1.1.1.1
+  name: example
+  podLabels:
+    labelKey: labelValue
+  ports:
+    http: 80:8080:999:TCP
+  version: v1

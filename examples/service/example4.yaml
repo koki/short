@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: example
+spec:
+  clusterIP: 1.1.1.10
+  externalIPs:
+  - 1.1.1.1
+  externalTrafficPolicy: Local
+  loadBalancerIP: 100.1.1.1
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0
+  ports:
+  - name: http
+    nodePort: 999
+    port: 80
+    targetPort: 8080
+  selector:
+    labelKey: labelValue
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - hostname: ingressHostname
+    - ip: 1.2.3.4
