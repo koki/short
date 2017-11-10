@@ -34,7 +34,7 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 	kubeService.Spec.Selector = kokiService.PodLabels
 	kubeService.Spec.ClusterIP = string(kokiService.ClusterIP)
 	kubeService.Spec.ExternalIPs = revertExternalIPs(kokiService.ExternalIPs)
-	err = revertSessionAffinityInto(kokiService.ClientIPAffinity, &kubeService.Spec)
+	kubeService.Spec.SessionAffinity, kubeService.Spec.SessionAffinityConfig, err = revertSessionAffinity(kokiService.ClientIPAffinity)
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +46,21 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 		return nil, err
 	}
 
-	err = revertPortsInto(kokiService, &kubeService.Spec)
+	hasNodePort, kubePorts, err := revertPorts(kokiService)
 	if err != nil {
 		return nil, err
 	}
+	kubeService.Spec.Ports = kubePorts
+	if hasNodePort {
+		kubeService.Spec.Type = v1.ServiceTypeNodePort
+	}
 
-	if kokiService.LoadBalancer != nil {
+	if kokiLB := kokiService.LoadBalancer; kokiLB != nil {
 		kubeService.Spec.Type = v1.ServiceTypeLoadBalancer
-		revertLoadBalancerInto(kokiService.LoadBalancer, kubeService)
+		kubeService.Spec.HealthCheckNodePort = kokiLB.HealthCheckNodePort
+		kubeService.Spec.LoadBalancerIP = string(kokiLB.IP)
+		kubeService.Spec.LoadBalancerSourceRanges = revertLoadBalancerSources(kokiLB.Allowed)
+		kubeService.Status.LoadBalancer.Ingress = revertIngress(kokiLB.Ingress)
 	}
 
 	return kubeService, nil
@@ -87,35 +94,32 @@ func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, erro
 }
 
 // Set the Service's Ports and its Type (if there are NodePorts).
-func revertPortsInto(kokiService *types.Service, into *v1.ServiceSpec) error {
+func revertPorts(kokiService *types.Service) (hasNodePort bool, kubePorts []v1.ServicePort, err error) {
 	if kokiService.Port != nil {
 		kubePort, err := revertPort("", kokiService.Port)
 		if err != nil {
-			return err
+			return false, nil, err
 		}
 
-		into.Ports = []v1.ServicePort{*kubePort}
-		if kubePort.NodePort != 0 {
-			into.Type = v1.ServiceTypeNodePort
-		}
-	} else {
-		kubePorts := make([]v1.ServicePort, 0, len(kokiService.Ports))
-		for name, kokiPort := range kokiService.Ports {
-			kubePort, err := revertPort(name, &kokiPort)
-			if err != nil {
-				return err
-			}
-
-			kubePorts = append(kubePorts, *kubePort)
-			if kubePort.NodePort != 0 {
-				into.Type = v1.ServiceTypeNodePort
-			}
-		}
-
-		into.Ports = kubePorts
+		kubePorts = []v1.ServicePort{*kubePort}
+		hasNodePort = kubePort.NodePort != 0
+		return hasNodePort, kubePorts, nil
 	}
 
-	return nil
+	kubePorts = make([]v1.ServicePort, 0, len(kokiService.Ports))
+	for name, kokiPort := range kokiService.Ports {
+		kubePort, err := revertPort(name, &kokiPort)
+		if err != nil {
+			return false, nil, err
+		}
+
+		kubePorts = append(kubePorts, *kubePort)
+		if kubePort.NodePort != 0 {
+			hasNodePort = true
+		}
+	}
+
+	return hasNodePort, kubePorts, nil
 }
 
 func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.ServiceExternalTrafficPolicyType, error) {
@@ -129,16 +133,6 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	default:
 		return "", util.PrettyTypeError(policy, "unrecognized policy")
 	}
-}
-
-// Set LoadBalancer fields in Spec and Status.
-func revertLoadBalancerInto(kokiLB *types.LoadBalancer, into *v1.Service) {
-	into.Spec.HealthCheckNodePort = kokiLB.HealthCheckNodePort
-
-	into.Spec.LoadBalancerIP = string(kokiLB.IP)
-	into.Spec.LoadBalancerSourceRanges = revertLoadBalancerSources(kokiLB.Allowed)
-
-	into.Status.LoadBalancer.Ingress = revertIngress(kokiLB.Ingress)
 }
 
 func revertIngress(kokiIngress []types.Ingress) []v1.LoadBalancerIngress {
@@ -163,25 +157,23 @@ func revertLoadBalancerSources(kokiCIDRs []types.CIDR) []string {
 	return strs
 }
 
-func revertSessionAffinityInto(kokiAffinity *intstr.IntOrString, into *v1.ServiceSpec) error {
+func revertSessionAffinity(kokiAffinity *intstr.IntOrString) (v1.ServiceAffinity, *v1.SessionAffinityConfig, error) {
 	if kokiAffinity == nil {
-		return nil
+		return "", nil, nil
 	}
 
 	if reflect.DeepEqual(kokiAffinity, types.ClientIPAffinityDefault()) {
-		into.SessionAffinity = "ClientIP"
-		return nil
+		return v1.ServiceAffinityClientIP, nil, nil
 	}
 
 	switch kokiAffinity.Type {
 	case intstr.Int:
-		into.SessionAffinity = "ClientIP"
-		into.SessionAffinityConfig = &v1.SessionAffinityConfig{
+		sessionAffinityConfig := &v1.SessionAffinityConfig{
 			&v1.ClientIPConfig{util.Int32Ptr(kokiAffinity.IntVal)},
 		}
-		return nil
+		return v1.ServiceAffinityClientIP, sessionAffinityConfig, nil
 	default:
-		return util.PrettyTypeError(kokiAffinity, "unrecognized client IP affinity")
+		return "", nil, util.PrettyTypeError(kokiAffinity, "unrecognized client IP affinity")
 	}
 }
 
