@@ -26,6 +26,10 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 
 	for k := range objMap {
 		switch k {
+		case "deployment":
+			deployment := &types.DeploymentWrapper{}
+			err := json.Unmarshal(bytes, deployment)
+			return deployment, err
 		case "persistentVolume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)
@@ -34,22 +38,18 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			pod := &types.PodWrapper{}
 			err := json.Unmarshal(bytes, pod)
 			return pod, err
+		case "replicaSet":
+			replicaSet := &types.ReplicaSetWrapper{}
+			err := json.Unmarshal(bytes, replicaSet)
+			return replicaSet, err
+		case "replicationController":
+			replicationController := &types.ReplicationControllerWrapper{}
+			err := json.Unmarshal(bytes, replicationController)
+			return replicationController, err
 		case "service":
 			service := &types.ServiceWrapper{}
 			err := json.Unmarshal(bytes, service)
 			return service, err
-		}
-
-		if k == "replicaSet" {
-			replicaSet := &types.ReplicaSetWrapper{}
-			err := json.Unmarshal(bytes, replicaSet)
-			return replicaSet, err
-		}
-
-		if k == "replicationController" {
-			replicationController := &types.ReplicationControllerWrapper{}
-			err := json.Unmarshal(bytes, replicationController)
-			return replicationController, err
 		}
 
 		return nil, util.TypeValueErrorf(objMap, "Unexpected value %s", k)

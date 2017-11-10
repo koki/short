@@ -8,7 +8,7 @@ import (
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_ReplicaSet_to_Kube_v1_ReplicaSet(rc *types.ReplicaSetWrapper) (*apps.ReplicaSet, error) {
+func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rc *types.ReplicaSetWrapper) (*apps.ReplicaSet, error) {
 	var err error
 	kubeRC := &apps.ReplicaSet{}
 	kokiRC := rc.ReplicaSet
