@@ -77,7 +77,7 @@ func TestRevert(t *testing.T) {
 }
 
 func testRevertAffinities(t *testing.T, as ...types.Affinity) {
-	_, err := Convert_Koki_Affinity_to_Kube_v1_Affinity(as)
+	_, err := convert_Koki_Affinity_to_Kube_v1_Affinity(as)
 	if err != nil {
 		t.Error(err)
 	}

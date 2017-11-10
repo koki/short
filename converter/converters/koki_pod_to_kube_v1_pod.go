@@ -69,7 +69,7 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	}
 	kubePod.Spec.RestartPolicy = restartPolicy
 
-	affinity, err := Convert_Koki_Affinity_to_Kube_v1_Affinity(kokiPod.Affinity)
+	affinity, err := convert_Koki_Affinity_to_Kube_v1_Affinity(kokiPod.Affinity)
 	if err != nil {
 		return nil, err
 	}

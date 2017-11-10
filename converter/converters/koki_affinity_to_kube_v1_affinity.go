@@ -13,7 +13,7 @@ import (
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_Affinity_to_Kube_v1_Affinity(kokiAffinities []types.Affinity) (*v1.Affinity, error) {
+func convert_Koki_Affinity_to_Kube_v1_Affinity(kokiAffinities []types.Affinity) (*v1.Affinity, error) {
 	node, pod, antiPod, err := splitAffinities(kokiAffinities)
 	if err != nil {
 		return nil, err
