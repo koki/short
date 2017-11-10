@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/koki/short/converter/converters/affinity"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
@@ -69,7 +70,7 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	}
 	kubePod.Spec.RestartPolicy = restartPolicy
 
-	affinity, err := revertAffinity(kokiPod.Affinity)
+	affinity, err := affinity.Convert_Koki_Affinity_to_Kube_v1_Affinity(kokiPod.Affinity)
 	if err != nil {
 		return nil, err
 	}
