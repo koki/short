@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  creationTimestamp: null
+  labels:
+    component: example
+  name: example
+spec:
+  replicas: 1
+  selector:
+    key0: value0
+    key1: value1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component: example
+    spec:
+      containers:
+      - image: gcr.io/kuard-demo/kuard-amd64:1
+        name: kuard
+        resources: {}

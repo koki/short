@@ -1,0 +1,15 @@
+replicationController:
+  labels:
+    component: example
+  name: example
+  podLabels:
+    key0: value0
+    key1: value1
+  replicas: 1
+  template:
+    containers:
+    - image: gcr.io/kuard-demo/kuard-amd64:1
+      name: kuard
+    labels:
+      component: example
+  version: v1

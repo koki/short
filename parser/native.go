@@ -30,6 +30,19 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			err := json.Unmarshal(bytes, pod)
 			return pod, err
 		}
+
+		if k == "replicaSet" {
+			replicaSet := &types.ReplicaSetWrapper{}
+			err := json.Unmarshal(bytes, replicaSet)
+			return replicaSet, err
+		}
+
+		if k == "replicationController" {
+			replicationController := &types.ReplicationControllerWrapper{}
+			err := json.Unmarshal(bytes, replicationController)
+			return replicationController, err
+		}
+
 		return nil, util.TypeValueErrorf(objMap, "Unexpected value %s", k)
 	}
 
