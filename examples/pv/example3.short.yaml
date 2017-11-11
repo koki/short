@@ -1,0 +1,17 @@
+persistentVolume:
+  accessModes: rw_once
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: wordpress-1
+  name: wordpress-pv-1
+  storage: 20Gi
+  version: v1
+---
+persistentVolume:
+  accessModes: rw_once
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: wordpress-2
+  name: wordpress-pv-2
+  storage: 20Gi
+  version: v1
