@@ -3,13 +3,13 @@ package converters
 import (
 	"reflect"
 
-	apps "k8s.io/api/apps/v1beta2"
+	exts "k8s.io/api/extensions/v1beta1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *apps.Deployment) (*types.DeploymentWrapper, error) {
+func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *exts.Deployment) (*types.DeploymentWrapper, error) {
 	var err error
 	kokiDeployment := &types.Deployment{}
 
@@ -35,7 +35,7 @@ func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *apps.Dep
 	kokiDeployment.Paused = kubeSpec.Paused
 	kokiDeployment.ProgressDeadlineSeconds = kubeSpec.ProgressDeadlineSeconds
 
-	if !reflect.DeepEqual(kubeDeployment.Status, apps.DeploymentStatus{}) {
+	if !reflect.DeepEqual(kubeDeployment.Status, exts.DeploymentStatus{}) {
 		kokiDeployment.Status = &kubeDeployment.Status
 	}
 
@@ -44,8 +44,8 @@ func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *apps.Dep
 	}, nil
 }
 
-func convertDeploymentStrategy(kubeStrategy apps.DeploymentStrategy) (isRecreate bool, maxUnavailable, maxSurge *intstr.IntOrString) {
-	if kubeStrategy.Type == apps.RecreateDeploymentStrategyType {
+func convertDeploymentStrategy(kubeStrategy exts.DeploymentStrategy) (isRecreate bool, maxUnavailable, maxSurge *intstr.IntOrString) {
+	if kubeStrategy.Type == exts.RecreateDeploymentStrategyType {
 		return true, nil, nil
 	}
 

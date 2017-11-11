@@ -14,4 +14,4 @@ replicaSet:
     restartPolicy: Never
     labels:
       component: example
-  version: apps/v1beta2
+  version: extensions/v1beta1

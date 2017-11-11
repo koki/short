@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"strings"
 
-	apps "k8s.io/api/apps/v1beta2"
+	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *apps.ReplicaSet) (*types.ReplicaSetWrapper, error) {
+func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
 	var err error
 	kokiRS := &types.ReplicaSet{}
 
@@ -34,7 +34,7 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *apps.ReplicaSet)
 		return nil, err
 	}
 
-	if !reflect.DeepEqual(kubeRS.Status, apps.ReplicaSetStatus{}) {
+	if !reflect.DeepEqual(kubeRS.Status, exts.ReplicaSetStatus{}) {
 		kokiRS.Status = &kubeRS.Status
 	}
 

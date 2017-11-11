@@ -1,16 +1,16 @@
 package converters
 
 import (
-	apps "k8s.io/api/apps/v1beta2"
+	exts "k8s.io/api/extensions/v1beta1"
 
 	labelselector "github.com/koki/short/converter/converters/affinity"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rc *types.ReplicaSetWrapper) (*apps.ReplicaSet, error) {
+func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rc *types.ReplicaSetWrapper) (*exts.ReplicaSet, error) {
 	var err error
-	kubeRC := &apps.ReplicaSet{}
+	kubeRC := &exts.ReplicaSet{}
 	kokiRC := rc.ReplicaSet
 
 	kubeRC.Name = kokiRC.Name
