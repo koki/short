@@ -1,0 +1,8 @@
+persistentVolume:
+  accessModes: rw_once,ro
+  name: pv0001
+  portworxVolume:
+    volumeID: pv0001
+  reclaimPolicy: Retain
+  storage: 2Gi
+  version: v1

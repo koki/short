@@ -1,0 +1,11 @@
+persistentVolume:
+  accessModes: rw_once
+  mountOptions: hard,nfsvers=4.1
+  name: pv0003
+  nfs:
+    path: /tmp
+    server: 172.17.0.2
+  reclaimPolicy: Recycle
+  storage: 5Gi
+  storageClass: slow
+  version: v1

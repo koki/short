@@ -14,6 +14,8 @@ import (
 
 func detectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.PersistentVolumeWrapper:
+		return converters.Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(kokiObj)
 	case *types.PodWrapper:
 		return converters.Convert_Koki_Pod_to_Kube_v1_Pod(kokiObj)
 	case *types.ReplicationControllerWrapper:
@@ -29,6 +31,8 @@ func detectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func detectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *v1.PersistentVolume:
+		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.Pod:
 		return converters.Convert_Kube_v1_Pod_to_Koki_Pod(kubeObj)
 	case *v1.ReplicationController:

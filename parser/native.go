@@ -26,6 +26,10 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 
 	for k := range objMap {
 		switch k {
+		case "persistentVolume":
+			pv := &types.PersistentVolumeWrapper{}
+			err := json.Unmarshal(bytes, pv)
+			return pv, err
 		case "pod":
 			pod := &types.PodWrapper{}
 			err := json.Unmarshal(bytes, pod)
