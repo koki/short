@@ -114,7 +114,7 @@ func short(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	var convertedData interface{}
+	var convertedData []interface{}
 
 	if kubeNative {
 		glog.V(3).Info("converting input to kubernetes native syntax")
