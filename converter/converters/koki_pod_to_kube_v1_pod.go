@@ -187,6 +187,10 @@ func revertContainerStatus(container types.Container) (v1.ContainerStatus, error
 
 func revertContainerState(state *types.ContainerState) v1.ContainerState {
 	containerState := v1.ContainerState{}
+	if state == nil {
+		return containerState
+	}
+
 	if state.Waiting != nil {
 		containerState.Waiting = &v1.ContainerStateWaiting{
 			Reason:  state.Waiting.Reason,

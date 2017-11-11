@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: example-deployment
+  labels:
+    app: example
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 130%
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example-app
+        image: example/example:latest
+        ports:
+        - containerPort: 80
+status:
+  replicas: 1

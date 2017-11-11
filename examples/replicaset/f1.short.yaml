@@ -30,4 +30,4 @@ replicaSet:
         store: storage
     labels:
       component: elasticsearch
-  version: apps/v1beta2
+  version: extensions/v1beta1
