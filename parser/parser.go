@@ -32,11 +32,11 @@ func Parse(filenames []string, useStdin bool) ([]map[string]interface{}, error) 
 	}
 
 	glog.V(3).Info("decoding input data")
-	return parseStream(streams)
+	return parseStreams(streams)
 }
 
 //parses the stream into a go object and closes the stream once done
-func parseStream(streams []io.ReadCloser) ([]map[string]interface{}, error) {
+func parseStreams(streams []io.ReadCloser) ([]map[string]interface{}, error) {
 	structs := []map[string]interface{}{}
 
 	for i := range streams {

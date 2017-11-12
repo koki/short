@@ -19,8 +19,8 @@ var (
 	RootCmd = &cobra.Command{
 		Use:   "short",
 		Short: "Manageable Kubernetes manifests using koki/short",
-		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax. 
-		
+		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax.
+
 Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
@@ -43,8 +43,8 @@ Full documentation available at https://docs.koki.io/short
   short --kube-native -f pod_short.yaml
   short -k -f pod_short.yaml
 
-  # Output to file 
-  short -f pod.yaml -o pod_short.yaml	
+  # Output to file
+  short -f pod.yaml -o pod_short.yaml
 `,
 	}
 
@@ -106,6 +106,8 @@ func short(c *cobra.Command, args []string) error {
 		glog.V(3).Info("using stdin for input data")
 		useStdin = true
 	}
+
+	return doFilesWithImports(filenames)
 
 	// parse input data from one of the sources - files or stdin
 	glog.V(3).Info("parsing input data")

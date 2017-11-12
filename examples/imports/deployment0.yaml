@@ -1,0 +1,7 @@
+imports:
+- deployment: ../deployment/example1.short.yaml
+  params:
+    pod: ${pod}
+- pod: ../pods/example2.short.yaml
+---
+${deployment}

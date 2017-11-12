@@ -1,0 +1,9 @@
+imports:
+- data_vol: ../pv/example1.short.yaml
+- pod: ../pods/example2.short.yaml
+  params:
+    name: name1
+    containers.nginx.volume_mounts: 
+      ${data_vol}
+---
+${pod}
