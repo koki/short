@@ -1,7 +1,6 @@
 package converters
 
 import (
-	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -37,7 +36,7 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(rs *types.ReplicaSetWrap
 		return nil, err
 	}
 
-	kubeTemplate, err := revertRSTemplate(kokiRS)
+	kubeTemplate, err := revertTemplate(kokiRS.GetTemplate())
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +86,4 @@ func revertRSSelector(selector *types.RSSelector, templateLabels map[string]stri
 	return &metav1.LabelSelector{
 		MatchLabels: selector.Labels,
 	}, templateLabels, nil
-}
-
-func revertRSTemplate(kokiRS *types.ReplicaSet) (*v1.PodTemplateSpec, error) {
-	return revertTemplate(kokiRS.GetTemplate())
 }

@@ -22,11 +22,26 @@ func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Dep
 
 	kubeSpec := &kubeDeployment.Spec
 	kokiDeployment.Replicas = kubeSpec.Replicas
-	kokiTemplate, err := convertRSTemplate(&kubeSpec.Template)
+
+	// Setting the Selector and Template is identical to ReplicaSet
+
+	// Fill out the Selector and Template.Labels.
+	// If kubeDeployment only has Template.Labels, we pull it up to Selector.
+	var templateLabelsOverride map[string]string
+	kokiDeployment.Selector, templateLabelsOverride, err = convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
 	if err != nil {
 		return nil, err
 	}
-	kokiDeployment.Template = *kokiTemplate
+
+	// Build a Pod from the kube Template. Use it to set the koki Template.
+	kokiPod, err := convertRSTemplate(&kubeSpec.Template)
+	if err != nil {
+		return nil, err
+	}
+	kokiPod.Labels = templateLabelsOverride
+	kokiDeployment.SetTemplate(kokiPod)
+
+	// End Selector/Template section.
 
 	kokiDeployment.Recreate, kokiDeployment.MaxUnavailable, kokiDeployment.MaxSurge = convertDeploymentStrategy(kubeSpec.Strategy)
 

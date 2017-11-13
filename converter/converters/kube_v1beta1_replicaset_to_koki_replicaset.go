@@ -28,7 +28,7 @@ func Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet)
 	kokiRS.MinReadySeconds = kubeSpec.MinReadySeconds
 
 	// Fill out the Selector and Template.Labels.
-	// If kubeRS only has Template.Labels, we only set Selector (because it's at a higher level in the yaml).
+	// If kubeRS only has Template.Labels, we pull it up to Selector.
 	var templateLabelsOverride map[string]string
 	kokiRS.Selector, templateLabelsOverride, err = convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
 	if err != nil {
@@ -83,6 +83,14 @@ func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabe
 	}
 
 	if len(kubeSelector.MatchExpressions) == 0 {
+		// We have Labels for both Selector and Template.
+		// If they're equal, we only need one.
+		if reflect.DeepEqual(kubeSelector.MatchLabels, kubeTemplateLabels) {
+			return &types.RSSelector{
+				Labels: kubeSelector.MatchLabels,
+			}, nil, nil
+		}
+
 		return &types.RSSelector{
 			Labels: kubeSelector.MatchLabels,
 		}, kubeTemplateLabels, nil
