@@ -41,7 +41,7 @@ type volumeMountParam struct {
 
 // containers.${CONTAINER_NAME}.volume_mounts:
 func parseVolumeMountParam(key string, value interface{}) (*volumeMountParam, error) {
-	re := regexp.MustCompile(`^containers\.([^\.]*)\.volume_mounts$`)
+	re := regexp.MustCompile(`^containers\.([^\.]*)\.volumeMounts$`)
 
 	matches := re.FindStringSubmatch(key)
 	if len(matches) == 0 {
@@ -84,10 +84,9 @@ func applyVolumeMountParams(params map[string]interface{}, pod *types.Pod) error
 			// TODO: non-persistent volumes
 			switch volume := volume.(type) {
 			case *types.PersistentVolumeWrapper:
-				err := applyPersistentVolumeMount(vmParam, volume, pod)
-				if err != nil {
-					return err
-				}
+				applyPersistentVolume(vmParam, volume, pod)
+			case *types.VolumeWrapper:
+				applyRegularVolume(vmParam, volume, pod)
 			default:
 				return util.PrettyTypeError(volume, "unsupported type for volume mount")
 			}
@@ -97,18 +96,34 @@ func applyVolumeMountParams(params map[string]interface{}, pod *types.Pod) error
 	return nil
 }
 
-func applyPersistentVolumeMount(vmParam *volumeMountParam, volume *types.PersistentVolumeWrapper, pod *types.Pod) error {
+func appendVolumeMountToContainer(containerName string, volumeMount *types.VolumeMount, pod *types.Pod) {
 	for i, container := range pod.Containers {
-		if container.Name == vmParam.ContainerName {
-			volumeName := volume.PersistentVolume.Name
-			volumeMount := &types.VolumeMount{
-				MountPath: "/" + volumeName,
-				Store:     volumeName,
-			}
+		if container.Name == containerName {
 			container.VolumeMounts = append(container.VolumeMounts, *volumeMount)
 			pod.Containers[i] = container
 		}
 	}
+}
 
-	return nil
+// Add just a volume mount.
+func applyPersistentVolume(vmParam *volumeMountParam, volume *types.PersistentVolumeWrapper, pod *types.Pod) {
+	volumeName := volume.PersistentVolume.Name
+	volumeMount := &types.VolumeMount{
+		MountPath: "/" + volumeName,
+		Store:     volumeName,
+	}
+
+	appendVolumeMountToContainer(vmParam.ContainerName, volumeMount, pod)
+}
+
+// Add the volume and a volume mount.
+func applyRegularVolume(vmParam *volumeMountParam, volume *types.VolumeWrapper, pod *types.Pod) {
+	volumeName := volume.Volume.Name
+	volumeMount := &types.VolumeMount{
+		MountPath: "/" + volumeName,
+		Store:     volumeName,
+	}
+
+	appendVolumeMountToContainer(vmParam.ContainerName, volumeMount, pod)
+	pod.Volumes = append(pod.Volumes, volume.Volume)
 }

@@ -28,6 +28,7 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 
 	kubePod.Spec = v1.PodSpec{}
 
+	kubePod.Spec.Volumes = kokiPod.Volumes
 	fields := strings.SplitN(kokiPod.Hostname, ".", 2)
 	if len(fields) == 1 {
 		kubePod.Spec.Hostname = kokiPod.Hostname

@@ -26,6 +26,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(kokiObj)
 	case *types.ServiceWrapper:
 		return converters.Convert_Koki_Service_To_Kube_v1_Service(kokiObj)
+	case *types.VolumeWrapper:
+		return &kokiObj.Volume, nil
 	default:
 		return nil, util.TypeErrorf(reflect.TypeOf(kokiObj), "Unsupported Type")
 	}

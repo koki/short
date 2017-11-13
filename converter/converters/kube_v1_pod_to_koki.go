@@ -22,6 +22,7 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	kokiPod.Labels = pod.Labels
 	kokiPod.Annotations = pod.Annotations
 
+	kokiPod.Volumes = pod.Spec.Volumes
 	affinity, err := convertAffinity(pod.Spec)
 	if err != nil {
 		return nil, err

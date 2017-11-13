@@ -52,6 +52,10 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			service := &types.ServiceWrapper{}
 			err := json.Unmarshal(bytes, service)
 			return service, err
+		case "volume":
+			volume := &types.VolumeWrapper{}
+			err := json.Unmarshal(bytes, volume)
+			return volume, err
 		}
 
 		return nil, util.TypeValueErrorf(objMap, "Unexpected value %s", k)

@@ -1,9 +1,11 @@
 imports:
-- data_vol: ../pv/example1.short.yaml
+- dataVol: ../pv/example1.short.yaml
+- otherVol: volume0.yaml
 - pod: ../pods/example2.short.yaml
   params:
     name: name1
-    containers.nginx.volume_mounts: 
-      ${data_vol}
+    containers.nginx.volumeMounts: 
+    - ${dataVol}
+    - ${otherVol}
 ---
 ${pod}
