@@ -23,7 +23,7 @@ func ConvertToKubeNative(in interface{}) (interface{}, error) {
 			return nil, nil
 		}
 
-		kubeObj, err := detectAndConvertFromKokiObj(typedObj)
+		kubeObj, err := DetectAndConvertFromKokiObj(typedObj)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +54,7 @@ func ConvertToKokiNative(in interface{}) (interface{}, error) {
 			return nil, err
 		}
 
-		kokiObj, err := detectAndConvertFromKubeObj(typedObj)
+		kokiObj, err := DetectAndConvertFromKubeObj(typedObj)
 		if err != nil {
 			return nil, err
 		}

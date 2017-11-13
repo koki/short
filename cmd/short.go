@@ -1,19 +1,18 @@
 package cmd
 
 import (
-	"github.com/ghodss/yaml"
-	"github.com/kr/pretty"
-
+	"github.com/koki/short/converter"
 	"github.com/koki/short/imports"
 	"github.com/koki/short/param"
 	"github.com/koki/short/parser"
 )
 
-func doFilesWithImports(filenames []string) error {
+func loadKokiFiles(filenames []string) ([]interface{}, error) {
+	results := []interface{}{}
 	for _, filename := range filenames {
 		module, err := imports.Parse(filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		evalContext := imports.EvalContext{
@@ -23,15 +22,24 @@ func doFilesWithImports(filenames []string) error {
 
 		err = evalContext.EvaluateModule(module)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		bytes, err := yaml.Marshal(module.TypedResult)
-		if err != nil {
-			return err
-		}
-		pretty.Println(string(bytes))
+		results = append(results, module.TypedResult)
 	}
 
-	return nil
+	return results, nil
+}
+
+func convertKokiObjs(kokiObjs []interface{}) ([]interface{}, error) {
+	var err error
+	kubeObjs := make([]interface{}, len(kokiObjs))
+	for i, kokiObj := range kokiObjs {
+		kubeObjs[i], err = converter.DetectAndConvertFromKokiObj(kokiObj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return kubeObjs, nil
 }
