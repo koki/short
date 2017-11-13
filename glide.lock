@@ -1,5 +1,5 @@
 hash: f4b2153cb55db74cf50e0e023885aa058592b0e48be47f791c82228463125ea9
-updated: 2017-11-09T22:11:14.682340019-08:00
+updated: 2017-11-14T19:52:45.474208271-08:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
@@ -42,6 +42,10 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/mattn/go-runewidth
+  version: 97311d9f7767e3d6f422ea06661bc2c7a19e8a5d
+- name: github.com/nsf/termbox-go
+  version: aa4a75b1c20a2b03751b1a9f7e41d58bd6f71c43
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
