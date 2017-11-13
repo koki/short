@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func detectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
+func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
 	case *types.DeploymentWrapper:
 		return converters.Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(kokiObj)
@@ -26,12 +26,14 @@ func detectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(kokiObj)
 	case *types.ServiceWrapper:
 		return converters.Convert_Koki_Service_To_Kube_v1_Service(kokiObj)
+	case *types.VolumeWrapper:
+		return &kokiObj.Volume, nil
 	default:
 		return nil, util.TypeErrorf(reflect.TypeOf(kokiObj), "Unsupported Type")
 	}
 }
 
-func detectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
+func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
 	case *exts.Deployment:
 		return converters.Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeObj)

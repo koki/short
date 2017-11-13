@@ -1,0 +1,41 @@
+package param
+
+import (
+	"github.com/koki/short/parser"
+	"github.com/koki/short/types"
+	"github.com/koki/short/util"
+)
+
+func ApplyReplicationControllerParams(params map[string]interface{}, wrapper *types.ReplicationControllerWrapper) error {
+	rc := &wrapper.ReplicationController
+
+	if name, ok := params["name"]; ok {
+		if name, ok := name.(string); ok {
+			rc.Name = name
+			if rc.Labels != nil {
+				rc.Labels["name"] = name
+			} else {
+				rc.Labels = map[string]string{
+					"name": name,
+				}
+			}
+		} else {
+			return util.PrettyTypeError(params, "expected string for 'name'")
+		}
+	}
+
+	if pod, ok := params["pod"]; ok {
+		kokiObj, err := parser.ParseKokiNativeObject(pod)
+		if err != nil {
+			return err
+		}
+		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
+			rc.Template = &kokiPod.Pod
+			// Empty selector just uses template's labels.
+			rc.PodLabels = nil
+		} else {
+			return util.PrettyTypeError(kokiObj, "expected a pod")
+		}
+	}
+	return nil
+}

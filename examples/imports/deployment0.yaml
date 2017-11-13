@@ -1,0 +1,12 @@
+imports:
+- otherVol: volume0.yaml
+- deployment: ../deployment/example1.short.yaml
+  params:
+    pod: ${pod}
+- pod: ../pods/example2.short.yaml
+  params:
+    name: podName0
+    containers.nginx.volumeMounts: ${otherVol}
+    
+---
+${deployment}

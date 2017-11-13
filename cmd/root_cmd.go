@@ -19,8 +19,8 @@ var (
 	RootCmd = &cobra.Command{
 		Use:   "short",
 		Short: "Manageable Kubernetes manifests using koki/short",
-		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax. 
-		
+		Long: `Short converts the api-friendly kubernetes manifests into ops-friendly syntax.
+
 Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
@@ -43,8 +43,8 @@ Full documentation available at https://docs.koki.io/short
   short --kube-native -f pod_short.yaml
   short -k -f pod_short.yaml
 
-  # Output to file 
-  short -f pod.yaml -o pod_short.yaml	
+  # Output to file
+  short -f pod.yaml -o pod_short.yaml
 `,
 	}
 
@@ -79,6 +79,7 @@ func init() {
 }
 
 func short(c *cobra.Command, args []string) error {
+	var err error
 	// validate that the user used the command correctly
 	glog.V(3).Infof("validating command %q", args)
 
@@ -107,27 +108,41 @@ func short(c *cobra.Command, args []string) error {
 		useStdin = true
 	}
 
-	// parse input data from one of the sources - files or stdin
-	glog.V(3).Info("parsing input data")
-	data, err := parser.Parse(filenames, useStdin)
-	if err != nil {
-		return err
-	}
-
 	var convertedData interface{}
 
-	if kubeNative {
-		glog.V(3).Info("converting input to kubernetes native syntax")
-		convertedData, err = converter.ConvertToKubeNative(data)
+	if !useStdin && kubeNative {
+		// Imports are only supported for normal files in koki syntax.
+		kokiObjs, err := loadKokiFiles(filenames)
+		if err != nil {
+			return err
+		}
+
+		convertedData, err = convertKokiObjs(kokiObjs)
 		if err != nil {
 			return err
 		}
 	} else {
-		glog.V(3).Info("converting input to koki native syntax")
-		convertedData, err = converter.ConvertToKokiNative(data)
+		// parse input data from one of the sources - files or stdin
+		glog.V(3).Info("parsing input data")
+		data, err := parser.Parse(filenames, useStdin)
 		if err != nil {
 			return err
 		}
+
+		if kubeNative {
+			glog.V(3).Info("converting input to kubernetes native syntax")
+			convertedData, err = converter.ConvertToKubeNative(data)
+			if err != nil {
+				return err
+			}
+		} else {
+			glog.V(3).Info("converting input to koki native syntax")
+			convertedData, err = converter.ConvertToKokiNative(data)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 
 	if silent {

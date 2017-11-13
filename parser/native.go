@@ -6,6 +6,8 @@ import (
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+
+	"github.com/ghodss/yaml"
 )
 
 func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
@@ -50,10 +52,30 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			service := &types.ServiceWrapper{}
 			err := json.Unmarshal(bytes, service)
 			return service, err
+		case "volume":
+			volume := &types.VolumeWrapper{}
+			err := json.Unmarshal(bytes, volume)
+			return volume, err
 		}
 
 		return nil, util.TypeValueErrorf(objMap, "Unexpected value %s", k)
 	}
 
 	return nil, nil
+}
+
+func UnparseKokiNativeObject(kokiObj interface{}) (map[string]interface{}, error) {
+	// Marshal the koki object back into yaml.
+	bytes, err := yaml.Marshal(kokiObj)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := map[string]interface{}{}
+	err = yaml.Unmarshal(bytes, &obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, err
 }

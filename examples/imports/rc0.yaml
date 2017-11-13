@@ -1,0 +1,7 @@
+imports:
+- pod: ../pods/example2.short.yaml
+- replicationcontroller: ../rc/example1.short.yaml
+  params:
+    pod: ${pod}
+---
+${replicationcontroller}
