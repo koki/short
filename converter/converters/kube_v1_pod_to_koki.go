@@ -8,6 +8,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
@@ -767,7 +768,7 @@ func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.Weighte
 			for i := range selectorTerm.PodAffinityTerm.LabelSelector.MatchExpressions {
 				expr := selectorTerm.PodAffinityTerm.LabelSelector.MatchExpressions[i]
 				value := strings.Join(expr.Values, ",")
-				op, err := convertOperatorLabelSelector(expr.Operator)
+				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
 					return nil, err
 				}
@@ -827,7 +828,7 @@ func convertPodAffinityTerms(prefix string, podHardAffinity []v1.PodAffinityTerm
 			for i := range selectorTerm.LabelSelector.MatchExpressions {
 				expr := selectorTerm.LabelSelector.MatchExpressions[i]
 				value := strings.Join(expr.Values, ",")
-				op, err := convertOperatorLabelSelector(expr.Operator)
+				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
 					return nil, err
 				}
@@ -883,25 +884,6 @@ func convertOperator(op v1.NodeSelectorOperator) (string, error) {
 	}
 	if op == v1.NodeSelectorOpLt {
 		return "<", nil
-	}
-	return "", util.TypeValueErrorf(op, "Unexpected value %s", op)
-}
-
-func convertOperatorLabelSelector(op metav1.LabelSelectorOperator) (string, error) {
-	if op == "" {
-		return "", nil
-	}
-	if op == metav1.LabelSelectorOpIn {
-		return "=", nil
-	}
-	if op == metav1.LabelSelectorOpNotIn {
-		return "!=", nil
-	}
-	if op == metav1.LabelSelectorOpExists {
-		return "", nil
-	}
-	if op == metav1.LabelSelectorOpDoesNotExist {
-		return "", nil
 	}
 	return "", util.TypeValueErrorf(op, "Unexpected value %s", op)
 }

@@ -21,8 +21,9 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 
 	kubeRC.Spec.Replicas = kokiRC.Replicas
 	kubeRC.Spec.MinReadySeconds = kokiRC.MinReadySeconds
-	kubeRC.Spec.Selector = kokiRC.PodLabels
 
+	// We won't repopulate kubeRC.Spec.Selector because it's
+	// defaulted to the Template's labels.
 	kubeRC.Spec.Template, err = revertTemplate(kokiRC.Template)
 	if err != nil {
 		return nil, err

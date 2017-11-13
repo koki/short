@@ -5,7 +5,7 @@ import (
 )
 
 type ReplicationControllerWrapper struct {
-	ReplicationController ReplicationController `json:"replicationController"`
+	ReplicationController ReplicationController `json:"replication_controller"`
 }
 
 type ReplicationController struct {
@@ -16,10 +16,12 @@ type ReplicationController struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Replicas        *int32            `json:"replicas,omitempty"`
-	MinReadySeconds int32             `json:"minReadySeconds,omitempty"`
-	PodLabels       map[string]string `json:"podLabels,omitempty"`
-	Template        *Pod              `json:"template,omitempty"`
+	Replicas        *int32 `json:"replicas,omitempty"`
+	MinReadySeconds int32  `json:"ready_seconds,omitempty"`
+
+	// Selector and the Template's Labels are expected to be equal
+	// if both exist, so we standardize on using the Template's labels.
+	Template *Pod `json:"template,omitempty"`
 
 	Status *v1.ReplicationControllerStatus `json:"status,omitempty"`
 }

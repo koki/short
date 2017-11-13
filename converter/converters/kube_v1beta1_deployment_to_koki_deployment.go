@@ -22,7 +22,7 @@ func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *exts.Dep
 
 	kubeSpec := &kubeDeployment.Spec
 	kokiDeployment.Replicas = kubeSpec.Replicas
-	kokiTemplate, err := convertTemplate(&kubeSpec.Template)
+	kokiTemplate, err := convertRSTemplate(&kubeSpec.Template)
 	if err != nil {
 		return nil, err
 	}

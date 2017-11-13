@@ -21,8 +21,7 @@ func Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeRC 
 
 	kokiRC.Replicas = kubeRC.Spec.Replicas
 	kokiRC.MinReadySeconds = kubeRC.Spec.MinReadySeconds
-	kokiRC.PodLabels = kubeRC.Spec.Selector
-	kokiRC.Template, err = convertTemplate(kubeRC.Spec.Template)
+	kokiRC.Template, err = convertTemplate(kubeRC.Spec.Template, kubeRC.Spec.Selector, kubeRC.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +35,7 @@ func Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeRC 
 	}, nil
 }
 
-func convertTemplate(kubeTemplate *v1.PodTemplateSpec) (*types.Pod, error) {
+func convertTemplate(kubeTemplate *v1.PodTemplateSpec, selector map[string]string, parentName string) (*types.Pod, error) {
 	if kubeTemplate == nil {
 		return nil, nil
 	}
@@ -49,6 +48,17 @@ func convertTemplate(kubeTemplate *v1.PodTemplateSpec) (*types.Pod, error) {
 	kubePod.Namespace = kubeTemplate.Namespace
 	kubePod.Labels = kubeTemplate.Labels
 	kubePod.Annotations = kubeTemplate.Annotations
+
+	if len(kubePod.Labels) == 0 {
+		// If the template doesn't already specify a selector, try filling it from elsewhere.
+		if len(selector) > 0 {
+			kubePod.Labels = selector
+		} else {
+			kubePod.Labels = map[string]string{
+				"koki.io/selector.name": parentName,
+			}
+		}
+	}
 
 	kokiPod, err := Convert_Kube_v1_Pod_to_Koki_Pod(kubePod)
 	if err != nil {
