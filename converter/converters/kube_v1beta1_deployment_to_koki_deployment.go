@@ -9,7 +9,7 @@ import (
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *exts.Deployment) (*types.DeploymentWrapper, error) {
+func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Deployment) (*types.DeploymentWrapper, error) {
 	var err error
 	kokiDeployment := &types.Deployment{}
 

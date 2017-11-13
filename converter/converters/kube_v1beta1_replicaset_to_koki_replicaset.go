@@ -11,7 +11,7 @@ import (
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
+func Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
 	var err error
 	kokiRS := &types.ReplicaSet{}
 

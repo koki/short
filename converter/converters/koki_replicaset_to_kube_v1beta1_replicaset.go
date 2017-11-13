@@ -10,7 +10,7 @@ import (
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrapper) (*exts.ReplicaSet, error) {
+func Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(rs *types.ReplicaSetWrapper) (*exts.ReplicaSet, error) {
 	var err error
 	kubeRS := &exts.ReplicaSet{}
 	kokiRS := &rs.ReplicaSet
@@ -26,6 +26,7 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 	kubeSpec := &kubeRS.Spec
 	kubeSpec.Replicas = kokiRS.Replicas
 	kubeSpec.MinReadySeconds = kokiRS.MinReadySeconds
+
 	var templateLabelsOverride map[string]string
 	var kokiTemplateLabels map[string]string
 	if kokiRS.TemplateMetadata != nil {
