@@ -8,8 +8,10 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/koki/short/types"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/types"
+	"github.com/koki/short/util/intbool"
 )
 
 var s0 = &types.ServiceWrapper{
@@ -23,7 +25,7 @@ var s1 = &types.ServiceWrapper{
 	Service: types.Service{
 		Name:    "example",
 		Version: "v1",
-		PodLabels: map[string]string{
+		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
@@ -32,14 +34,14 @@ var s1 = &types.ServiceWrapper{
 			PodPort: intstr.FromInt(8080),
 		},
 		ClusterIP:        types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
-		ClientIPAffinity: types.ClientIPAffinityDefault(),
+		ClientIPAffinity: nil,
 	}}
 
 var s2 = &types.ServiceWrapper{
 	Service: types.Service{
 		Name:    "example",
 		Version: "v1",
-		PodLabels: map[string]string{
+		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
@@ -51,14 +53,14 @@ var s2 = &types.ServiceWrapper{
 			},
 		},
 		ClusterIP:        types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
-		ClientIPAffinity: types.ClientIPAffinityDefault(),
+		ClientIPAffinity: intbool.FromBool(true),
 	}}
 
 var s3 = &types.ServiceWrapper{
 	Service: types.Service{
 		Name:    "example",
 		Version: "v1",
-		PodLabels: map[string]string{
+		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
@@ -72,16 +74,14 @@ var s3 = &types.ServiceWrapper{
 		},
 		ClusterIP:             types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
 		ExternalTrafficPolicy: types.ExternalTrafficPolicyLocal,
-		ClientIPAffinity:      types.ClientIPAffinitySeconds(30),
-		LoadBalancer: &types.LoadBalancer{
-			IP: types.IPAddr("100.1.1.1"),
-			Allowed: []types.CIDR{
-				"0.0.0.0/0",
-			},
-			Ingress: []types.Ingress{
-				types.Ingress{Hostname: "ingressHostname"},
-				types.Ingress{IP: net.ParseIP("1.2.3.4")},
-			},
+		ClientIPAffinity:      intbool.FromInt(300),
+		LoadBalancerIP:        types.IPAddr("100.1.1.1"),
+		Allowed: []types.CIDR{
+			"0.0.0.0/0",
+		},
+		Ingress: []types.Ingress{
+			types.Ingress{Hostname: "ingressHostname"},
+			types.Ingress{IP: net.ParseIP("1.2.3.4")},
 		},
 	}}
 

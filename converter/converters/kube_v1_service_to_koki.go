@@ -4,10 +4,10 @@ import (
 	"net"
 
 	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/intbool"
 )
 
 func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.ServiceWrapper, error) {
@@ -27,7 +27,7 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 		return kokiWrapper, nil
 	}
 
-	kokiService.PodLabels = kubeService.Spec.Selector
+	kokiService.Selector = kubeService.Spec.Selector
 	kokiService.ClusterIP = types.ClusterIP(kubeService.Spec.ClusterIP)
 	kokiService.ExternalIPs = convertExternalIPs(kubeService.Spec.ExternalIPs)
 	kokiService.ClientIPAffinity = convertSessionAffinity(&kubeService.Spec)
@@ -46,10 +46,11 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 	kokiService.Ports = kokiPorts
 
 	if kubeService.Spec.Type == v1.ServiceTypeLoadBalancer {
-		kokiService.LoadBalancer, err = convertLoadBalancer(kubeService)
+		loadBalancer, err := convertLoadBalancer(kubeService)
 		if err != nil {
 			return nil, err
 		}
+		kokiService.SetLoadBalancer(loadBalancer)
 	}
 
 	return kokiWrapper, nil
@@ -147,14 +148,13 @@ func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType
 }
 
 // Returns koki ClientIPAffinitySeconds.
-func convertSessionAffinity(kubeSpec *v1.ServiceSpec) *intstr.IntOrString {
+func convertSessionAffinity(kubeSpec *v1.ServiceSpec) *intbool.IntOrBool {
 	if kubeSpec.SessionAffinity == v1.ServiceAffinityClientIP {
 		if kubeSpec.SessionAffinityConfig != nil && kubeSpec.SessionAffinityConfig.ClientIP != nil && kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds != nil {
-			return types.ClientIPAffinitySeconds(
-				int(*kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds))
+			return intbool.FromInt(int(*kubeSpec.SessionAffinityConfig.ClientIP.TimeoutSeconds))
 		}
 
-		return types.ClientIPAffinityDefault()
+		return intbool.FromBool(true)
 	}
 
 	return nil

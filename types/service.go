@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/intbool"
 )
 
 type ServiceWrapper struct {
@@ -28,23 +30,34 @@ type Service struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// ExternalName services only.
-	ExternalName string `json:"externalName,omitempty"`
+	ExternalName string `json:"cname,omitempty"`
 
 	// ClusterIP services:
 
-	PodLabels   map[string]string      `json:"podLabels,omitempty"`
-	ExternalIPs []IPAddr               `json:"externalIPs,omitempty"`
+	Selector    map[string]string      `json:"selector,omitempty"`
+	ExternalIPs []IPAddr               `json:"external_ips,omitempty"`
 	Port        *ServicePort           `json:"port,omitempty"`
 	Ports       map[string]ServicePort `json:"ports,omitempty"`
-	ClusterIP   ClusterIP              `json:"clusterIP,omitempty"`
+	ClusterIP   ClusterIP              `json:"cluster_ip,omitempty"`
 
-	PublishNotReadyAddresses bool                  `json:"publishNotReadyAddresses,omitempty"`
-	ExternalTrafficPolicy    ExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty"`
-	ClientIPAffinity         *intstr.IntOrString   `json:"clientIPAffinitySeconds,omitempty"`
+	PublishNotReadyAddresses bool                  `json:"unready_endpoints,omitempty"`
+	ExternalTrafficPolicy    ExternalTrafficPolicy `json:"route_policy,omitempty"`
+	ClientIPAffinity         *intbool.IntOrBool    `json:"stickiness,omitempty"`
 
 	// LoadBalancer services:
+	LoadBalancer        bool      `json:"lb,omitempty"`
+	LoadBalancerIP      IPAddr    `json:"lb_ip,omitempty"`
+	Allowed             []CIDR    `json:"lb_client_ips,omitempty"`
+	HealthCheckNodePort int32     `json:"healthcheck_port,omitempty"`
+	Ingress             []Ingress `json:"endpoints,omitempty"`
+}
 
-	LoadBalancer *LoadBalancer `json:"loadBalancer,omitempty"`
+// LoadBalancer helper type.
+type LoadBalancer struct {
+	IP                  IPAddr
+	Allowed             []CIDR
+	HealthCheckNodePort int32
+	Ingress             []Ingress
 }
 
 type IPAddr string
@@ -83,28 +96,32 @@ type ExternalTrafficPolicy string
 
 const (
 	ExternalTrafficPolicyNil     ExternalTrafficPolicy = ""
-	ExternalTrafficPolicyLocal   ExternalTrafficPolicy = "Local"
-	ExternalTrafficPolicyCluster ExternalTrafficPolicy = "Cluster"
+	ExternalTrafficPolicyLocal   ExternalTrafficPolicy = "node-local"
+	ExternalTrafficPolicyCluster ExternalTrafficPolicy = "cluster-wide"
 )
 
-func ClientIPAffinitySeconds(s int) *intstr.IntOrString {
-	x := intstr.FromInt(s)
-	return &x
-}
+func (s *Service) HasLoadBalancer() bool {
+	if s.LoadBalancer {
+		return true
+	}
 
-func ClientIPAffinityDefault() *intstr.IntOrString {
-	x := intstr.FromString("Default")
-	return &x
-}
+	if len(s.LoadBalancerIP) > 0 {
+		return true
+	}
 
-type LoadBalancer struct {
-	IP                  IPAddr `json:"ip,omitempty"`
-	Allowed             []CIDR `json:"allowed,omitempty"`
-	HealthCheckNodePort int32  `json:"healthCheckNodePort,omitempty"`
+	if len(s.Allowed) > 0 {
+		return true
+	}
 
-	// From Service.Status:
+	if s.HealthCheckNodePort > 0 {
+		return true
+	}
 
-	Ingress []Ingress `json:"ingress,omitempty"`
+	if len(s.Ingress) > 0 {
+		return true
+	}
+
+	return false
 }
 
 func (p *ServicePort) InitFromString(str string) error {
@@ -216,4 +233,24 @@ func (i Ingress) String() string {
 
 func (i Ingress) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i.String())
+}
+
+func (l LoadBalancer) IsZero() bool {
+	return reflect.DeepEqual(l, LoadBalancer{})
+}
+
+func (s *Service) SetLoadBalancer(lb *LoadBalancer) {
+	if lb == nil {
+		return
+	}
+
+	if lb.IsZero() {
+		s.LoadBalancer = true
+		return
+	}
+
+	s.LoadBalancerIP = lb.IP
+	s.Ingress = lb.Ingress
+	s.Allowed = lb.Allowed
+	s.HealthCheckNodePort = lb.HealthCheckNodePort
 }
