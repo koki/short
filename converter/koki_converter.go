@@ -25,7 +25,7 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	case *types.ReplicationControllerWrapper:
 		return converters.Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(kokiObj)
 	case *types.ReplicaSetWrapper:
-		return converters.Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(kokiObj)
+		return converters.Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(kokiObj)
 	case *types.ServiceWrapper:
 		return converters.Convert_Koki_Service_To_Kube_v1_Service(kokiObj)
 	case *types.VolumeWrapper:
@@ -49,8 +49,10 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_Pod_to_Koki_Pod(kubeObj)
 	case *v1.ReplicationController:
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
+	case *appsv1beta2.ReplicaSet:
+		return converters.Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
 	case *exts.ReplicaSet:
-		return converters.Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
+		return converters.Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
 	case *v1.Service:
 		return converters.Convert_Kube_v1_Service_to_Koki_Service(kubeObj)
 

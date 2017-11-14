@@ -3,15 +3,57 @@ package converters
 import (
 	"reflect"
 
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	"k8s.io/api/core/v1"
-	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/ghodss/yaml"
+
+	"github.com/koki/short/parser"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
-func Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
+func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.ReplicaSetWrapper, error) {
+	groupVersionKind := kubeRS.GetObjectKind().GroupVersionKind()
+	groupVersionString := groupVersionKind.GroupVersion().String()
+	groupVersionKind.Version = "v1beta2"
+	groupVersionKind.Group = "apps"
+	kubeRS.GetObjectKind().SetGroupVersionKind(groupVersionKind)
+
+	// Serialize as v1beta2
+	b, err := yaml.Marshal(kubeRS)
+	if err != nil {
+		return nil, err
+	}
+
+	// Deserialize the "generic" kube ReplicaSet
+	genericReplicaSet, err := parser.ParseSingleKubeNativeFromBytes(b)
+	if err != nil {
+		return nil, err
+	}
+
+	if genericReplicaSet, ok := genericReplicaSet.(*appsv1beta2.ReplicaSet); ok {
+		kokiWrapper, err := Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(genericReplicaSet)
+		if err != nil {
+			return nil, err
+		}
+
+		kokiRS := &kokiWrapper.ReplicaSet
+
+		kokiRS.Version = groupVersionString
+
+		// Perform version-specific initialization here.
+
+		return kokiWrapper, nil
+	}
+
+	return nil, util.PrettyTypeError(genericReplicaSet, "couldn't reserialize as apps/v1beta2.ReplicaSet")
+}
+
+func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.ReplicaSet) (*types.ReplicaSetWrapper, error) {
 	var err error
 	kokiRS := &types.ReplicaSet{}
 
@@ -43,7 +85,7 @@ func Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet)
 	kokiPod.Labels = templateLabelsOverride
 	kokiRS.SetTemplate(kokiPod)
 
-	if !reflect.DeepEqual(kubeRS.Status, exts.ReplicaSetStatus{}) {
+	if !reflect.DeepEqual(kubeRS.Status, appsv1beta2.ReplicaSetStatus{}) {
 		kokiRS.Status = &kubeRS.Status
 	}
 

@@ -1,17 +1,50 @@
 package converters
 
 import (
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/ghodss/yaml"
+
+	"github.com/koki/short/parser"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(rs *types.ReplicaSetWrapper) (*exts.ReplicaSet, error) {
+func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (interface{}, error) {
+	// Perform version-agnostic conversion into apps/v1beta2 ReplicaSet.
+	kubeRS, err := Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Serialize the "generic" kube ReplicaSet.
+	b, err := yaml.Marshal(kubeRS)
+	if err != nil {
+		return nil, err
+	}
+
+	// Deserialize a versioned kube ReplicaSet using its apiVersion.
+	versionedReplicaSet, err := parser.ParseSingleKubeNativeFromBytes(b)
+	if err != nil {
+		return nil, err
+	}
+
+	switch versionedReplicaSet.(type) {
+	case *appsv1beta2.ReplicaSet:
+		// Perform apps/v1beta2-specific initialization here.
+	case *exts.ReplicaSet:
+		// Perform exts/v1beta1-specific initialization here.
+	}
+
+	return versionedReplicaSet, nil
+}
+
+func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrapper) (*appsv1beta2.ReplicaSet, error) {
 	var err error
-	kubeRS := &exts.ReplicaSet{}
+	kubeRS := &appsv1beta2.ReplicaSet{}
 	kokiRS := &rs.ReplicaSet
 
 	kubeRS.Name = kokiRS.Name

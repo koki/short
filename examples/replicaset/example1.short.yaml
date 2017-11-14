@@ -14,4 +14,4 @@ replica_set:
   pod_meta:
     labels:
       component: example
-  version: extensions/v1beta1
+  version: apps/v1beta2

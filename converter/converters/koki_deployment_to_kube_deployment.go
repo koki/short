@@ -3,6 +3,7 @@ package converters
 import (
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
+	exts "k8s.io/api/extensions/v1beta1"
 
 	"github.com/ghodss/yaml"
 
@@ -35,6 +36,8 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 		// Perform apps/v1beta1-specific initialization here.
 	case *appsv1beta2.Deployment:
 		// Perform apps/v1beta2-specific initialization here.
+	case *exts.Deployment:
+		// Perform exts/v1beta1-specific initialization here.
 	}
 
 	return versionedDeployment, nil
