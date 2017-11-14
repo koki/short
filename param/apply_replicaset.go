@@ -1,43 +1,50 @@
 package param
 
 import (
-	//"github.com/koki/short/parser"
+	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	//"github.com/koki/short/util"
+	"github.com/koki/short/util"
 )
 
 func ApplyReplicaSetParams(params map[string]interface{}, wrapper *types.ReplicaSetWrapper) error {
-	/*
-		replicaSet := &wrapper.ReplicaSet
-		if name, ok := params["name"]; ok {
-			if name, ok := name.(string); ok {
-				replicaSet.Name = name
-				if replicaSet.Labels != nil {
-					replicaSet.Labels["name"] = name
-				} else {
-					replicaSet.Labels = map[string]string{
-						"name": name,
-					}
+	replicaSet := &wrapper.ReplicaSet
+	if name, ok := params["name"]; ok {
+		if name, ok := name.(string); ok {
+			replicaSet.Name = name
+			if replicaSet.Labels != nil {
+				replicaSet.Labels["name"] = name
+			} else {
+				replicaSet.Labels = map[string]string{
+					"name": name,
+				}
+			}
+		} else {
+			return util.PrettyTypeError(params, "expected string for 'name'")
+		}
+	}
+
+	if pod, ok := params["pod"]; ok {
+		kokiObj, err := parser.ParseKokiNativeObject(pod)
+		if err != nil {
+			return err
+		}
+		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
+			// If the Pod has labels, pull them up into the Selector.
+			// Otherwise, automatically set up Selector and Labels on conversion to kube obj.
+			labels := kokiPod.Pod.Labels
+			kokiPod.Pod.Labels = nil
+			replicaSet.SetTemplate(&kokiPod.Pod)
+			if len(kokiPod.Pod.Labels) > 0 {
+				replicaSet.Selector = &types.RSSelector{
+					Labels: labels,
 				}
 			} else {
-				return util.PrettyTypeError(params, "expected string for 'name'")
+				replicaSet.Selector = nil
 			}
+		} else {
+			return util.PrettyTypeError(kokiObj, "expected a pod")
 		}
-
-		if pod, ok := params["pod"]; ok {
-			kokiObj, err := parser.ParseKokiNativeObject(pod)
-			if err != nil {
-				return err
-			}
-			if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
-				replicaSet.Template = &kokiPod.Pod
-				// Empty selector just uses template's labels.
-				replicaSet.PodSelector = ""
-			} else {
-				return util.PrettyTypeError(kokiObj, "expected a pod")
-			}
-		}
-	*/
+	}
 
 	return nil
 }
