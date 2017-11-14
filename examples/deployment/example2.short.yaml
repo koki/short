@@ -7,8 +7,8 @@ deployment:
     name: example-app
   labels:
     app: example
-  maxSurge: 130%
-  maxUnavailable: 50%
+  max_extra: 2
+  max_unavailable: 2
   name: example-deployment
   replicas: 3
   selector:

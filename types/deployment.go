@@ -4,7 +4,7 @@ import (
 	"k8s.io/api/core/v1"
 	apps "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type DeploymentWrapper struct {
@@ -21,13 +21,13 @@ type Deployment struct {
 
 	Replicas       *int32              `json:"replicas,omitempty"`
 	Recreate       bool                `json:"recreate,omitempty"`
-	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty"`
-	MaxSurge       *intstr.IntOrString `json:"maxSurge,omitempty"`
+	MaxUnavailable *intstr.IntOrString `json:"max_unavailable,omitempty"`
+	MaxSurge       *intstr.IntOrString `json:"max_extra,omitempty"`
 
-	MinReadySeconds         int32  `json:"minReadySeconds,omitempty"`
-	RevisionHistoryLimit    *int32 `json:"revisionHistoryLimit,omitempty"`
+	MinReadySeconds         int32  `json:"min_ready,omitempty"`
+	RevisionHistoryLimit    *int32 `json:"max_revs,omitempty"`
 	Paused                  bool   `json:"paused,omitempty"`
-	ProgressDeadlineSeconds *int32 `json:"progressDeadlineSeconds,omitempty"`
+	ProgressDeadlineSeconds *int32 `json:"progress_deadline,omitempty"`
 
 	Status *apps.DeploymentStatus `json:"status,omitempty"`
 

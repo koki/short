@@ -5,9 +5,9 @@ replica_set:
   replicas: 1
   containers:
   - image: gcr.io/kuard-demo/kuard-amd64:1
-    imagePullPolicy: IfNotPresent
+    pull: IfNotPresent
     name: kuard
     resources: {}
-  dnsPolicy: ClusterFirst
-  restartPolicy: Never
+  dns_policy: ClusterFirst
+  restart_policy: Never
   version: extensions/v1beta1

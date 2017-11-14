@@ -11,8 +11,8 @@ spec:
       app: example
   strategy:
     rollingUpdate:
-      maxUnavailable: 50%
-      maxSurge: 130%
+      maxUnavailable: 2
+      maxSurge: 2
   template:
     metadata:
       labels:
