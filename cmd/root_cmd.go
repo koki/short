@@ -111,7 +111,7 @@ func short(c *cobra.Command, args []string) error {
 		useStdin = true
 	}
 
-	var convertedData interface{}
+	var convertedData []interface{}
 
 	if !useStdin && kubeNative {
 		// Imports are only supported for normal files in koki syntax.

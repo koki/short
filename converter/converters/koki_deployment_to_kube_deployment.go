@@ -1,15 +1,39 @@
 package converters
 
 import (
-	exts "k8s.io/api/extensions/v1beta1"
+	appsv1beta1 "k8s.io/api/apps/v1beta1"
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
+
+	"github.com/ghodss/yaml"
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
 
-func Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(deployment *types.DeploymentWrapper) (*exts.Deployment, error) {
+func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrapper) (interface{}, error) {
+	kubeDeployment, err := Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := yaml.Marshal(kubeDeployment)
+	if err != nil {
+		return nil, err
+	}
+
+	switch deployment.Deployment.Version {
+	case "apps/v1beta1":
+		return nil, util.PrettyTypeError(deployment, "unsupported version")
+	case "apps/v1beta2":
+		return nil, util.PrettyTypeError(deployment, "unsupported version")
+	default:
+		return nil, util.PrettyTypeError(deployment, "unsupported version")
+	}
+}
+
+func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.DeploymentWrapper) (*appsv1beta2.Deployment, error) {
 	var err error
-	kubeDeployment := &exts.Deployment{}
+	kubeDeployment := &appsv1beta2.Deployment{}
 	kokiDeployment := &deployment.Deployment
 
 	kubeDeployment.Name = kokiDeployment.Name
@@ -61,23 +85,23 @@ func Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(deployment *types.Deploy
 	return kubeDeployment, nil
 }
 
-func revertDeploymentStrategy(kokiDeployment *types.Deployment) exts.DeploymentStrategy {
+func revertDeploymentStrategy(kokiDeployment *types.Deployment) appsv1beta2.DeploymentStrategy {
 	if kokiDeployment.Recreate {
-		return exts.DeploymentStrategy{
-			Type: exts.RecreateDeploymentStrategyType,
+		return appsv1beta2.DeploymentStrategy{
+			Type: appsv1beta2.RecreateDeploymentStrategyType,
 		}
 	}
 
-	var rollingUpdateConfig *exts.RollingUpdateDeployment
+	var rollingUpdateConfig *appsv1beta2.RollingUpdateDeployment
 	if kokiDeployment.MaxUnavailable != nil || kokiDeployment.MaxSurge != nil {
-		rollingUpdateConfig = &exts.RollingUpdateDeployment{
+		rollingUpdateConfig = &appsv1beta2.RollingUpdateDeployment{
 			MaxUnavailable: kokiDeployment.MaxUnavailable,
 			MaxSurge:       kokiDeployment.MaxSurge,
 		}
 	}
 
-	return exts.DeploymentStrategy{
-		Type:          exts.RollingUpdateDeploymentStrategyType,
+	return appsv1beta2.DeploymentStrategy{
+		Type:          appsv1beta2.RollingUpdateDeploymentStrategyType,
 		RollingUpdate: rollingUpdateConfig,
 	}
 }

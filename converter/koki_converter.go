@@ -15,7 +15,7 @@ import (
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
 	case *types.DeploymentWrapper:
-		return converters.Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(kokiObj)
+		return converters.Convert_Koki_Deployment_to_Kube_Deployment(kokiObj)
 	case *types.PersistentVolumeWrapper:
 		return converters.Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(kokiObj)
 	case *types.PodWrapper:

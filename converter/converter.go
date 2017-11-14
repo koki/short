@@ -1,19 +1,14 @@
 package converter
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	unstructuredconversion "k8s.io/apimachinery/pkg/conversion/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/koki/short/parser"
 )
 
-func ConvertToKubeNative(in interface{}) (interface{}, error) {
-	objs, ok := in.([]map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Error casting input object to type map[string]interface{}")
-	}
+func ConvertToKubeNative(objs []map[string]interface{}) ([]interface{}, error) {
 	convertedTypes := []interface{}{}
 	for i := range objs {
 		obj := objs[i]
@@ -32,20 +27,28 @@ func ConvertToKubeNative(in interface{}) (interface{}, error) {
 	return convertedTypes, nil
 }
 
-func ConvertToKokiNative(in interface{}) (interface{}, error) {
-	objs, ok := in.([]map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Error casting input object to type map[string]interface{}")
+func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
+	u := &unstructured.Unstructured{
+		Object: obj,
 	}
 
+	typedObj, err := creator.New(u.GetObjectKind().GroupVersionKind())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
+		return nil, err
+	}
+
+	return typedObj, err
+}
+
+func ConvertToKokiNative(objs []map[string]interface{}) ([]interface{}, error) {
 	convertedTypes := []interface{}{}
 	for i := range objs {
 		obj := objs[i]
-		u := &unstructured.Unstructured{
-			Object: obj,
-		}
-
-		typedObj, err := creator.New(u.GetObjectKind().GroupVersionKind())
+		typedObj, err := ParseSingleKubeNative(obj)
 		if err != nil {
 			return nil, err
 		}
