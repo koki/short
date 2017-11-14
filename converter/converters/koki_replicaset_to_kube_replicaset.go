@@ -1,6 +1,8 @@
 package converters
 
 import (
+	"reflect"
+
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,9 +34,18 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 		return nil, err
 	}
 
-	switch versionedReplicaSet.(type) {
+	switch versionedReplicaSet := versionedReplicaSet.(type) {
 	case *appsv1beta2.ReplicaSet:
 		// Perform apps/v1beta2-specific initialization here.
+		selector := versionedReplicaSet.Spec.Selector
+		if selector == nil || reflect.DeepEqual(selector, metav1.LabelSelector{}) {
+			if len(versionedReplicaSet.Spec.Template.Labels) > 0 {
+				// Fill in a default selector since v1beta2 doesn't have one.
+				versionedReplicaSet.Spec.Selector = &metav1.LabelSelector{
+					MatchLabels: versionedReplicaSet.Spec.Template.Labels,
+				}
+			}
+		}
 	case *exts.ReplicaSet:
 		// Perform exts/v1beta1-specific initialization here.
 	}

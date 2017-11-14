@@ -4,6 +4,8 @@ metadata:
   name: example-deployment
   labels:
     app: example
+selector:
+  koki.io/selector.name: example-deployment
 spec:
   replicas: 3
   strategy:

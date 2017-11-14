@@ -1,0 +1,13 @@
+replica_set:
+  name: example
+  selector: 
+    component: example
+  replicas: 1
+  containers:
+  - image: gcr.io/kuard-demo/kuard-amd64:1
+    pull: IfNotPresent
+    name: kuard
+    resources: {}
+  dns_policy: ClusterFirst
+  restart_policy: Never
+  version: apps/v1beta2
