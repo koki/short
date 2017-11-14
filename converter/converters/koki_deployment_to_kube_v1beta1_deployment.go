@@ -30,7 +30,7 @@ func Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(deployment *types.Deploy
 	if kokiDeployment.TemplateMetadata != nil {
 		kokiTemplateLabels = kokiDeployment.TemplateMetadata.Labels
 	}
-	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiDeployment.Selector, kokiTemplateLabels)
+	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiDeployment.Name, kokiDeployment.Selector, kokiTemplateLabels)
 	if err != nil {
 		return nil, err
 	}

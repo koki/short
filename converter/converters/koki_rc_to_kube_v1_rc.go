@@ -26,6 +26,12 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 	// We won't repopulate kubeSpec.Selector because it's
 	// defaulted to the Template's labels.
 	kokiPod := kokiRC.GetTemplate()
+	// Make sure there's at least one Label in the Template.
+	if len(kokiPod.Labels) == 0 {
+		kokiPod.Labels = map[string]string{
+			"koki.io/selector.name": kokiRC.Name,
+		}
+	}
 	kubeSpec.Template, err = revertTemplate(kokiPod)
 	if err != nil {
 		return nil, err

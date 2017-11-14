@@ -31,7 +31,7 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(rs *types.ReplicaSetWrap
 	if kokiRS.TemplateMetadata != nil {
 		kokiTemplateLabels = kokiRS.TemplateMetadata.Labels
 	}
-	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiRS.Selector, kokiTemplateLabels)
+	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiRS.Name, kokiRS.Selector, kokiTemplateLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +57,11 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(rs *types.ReplicaSetWrap
 	return kubeRS, nil
 }
 
-func revertRSSelector(selector *types.RSSelector, templateLabels map[string]string) (*metav1.LabelSelector, map[string]string, error) {
+func revertRSSelector(name string, selector *types.RSSelector, templateLabels map[string]string) (*metav1.LabelSelector, map[string]string, error) {
 	if selector == nil {
-		return nil, nil, util.PrettyTypeError(selector, "Selector is required for ReplicaSet")
+		return nil, map[string]string{
+			"koki.io/selector.name": name,
+		}, nil
 	}
 
 	if len(selector.Shorthand) > 0 {
