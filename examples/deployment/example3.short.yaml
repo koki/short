@@ -14,4 +14,4 @@ deployment:
   selector: null
   status:
     replicas: 1
-  version: extensions/v1beta1
+  version: apps/v1beta1

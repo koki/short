@@ -1,8 +1,8 @@
 package types
 
 import (
+	apps "k8s.io/api/apps/v1beta2"
 	"k8s.io/api/core/v1"
-	apps "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )

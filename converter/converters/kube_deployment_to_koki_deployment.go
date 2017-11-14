@@ -51,7 +51,7 @@ func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Dep
 	kokiDeployment.ProgressDeadlineSeconds = kubeSpec.ProgressDeadlineSeconds
 
 	if !reflect.DeepEqual(kubeDeployment.Status, exts.DeploymentStatus{}) {
-		kokiDeployment.Status = &kubeDeployment.Status
+		//kokiDeployment.Status = &kubeDeployment.Status
 	}
 
 	return &types.DeploymentWrapper{

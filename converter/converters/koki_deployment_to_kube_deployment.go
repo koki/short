@@ -6,29 +6,38 @@ import (
 
 	"github.com/ghodss/yaml"
 
+	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
 
 func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrapper) (interface{}, error) {
+	// Perform version-agnostic conversion into apps/v1beta2 Deployment.
 	kubeDeployment, err := Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment)
 	if err != nil {
 		return nil, err
 	}
 
+	// Serialize the "generic" kube Deployment.
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
 		return nil, err
 	}
 
-	switch deployment.Deployment.Version {
-	case "apps/v1beta1":
-		return nil, util.PrettyTypeError(deployment, "unsupported version")
-	case "apps/v1beta2":
-		return nil, util.PrettyTypeError(deployment, "unsupported version")
-	default:
-		return nil, util.PrettyTypeError(deployment, "unsupported version")
+	// Deserialize a versioned kube Deployment using its apiVersion.
+	versionedDeployment, err := parser.ParseSingleKubeNativeFromBytes(b)
+	if err != nil {
+		return nil, err
 	}
+
+	switch versionedDeployment.(type) {
+	case *appsv1beta1.Deployment:
+		// Perform apps/v1beta1-specific initialization here.
+	case *appsv1beta2.Deployment:
+		// Perform apps/v1beta2-specific initialization here.
+	}
+
+	return versionedDeployment, nil
 }
 
 func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.DeploymentWrapper) (*appsv1beta2.Deployment, error) {
