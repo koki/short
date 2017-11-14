@@ -11,4 +11,4 @@ deployment:
   replicas: 3
   selector:
     app: example
-  version: apps/v1beta1
+  version: extensions/v1beta1

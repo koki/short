@@ -15,4 +15,4 @@ deployment:
     app: example
   status:
     replicas: 1
-  version: apps/v1beta2
+  version: apps/v1beta1

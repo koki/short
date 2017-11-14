@@ -7,6 +7,8 @@ import (
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 
+	appsv1beta1 "k8s.io/api/apps/v1beta1"
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,8 +37,12 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *appsv1beta1.Deployment:
+		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
+	case *appsv1beta2.Deployment:
+		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
 	case *exts.Deployment:
-		return converters.Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeObj)
+		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
 	case *v1.PersistentVolume:
 		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.Pod:
