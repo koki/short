@@ -108,16 +108,7 @@ func convertPort(kubePort v1.ServicePort) (*types.ServicePort, error) {
 	kokiPort.PodPort = kubePort.TargetPort
 
 	kokiPort.NodePort = kubePort.NodePort
-	if kubePort.Protocol != "" {
-		switch kubePort.Protocol {
-		case v1.ProtocolTCP:
-			kokiPort.Protocol = types.ProtocolTCP
-		case v1.ProtocolUDP:
-			kokiPort.Protocol = types.ProtocolUDP
-		default:
-			return nil, util.PrettyTypeError(kubePort, "unrecognized protocol")
-		}
-	}
+	kokiPort.Protocol = kubePort.Protocol
 
 	return kokiPort, nil
 }

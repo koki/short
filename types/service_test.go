@@ -9,8 +9,8 @@ import (
 func TestServicePort(t *testing.T) {
 	tryServicePort("8080:12345", t)
 	tryServicePort("8080:12345:6789", t)
-	tryServicePort("8080:12345:6789:TCP", t)
-	tryServicePort("8080:12345:TCP", t)
+	tryServicePort("UDP://8080:12345:6789", t)
+	tryServicePort("UDP://8080:12345", t)
 	tryServicePort("8080:containerPortName:6789", t)
 }
 

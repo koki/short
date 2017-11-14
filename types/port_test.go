@@ -69,8 +69,6 @@ func TestPort(t *testing.T) {
 	doPortTest(port4, "1.2.3.4:80\n", t)
 	doPortTest(port5, "80\n", t)
 	doPortTest(port6, "port6: 80\n", t)
-
-	t.Fail()
 }
 
 func doPortTest(port *Port, str string, t *testing.T) {

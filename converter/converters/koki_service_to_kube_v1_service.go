@@ -79,16 +79,7 @@ func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, erro
 		kubePort.NodePort = kokiPort.NodePort
 	}
 
-	if kokiPort.Protocol != "" {
-		switch kokiPort.Protocol {
-		case types.ProtocolTCP:
-			kubePort.Protocol = v1.ProtocolTCP
-		case types.ProtocolUDP:
-			kubePort.Protocol = v1.ProtocolUDP
-		default:
-			return nil, util.PrettyTypeError(kokiPort, "unrecognized protocol")
-		}
-	}
+	kubePort.Protocol = kokiPort.Protocol
 
 	return kubePort, nil
 }
