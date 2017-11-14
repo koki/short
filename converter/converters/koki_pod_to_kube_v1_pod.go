@@ -2,7 +2,6 @@ package converters
 
 import (
 	"net/url"
-	"strconv"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -1041,37 +1040,23 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 }
 
 func revertExpose(ports []types.Port) ([]v1.ContainerPort, error) {
+	var err error
 	var kubeContainerPorts []v1.ContainerPort
 	for i := range ports {
 		port := ports[i]
 		kubePort := v1.ContainerPort{}
 
 		kubePort.Name = port.Name
-		protocol := v1.ProtocolTCP
-		if port.Protocol == "UDP" {
-			protocol = v1.ProtocolUDP
+		kubePort.Protocol = port.Protocol
+
+		kubePort.HostPort, err = port.HostPortInt()
+		if err != nil {
+			return nil, err
 		}
-		kubePort.Protocol = protocol
-		fields := strings.Split(port.PortMap, ":")
-		if len(fields) == 1 {
-			// Then the value is container port
-			containerPort, err := strconv.ParseInt(port.PortMap, 10, 32)
-			if err != nil {
-				return nil, err
-			}
-			kubePort.ContainerPort = int32(containerPort)
-		} else if len(fields) == 2 {
-			// Then the value is hostPort:containerport
-			hostPort, err := strconv.ParseInt(fields[0], 10, 32)
-			if err != nil {
-				return nil, err
-			}
-			containerPort, err := strconv.ParseInt(fields[1], 10, 32)
-			if err != nil {
-				return nil, err
-			}
-			kubePort.ContainerPort = int32(containerPort)
-			kubePort.HostPort = int32(hostPort)
+
+		kubePort.ContainerPort, err = port.ContainerPortInt()
+		if err != nil {
+			return nil, err
 		}
 
 		kubeContainerPorts = append(kubeContainerPorts, kubePort)
