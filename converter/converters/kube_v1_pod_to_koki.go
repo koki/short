@@ -451,22 +451,13 @@ func convertContainerPorts(ports []v1.ContainerPort) ([]types.Port, error) {
 		kokiPort := types.Port{}
 
 		kokiPort.Name = port.Name
-		protocol := "TCP"
-		if port.Protocol != "" {
-			if port.Protocol == v1.ProtocolTCP {
-				protocol = "TCP"
-			} else if port.Protocol == v1.ProtocolUDP {
-				protocol = "UDP"
-			} else {
-				return nil, util.TypeValueErrorf(port.Protocol, "Unexpected value %s", port.Protocol)
-			}
-		}
-		kokiPort.Protocol = protocol
+		kokiPort.Protocol = port.Protocol
 		kokiPort.IP = port.HostIP
 		if port.HostPort != 0 {
-			kokiPort.PortMap = fmt.Sprintf("%d:%d", port.HostPort, port.ContainerPort)
-		} else {
-			kokiPort.PortMap = fmt.Sprintf("%d", port.ContainerPort)
+			kokiPort.HostPort = fmt.Sprintf("%d", port.HostPort)
+		}
+		if port.ContainerPort != 0 {
+			kokiPort.ContainerPort = fmt.Sprintf("%d", port.ContainerPort)
 		}
 		p = append(p, kokiPort)
 	}

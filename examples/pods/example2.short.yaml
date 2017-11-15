@@ -1,8 +1,7 @@
 pod:
   containers:
   - expose:
-    - port_map: "80"
-      protocol: TCP
+    - 80
     image: nginx
     name: nginx
     readiness_probe:

@@ -7,5 +7,5 @@ service:
   podLabels:
     labelKey: labelValue
   ports:
-    http: 80:8080:999:TCP
+    http: 80:8080:999
   version: v1

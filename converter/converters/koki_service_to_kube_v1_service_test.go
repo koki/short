@@ -67,7 +67,7 @@ var s3 = &types.ServiceWrapper{
 				Expose:   80,
 				PodPort:  intstr.FromInt(8080),
 				NodePort: 999,
-				Protocol: types.ProtocolTCP,
+				Protocol: v1.ProtocolTCP,
 			},
 		},
 		ClusterIP:             types.ClusterIPAddr(types.IPAddr("1.1.1.10")),

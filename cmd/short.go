@@ -29,6 +29,10 @@ func loadKokiFiles(filenames []string) ([]interface{}, error) {
 			return nil, err
 		}
 
+		if err, ok := module.TypedResult.(error); ok {
+			return nil, err
+		}
+
 		results = append(results, module.TypedResult)
 	}
 
