@@ -25,7 +25,6 @@ Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
 		SilenceUsage: true,
-		Args:         cobra.ExactArgs(1),
 		Example: `
   # Find the shorthand representation of kubernetes objects
   short man pod
