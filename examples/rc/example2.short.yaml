@@ -6,8 +6,4 @@ replication_controller:
     component: example
   name: example
   replicas: 1
-  selector:
-    key0: value0
-    key1: value1
   version: v1
-

@@ -6,9 +6,6 @@ metadata:
     app: example
 spec:
   replicas: 3
-  selector:
-    matchLabels:
-      app: example
   strategy:
     rollingUpdate:
       maxUnavailable: 2
@@ -16,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        app: example
+        koki.io/selector.name: example-deployment
     spec:
       containers:
       - name: example-app

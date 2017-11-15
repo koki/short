@@ -30,9 +30,9 @@ func ApplyReplicationControllerParams(params map[string]interface{}, wrapper *ty
 			return err
 		}
 		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
-			rc.Template = &kokiPod.Pod
-			// Empty selector just uses template's labels.
-			rc.PodLabels = nil
+			rc.SetTemplate(&kokiPod.Pod)
+			// We'll either use the Pod's Labels or generate a Selector and Labels on conversion to kube obj.
+			rc.Selector = nil
 		} else {
 			return util.PrettyTypeError(kokiObj, "expected a pod")
 		}

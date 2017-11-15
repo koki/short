@@ -1,27 +1,9 @@
 apiVersion: extensions/v1beta1
 kind: ReplicaSet
 metadata:
-  labels:
-    component: example
   name: example
 spec:
   replicas: 1
-  selector:
-    matchExpressions:
-    - key: key1
-      operator: In
-      values:
-      - value1
-      - value2
-    - key: key2
-      operator: DoesNotExist
-    - key: key3
-      operator: NotIn
-      values:
-      - value3
-      - value4
-    matchLabels:
-      key0: value0
   template:
     metadata:
       labels:

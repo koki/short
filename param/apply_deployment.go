@@ -29,7 +29,18 @@ func ApplyDeploymentParams(params map[string]interface{}, wrapper *types.Deploym
 			return err
 		}
 		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
-			deployment.Template = kokiPod.Pod
+			// If the Pod has labels, pull them up into the Selector.
+			// Otherwise, automatically set up Selector and Labels on conversion to kube obj.
+			labels := kokiPod.Pod.Labels
+			kokiPod.Pod.Labels = nil
+			deployment.SetTemplate(&kokiPod.Pod)
+			if len(kokiPod.Pod.Labels) > 0 {
+				deployment.Selector = &types.RSSelector{
+					Labels: labels,
+				}
+			} else {
+				deployment.Selector = nil
+			}
 		} else {
 			return util.PrettyTypeError(kokiObj, "expected a pod")
 		}

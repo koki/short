@@ -4,6 +4,7 @@ import (
 	exts "k8s.io/api/extensions/v1beta1"
 
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
 func Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(deployment *types.DeploymentWrapper) (*exts.Deployment, error) {
@@ -22,11 +23,29 @@ func Convert_Koki_Deployment_to_Kube_v1beta1_Deployment(deployment *types.Deploy
 	kubeSpec := &kubeDeployment.Spec
 	kubeSpec.Replicas = kokiDeployment.Replicas
 
-	kubeTemplate, err := revertTemplate(&kokiDeployment.Template)
+	// Setting the Selector and Template is identical to ReplicaSet
+
+	var templateLabelsOverride map[string]string
+	var kokiTemplateLabels map[string]string
+	if kokiDeployment.TemplateMetadata != nil {
+		kokiTemplateLabels = kokiDeployment.TemplateMetadata.Labels
+	}
+	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiDeployment.Name, kokiDeployment.Selector, kokiTemplateLabels)
 	if err != nil {
 		return nil, err
 	}
+
+	kubeTemplate, err := revertTemplate(kokiDeployment.GetTemplate())
+	if err != nil {
+		return nil, err
+	}
+	if kubeTemplate == nil {
+		return nil, util.TypeValueErrorf(kokiDeployment, "missing pod template")
+	}
+	kubeTemplate.Labels = templateLabelsOverride
 	kubeSpec.Template = *kubeTemplate
+
+	// End Selector/Template section.
 
 	kubeSpec.Strategy = revertDeploymentStrategy(kokiDeployment)
 

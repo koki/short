@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/golang/glog"
+	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 )
@@ -181,7 +181,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 }
 
 func parsePodExprs(s string) (*v1.PodAffinityTerm, error) {
-	labelSelector, err := ParseLabelSelector(s)
+	labelSelector, err := expressions.ParseLabelSelector(s)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	reqs := []v1.NodeSelectorRequirement{}
 	segs := strings.Split(s, "&")
 	for _, seg := range segs {
-		expr, err := parseExpr(seg, []string{"!=", "=", ">", "<"})
+		expr, err := expressions.ParseExpr(seg, []string{"!=", "=", ">", "<"})
 		if err != nil {
 			return nil, err
 		}
@@ -308,113 +308,4 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	}
 
 	return &v1.NodeSelectorTerm{reqs}, nil
-}
-
-func ParseLabelSelector(s string) (*metav1.LabelSelector, error) {
-	if len(s) == 0 {
-		return nil, nil
-	}
-
-	labels := map[string]string{}
-	reqs := []metav1.LabelSelectorRequirement{}
-	segs := strings.Split(s, "&")
-	for _, seg := range segs {
-		expr, err := parseExpr(seg, []string{"!=", "="})
-		if err != nil {
-			return nil, err
-		}
-
-		if expr == nil {
-			if seg[0] == '!' {
-				reqs = append(reqs, metav1.LabelSelectorRequirement{
-					Key:      seg[1:],
-					Operator: metav1.LabelSelectorOpDoesNotExist,
-				})
-			} else {
-				reqs = append(reqs, metav1.LabelSelectorRequirement{
-					Key:      seg,
-					Operator: metav1.LabelSelectorOpExists,
-				})
-			}
-
-			continue
-		}
-
-		var op metav1.LabelSelectorOperator
-		switch expr.Op {
-		case "=":
-			op = metav1.LabelSelectorOpIn
-		case "!=":
-			op = metav1.LabelSelectorOpNotIn
-		default:
-			glog.Fatal("unreachable")
-		}
-
-		if len(expr.Values) == 1 {
-			labels[expr.Key] = expr.Values[0]
-		} else {
-			reqs = append(reqs, metav1.LabelSelectorRequirement{
-				Key:      expr.Key,
-				Operator: op,
-				Values:   expr.Values,
-			})
-		}
-	}
-
-	if len(labels) == 0 {
-		labels = nil
-	}
-
-	if len(reqs) == 0 {
-		reqs = nil
-	}
-
-	return &metav1.LabelSelector{
-		MatchLabels:      labels,
-		MatchExpressions: reqs,
-	}, nil
-}
-
-// Expr is the generic AST format of a koki NodeSelectorRequirement or LabelSelectorRequirement
-type Expr struct {
-	Key    string
-	Op     string
-	Values []string
-}
-
-func parseExpr(s string, ops []string) (*Expr, error) {
-	for _, op := range ops {
-		x, err := parseOp(s, op)
-		if err != nil {
-			return nil, err
-		}
-
-		if x != nil {
-			return x, nil
-		}
-	}
-
-	return nil, nil
-}
-
-func parseOp(s string, op string) (*Expr, error) {
-	if strings.Contains(s, op) {
-		segs := strings.Split(s, op)
-		if len(segs) != 2 {
-			return nil, fmt.Errorf(
-				"Unrecognized expression (%s), op (%s)", s, op)
-		}
-
-		return &Expr{
-			Key:    segs[0],
-			Op:     op,
-			Values: parseValues(segs[1]),
-		}, nil
-	}
-
-	return nil, nil
-}
-
-func parseValues(s string) []string {
-	return strings.Split(s, ",")
 }

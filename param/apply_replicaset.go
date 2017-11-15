@@ -29,9 +29,18 @@ func ApplyReplicaSetParams(params map[string]interface{}, wrapper *types.Replica
 			return err
 		}
 		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
-			replicaSet.Template = &kokiPod.Pod
-			// Empty selector just uses template's labels.
-			replicaSet.PodSelector = ""
+			// If the Pod has labels, pull them up into the Selector.
+			// Otherwise, automatically set up Selector and Labels on conversion to kube obj.
+			labels := kokiPod.Pod.Labels
+			kokiPod.Pod.Labels = nil
+			replicaSet.SetTemplate(&kokiPod.Pod)
+			if len(kokiPod.Pod.Labels) > 0 {
+				replicaSet.Selector = &types.RSSelector{
+					Labels: labels,
+				}
+			} else {
+				replicaSet.Selector = nil
+			}
 		} else {
 			return util.PrettyTypeError(kokiObj, "expected a pod")
 		}

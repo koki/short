@@ -23,7 +23,7 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	case *types.ReplicationControllerWrapper:
 		return converters.Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(kokiObj)
 	case *types.ReplicaSetWrapper:
-		return converters.Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(kokiObj)
+		return converters.Convert_Koki_ReplicaSet_to_Kube_v1beta1_ReplicaSet(kokiObj)
 	case *types.ServiceWrapper:
 		return converters.Convert_Koki_Service_To_Kube_v1_Service(kokiObj)
 	case *types.VolumeWrapper:
@@ -36,7 +36,7 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
 	case *exts.Deployment:
-		return converters.Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeObj)
+		return converters.Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeObj)
 	case *v1.PersistentVolume:
 		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.Pod:
@@ -44,7 +44,7 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	case *v1.ReplicationController:
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
 	case *exts.ReplicaSet:
-		return converters.Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
+		return converters.Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
 	case *v1.Service:
 		return converters.Convert_Kube_v1_Service_to_Koki_Service(kubeObj)
 

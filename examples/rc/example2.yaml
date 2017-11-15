@@ -6,14 +6,10 @@ metadata:
   name: example
 spec:
   replicas: 1
-  selector:
-    key0: value0
-    key1: value1
   template:
     metadata:
       labels:
-        key0: value0
-        key1: value1
+        koki.io/selector.name: example
     spec:
       containers:
       - image: gcr.io/kuard-demo/kuard-amd64:1

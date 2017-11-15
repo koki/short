@@ -40,11 +40,11 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			pod := &types.PodWrapper{}
 			err := json.Unmarshal(bytes, pod)
 			return pod, err
-		case "replicaSet":
+		case "replica_set":
 			replicaSet := &types.ReplicaSetWrapper{}
 			err := json.Unmarshal(bytes, replicaSet)
 			return replicaSet, err
-		case "replicationController":
+		case "replication_controller":
 			replicationController := &types.ReplicationControllerWrapper{}
 			err := json.Unmarshal(bytes, replicationController)
 			return replicationController, err

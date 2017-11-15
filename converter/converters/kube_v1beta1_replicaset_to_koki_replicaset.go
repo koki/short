@@ -1,17 +1,17 @@
 package converters
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 
+	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
 )
 
-func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
+func Convert_Kube_v1beta1_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet) (*types.ReplicaSetWrapper, error) {
 	var err error
 	kokiRS := &types.ReplicaSet{}
 
@@ -22,17 +22,26 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet)
 	kokiRS.Labels = kubeRS.Labels
 	kokiRS.Annotations = kubeRS.Annotations
 
-	kokiRS.Replicas = kubeRS.Spec.Replicas
-	kokiRS.MinReadySeconds = kubeRS.Spec.MinReadySeconds
-	kokiRS.PodSelector, err = convertLabelSelector(kubeRS.Spec.Selector)
+	kubeSpec := &kubeRS.Spec
+
+	kokiRS.Replicas = kubeSpec.Replicas
+	kokiRS.MinReadySeconds = kubeSpec.MinReadySeconds
+
+	// Fill out the Selector and Template.Labels.
+	// If kubeRS only has Template.Labels, we pull it up to Selector.
+	var templateLabelsOverride map[string]string
+	kokiRS.Selector, templateLabelsOverride, err = convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
 	if err != nil {
 		return nil, err
 	}
 
-	kokiRS.Template, err = convertTemplate(&kubeRS.Spec.Template)
+	// Build a Pod from the kube Template. Use it to set the koki Template.
+	kokiPod, err := convertRSTemplate(&kubeSpec.Template)
 	if err != nil {
 		return nil, err
 	}
+	kokiPod.Labels = templateLabelsOverride
+	kokiRS.SetTemplate(kokiPod)
 
 	if !reflect.DeepEqual(kubeRS.Status, exts.ReplicaSetStatus{}) {
 		kokiRS.Status = &kubeRS.Status
@@ -43,44 +52,56 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *exts.ReplicaSet)
 	}, nil
 }
 
-func convertLabelSelector(kubeSelector *metav1.LabelSelector) (string, error) {
+func convertRSTemplate(kubeTemplate *v1.PodTemplateSpec) (*types.Pod, error) {
+	if kubeTemplate == nil {
+		return nil, nil
+	}
+
+	kubePod := &v1.Pod{
+		Spec: kubeTemplate.Spec,
+	}
+
+	kubePod.Name = kubeTemplate.Name
+	kubePod.Namespace = kubeTemplate.Namespace
+	kubePod.Labels = kubeTemplate.Labels
+	kubePod.Annotations = kubeTemplate.Annotations
+
+	kokiPod, err := Convert_Kube_v1_Pod_to_Koki_Pod(kubePod)
+	if err != nil {
+		return nil, err
+	}
+
+	return &kokiPod.Pod, nil
+}
+
+func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabels map[string]string) (*types.RSSelector, map[string]string, error) {
+	// If the Selector is unspecified, it defaults to the Template's Labels.
 	if kubeSelector == nil {
-		return "", nil
+		return &types.RSSelector{
+			Labels: kubeTemplateLabels,
+		}, nil, nil
 	}
 
-	affinityString := ""
-	// parse through match labels first
-	for k, v := range kubeSelector.MatchLabels {
-		kokiExpr := fmt.Sprintf("%s=%s", k, v)
-		if len(affinityString) > 0 {
-			affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
-		} else {
-			affinityString = kokiExpr
+	if len(kubeSelector.MatchExpressions) == 0 {
+		// We have Labels for both Selector and Template.
+		// If they're equal, we only need one.
+		if reflect.DeepEqual(kubeSelector.MatchLabels, kubeTemplateLabels) {
+			return &types.RSSelector{
+				Labels: kubeSelector.MatchLabels,
+			}, nil, nil
 		}
+
+		return &types.RSSelector{
+			Labels: kubeSelector.MatchLabels,
+		}, kubeTemplateLabels, nil
 	}
 
-	// parse through match expressions now
-	for i := range kubeSelector.MatchExpressions {
-		expr := kubeSelector.MatchExpressions[i]
-		value := strings.Join(expr.Values, ",")
-		op, err := convertOperatorLabelSelector(expr.Operator)
-		if err != nil {
-			return "", err
-		}
-		kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
-		if expr.Operator == metav1.LabelSelectorOpExists {
-			kokiExpr = fmt.Sprintf("%s", expr.Key)
-		}
-		if expr.Operator == metav1.LabelSelectorOpDoesNotExist {
-			kokiExpr = fmt.Sprintf("!%s", expr.Key)
-		}
-
-		if len(affinityString) > 0 {
-			affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
-		} else {
-			affinityString = kokiExpr
-		}
+	selectorString, err := expressions.UnparseLabelSelector(kubeSelector)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return affinityString, nil
+	return &types.RSSelector{
+		Shorthand: selectorString,
+	}, kubeTemplateLabels, nil
 }
