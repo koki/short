@@ -25,10 +25,10 @@ Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
 		SilenceUsage: true,
+		Args:         cobra.ExactArgs(1),
 		Example: `
   # Find the shorthand representation of kubernetes objects
   short man pod
-  short man deployment
 
   # Convert existing kubernetes manifestes to shorthand format
   short -f pod.yaml
@@ -44,7 +44,10 @@ Full documentation available at https://docs.koki.io/short
   short -k -f pod_short.yaml
 
   # Output to file
-  short -f pod.yaml -o pod_short.yaml
+  short -f pod.yaml > pod_short.yaml
+
+  # Output as yaml* or json
+  short -f pod.yaml -o json
 `,
 	}
 
@@ -75,7 +78,7 @@ func init() {
 	flag.CommandLine.Parse([]string{})
 
 	RootCmd.AddCommand(versionCmd)
-	//RootCmd.AddCommand(manCommand)
+	RootCmd.AddCommand(manCommand)
 }
 
 func short(c *cobra.Command, args []string) error {
