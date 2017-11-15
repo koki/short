@@ -30,7 +30,7 @@ func ApplyServiceParams(params map[string]interface{}, wrapper *types.ServiceWra
 			return err
 		}
 		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
-			service.PodLabels = kokiPod.Pod.Labels
+			service.Selector = kokiPod.Pod.Labels
 		} else {
 			return util.PrettyTypeError(kokiObj, "expected a pod")
 		}
