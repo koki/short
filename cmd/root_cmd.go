@@ -25,7 +25,6 @@ Full documentation available at https://docs.koki.io/short
 `,
 		RunE:         short,
 		SilenceUsage: true,
-		Args:         cobra.ExactArgs(1),
 		Example: `
   # Find the shorthand representation of kubernetes objects
   short man pod
@@ -111,7 +110,7 @@ func short(c *cobra.Command, args []string) error {
 		useStdin = true
 	}
 
-	var convertedData interface{}
+	var convertedData []interface{}
 
 	if !useStdin && kubeNative {
 		// Imports are only supported for normal files in koki syntax.

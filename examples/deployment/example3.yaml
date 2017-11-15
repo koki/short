@@ -1,9 +1,11 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: example-deployment
   labels:
     app: example
+selector:
+  koki.io/selector.name: example-deployment
 spec:
   replicas: 3
   strategy:

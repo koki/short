@@ -3,13 +3,55 @@ package converters
 import (
 	"reflect"
 
-	exts "k8s.io/api/extensions/v1beta1"
+	appsv1beta2 "k8s.io/api/apps/v1beta2"
+	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/ghodss/yaml"
+
+	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
-func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Deployment) (*types.DeploymentWrapper, error) {
+func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (*types.DeploymentWrapper, error) {
+	groupVersionKind := kubeDeployment.GetObjectKind().GroupVersionKind()
+	groupVersionString := groupVersionKind.GroupVersion().String()
+	groupVersionKind.Version = "v1beta2"
+	groupVersionKind.Group = "apps"
+	kubeDeployment.GetObjectKind().SetGroupVersionKind(groupVersionKind)
+
+	// Serialize as v1beta2
+	b, err := yaml.Marshal(kubeDeployment)
+	if err != nil {
+		return nil, err
+	}
+
+	// Deserialize the "generic" kube Deployment
+	genericDeployment, err := parser.ParseSingleKubeNativeFromBytes(b)
+	if err != nil {
+		return nil, err
+	}
+
+	if genericDeployment, ok := genericDeployment.(*appsv1beta2.Deployment); ok {
+		kokiWrapper, err := Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(genericDeployment)
+		if err != nil {
+			return nil, err
+		}
+
+		kokiDeployment := &kokiWrapper.Deployment
+
+		kokiDeployment.Version = groupVersionString
+
+		// Perform version-specific initialization here.
+
+		return kokiWrapper, nil
+	}
+
+	return nil, util.PrettyTypeError(genericDeployment, "couldn't reserialize as apps/v1beta2.Deployment")
+}
+
+func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *appsv1beta2.Deployment) (*types.DeploymentWrapper, error) {
 	var err error
 	kokiDeployment := &types.Deployment{}
 
@@ -50,7 +92,7 @@ func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Dep
 	kokiDeployment.Paused = kubeSpec.Paused
 	kokiDeployment.ProgressDeadlineSeconds = kubeSpec.ProgressDeadlineSeconds
 
-	if !reflect.DeepEqual(kubeDeployment.Status, exts.DeploymentStatus{}) {
+	if !reflect.DeepEqual(kubeDeployment.Status, appsv1beta2.DeploymentStatus{}) {
 		kokiDeployment.Status = &kubeDeployment.Status
 	}
 
@@ -59,8 +101,8 @@ func Convert_Kube_v1beta1_Deployment_to_Koki_Deployment(kubeDeployment *exts.Dep
 	}, nil
 }
 
-func convertDeploymentStrategy(kubeStrategy exts.DeploymentStrategy) (isRecreate bool, maxUnavailable, maxSurge *intstr.IntOrString) {
-	if kubeStrategy.Type == exts.RecreateDeploymentStrategyType {
+func convertDeploymentStrategy(kubeStrategy appsv1beta2.DeploymentStrategy) (isRecreate bool, maxUnavailable, maxSurge *intstr.IntOrString) {
+	if kubeStrategy.Type == appsv1beta2.RecreateDeploymentStrategyType {
 		return true, nil, nil
 	}
 

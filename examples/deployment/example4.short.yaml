@@ -10,8 +10,6 @@ deployment:
   max_unavailable: 2
   name: example-deployment
   replicas: 3
-  selector:
-    app: example
   status:
     replicas: 1
   version: apps/v1beta1

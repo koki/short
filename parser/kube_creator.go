@@ -1,4 +1,4 @@
-package converter
+package parser
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"

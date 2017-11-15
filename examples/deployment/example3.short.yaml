@@ -1,8 +1,7 @@
 deployment:
   containers:
   - expose:
-    - port_map: "80"
-      protocol: TCP
+    - 80
     image: example/example:latest
     name: example-app
   labels:
@@ -11,7 +10,6 @@ deployment:
   max_unavailable: 2
   name: example-deployment
   replicas: 3
-  selector: null
   status:
     replicas: 1
-  version: extensions/v1beta1
+  version: apps/v1beta2

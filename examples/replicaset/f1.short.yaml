@@ -29,7 +29,7 @@ replica_set:
   replicas: 1
   selector:
     component: elasticsearch
-  version: extensions/v1beta1
+  version: apps/v1beta2
   volumes:
   - emptyDir: {}
     name: storage
