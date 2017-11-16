@@ -2,8 +2,10 @@ package converters
 
 import (
 	"net"
+	"reflect"
 
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
@@ -38,11 +40,12 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 		return nil, err
 	}
 
-	kokiPort, kokiPorts, err := convertPorts(kubeService.Spec.Ports)
+	kokiPort, kokiNodePort, kokiPorts := convertPorts(kubeService.Spec.Ports)
 	if err != nil {
 		return nil, err
 	}
 	kokiService.Port = kokiPort
+	kokiService.NodePort = kokiNodePort
 	kokiService.Ports = kokiPorts
 
 	if kubeService.Spec.Type == v1.ServiceTypeLoadBalancer {
@@ -103,35 +106,37 @@ func convertLoadBalancer(kubeService *v1.Service) (*types.LoadBalancer, error) {
 	return kokiLB, nil
 }
 
-func convertPort(kubePort v1.ServicePort) (*types.ServicePort, error) {
+func convertPort(kubePort v1.ServicePort) (*types.ServicePort, int32) {
 	kokiPort := &types.ServicePort{}
 	kokiPort.Expose = kubePort.Port
-	kokiPort.PodPort = kubePort.TargetPort
+	if !reflect.DeepEqual(kubePort.TargetPort, intstr.FromInt(0)) {
+		kokiPort.PodPort = &kubePort.TargetPort
+	}
 
-	kokiPort.NodePort = kubePort.NodePort
 	kokiPort.Protocol = kubePort.Protocol
 
-	return kokiPort, nil
+	return kokiPort, kubePort.NodePort
 }
 
-func convertPorts(kubePorts []v1.ServicePort) (*types.ServicePort, map[string]types.ServicePort, error) {
+func convertPorts(kubePorts []v1.ServicePort) (*types.ServicePort, int32, []types.NamedServicePort) {
 	if len(kubePorts) == 1 && len(kubePorts[0].Name) == 0 {
 		// Just one port, and it's unnamed
-		kokiPort, err := convertPort(kubePorts[0])
-		return kokiPort, nil, err
+		kokiPort, kokiNodePort := convertPort(kubePorts[0])
+		return kokiPort, kokiNodePort, nil
 	}
 
-	kokiPorts := make(map[string]types.ServicePort, len(kubePorts))
-	for _, kubePort := range kubePorts {
-		kokiPort, err := convertPort(kubePort)
-		if err != nil {
-			return nil, nil, err
+	kokiPorts := make([]types.NamedServicePort, len(kubePorts))
+	for i, kubePort := range kubePorts {
+		kokiPort, kokiNodePort := convertPort(kubePort)
+
+		kokiPorts[i] = types.NamedServicePort{
+			Name:     kubePort.Name,
+			Port:     *kokiPort,
+			NodePort: kokiNodePort,
 		}
-
-		kokiPorts[kubePort.Name] = *kokiPort
 	}
 
-	return nil, kokiPorts, nil
+	return nil, 0, kokiPorts
 }
 
 func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType) (types.ExternalTrafficPolicy, error) {

@@ -59,12 +59,6 @@ expose:
 
 var protocolPortRegexp = regexp.MustCompile(`^(UDP|TCP)://([0-9.:]*)$`)
 
-/*
-var portPortRegexp = regexp.MustCompile(`^([0-9]*):([0-9]*)$`)
-var ipPortPortRegexp = regexp.MustCompile(`^([0-9.])*:([0-9]*):([0-9]*)$`)
-var ipPortRegexp = regexp.MustCompile(`^([0-9.])*:([0-9]*)$`)
-*/
-
 func (p *Port) InitFromString(str string) error {
 	matches := protocolPortRegexp.FindStringSubmatch(str)
 	if len(matches) > 0 {

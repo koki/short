@@ -2,18 +2,11 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"reflect"
-	"strconv"
-	"strings"
-
-	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
 )
 
@@ -34,11 +27,14 @@ type Service struct {
 
 	// ClusterIP services:
 
-	Selector    map[string]string      `json:"selector,omitempty"`
-	ExternalIPs []IPAddr               `json:"external_ips,omitempty"`
-	Port        *ServicePort           `json:"port,omitempty"`
-	Ports       map[string]ServicePort `json:"ports,omitempty"`
-	ClusterIP   ClusterIP              `json:"cluster_ip,omitempty"`
+	Selector    map[string]string `json:"selector,omitempty"`
+	ExternalIPs []IPAddr          `json:"external_ips,omitempty"`
+
+	Port     *ServicePort       `json:"port,omitempty"`
+	NodePort int32              `json:"node_port,omitempty"`
+	Ports    []NamedServicePort `json:"ports,omitempty"`
+
+	ClusterIP ClusterIP `json:"cluster_ip,omitempty"`
 
 	PublishNotReadyAddresses bool                  `json:"unready_endpoints,omitempty"`
 	ExternalTrafficPolicy    ExternalTrafficPolicy `json:"route_policy,omitempty"`
@@ -79,19 +75,6 @@ type Ingress struct {
 	Hostname string
 }
 
-type ServicePort struct {
-	Expose int32
-
-	// PodPort is a port or the name of a containerPort.
-	PodPort intstr.IntOrString
-
-	// NodePort is optional. 0 is empty.
-	NodePort int32
-
-	// Protocol is optional. "" is empty.
-	Protocol v1.Protocol
-}
-
 type ExternalTrafficPolicy string
 
 const (
@@ -122,83 +105,6 @@ func (s *Service) HasLoadBalancer() bool {
 	}
 
 	return false
-}
-
-func (p *ServicePort) InitFromString(str string) error {
-	matches := protocolPortRegexp.FindStringSubmatch(str)
-	if len(matches) > 0 {
-		p.Protocol = v1.Protocol(matches[1])
-		str = matches[2]
-	} else {
-		p.Protocol = v1.ProtocolTCP
-	}
-
-	segments := strings.Split(str, ":")
-	l := len(segments)
-	if l < 2 {
-		glog.Error("Sections for Expose & Pod port are both required.")
-		return fmt.Errorf("too few sections in (%s)", str)
-	}
-	if l > 4 {
-		glog.Error("Too many sections for ServicePort")
-		return fmt.Errorf("too many sections in (%s)", str)
-	}
-
-	expose, err := strconv.ParseInt(segments[0], 10, 32)
-	if err != nil {
-		return util.PrettyTypeError(p, str)
-	}
-	p.Expose = int32(expose)
-
-	p.PodPort = intstr.Parse(segments[1])
-
-	if l == 3 {
-		nodePort, err := strconv.ParseInt(segments[2], 10, 32)
-		if err != nil {
-			return util.PrettyTypeError(p, str)
-		}
-		p.NodePort = int32(nodePort)
-	}
-
-	return nil
-}
-
-func appendColonIntSegment(str string, i int32) string {
-	if len(str) == 0 {
-		return fmt.Sprintf("%d", i)
-	}
-
-	return fmt.Sprintf("%s:%d", str, i)
-}
-
-func (p *ServicePort) String() string {
-	str := fmt.Sprintf("%d:%s", p.Expose, p.PodPort.String())
-	if p.NodePort > 0 {
-		str = appendColonIntSegment(str, p.NodePort)
-	}
-
-	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
-		// No need to specify protocol
-		return str
-	}
-
-	return fmt.Sprintf("%s://%s", p.Protocol, str)
-}
-
-func (p *ServicePort) UnmarshalJSON(data []byte) error {
-	var s string
-	err := json.Unmarshal(data, &s)
-	if err != nil {
-		glog.Error("Expected a string for ServicePort")
-		return err
-	}
-
-	p.InitFromString(s)
-	return nil
-}
-
-func (p ServicePort) MarshalJSON() ([]byte, error) {
-	return json.Marshal(p.String())
 }
 
 func (i *Ingress) InitFromString(s string) {

@@ -1,0 +1,175 @@
+package types
+
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/golang/glog"
+
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/koki/short/util"
+)
+
+type NamedServicePort struct {
+	Name     string
+	Port     ServicePort
+	NodePort int32
+}
+
+type ServicePort struct {
+	Expose int32
+
+	// PodPort is a port or the name of a containerPort.
+	PodPort *intstr.IntOrString
+
+	// Protocol is optional. "" is empty.
+	Protocol v1.Protocol
+}
+
+func (p *ServicePort) InitFromInt(i int32) {
+	p.Protocol = v1.ProtocolTCP
+	p.Expose = i
+}
+
+func (p *ServicePort) InitFromString(str string) error {
+	matches := protocolPortRegexp.FindStringSubmatch(str)
+
+	// Extract the Protocol first.
+	if len(matches) > 0 {
+		p.Protocol = v1.Protocol(matches[1])
+		str = matches[2]
+	} else {
+		p.Protocol = v1.ProtocolTCP
+	}
+
+	segments := strings.Split(str, ":")
+	l := len(segments)
+	if l < 1 {
+		glog.Error("Sections for Expose is required.")
+		return fmt.Errorf("too few sections in (%s)", str)
+	}
+	if l > 2 {
+		glog.Error("Too many sections for ServicePort")
+		return fmt.Errorf("too many sections in (%s)", str)
+	}
+
+	// Extract the exposed port, which is the only required field.
+	expose, err := strconv.ParseInt(segments[0], 10, 32)
+	if err != nil {
+		return util.PrettyTypeError(p, str)
+	}
+	p.Expose = int32(expose)
+
+	// Extract the Pod/Container Port if it exists.
+	if l > 1 {
+		p.PodPort = util.IntOrStringPtr(intstr.Parse(segments[1]))
+	}
+
+	return nil
+}
+
+func (p *ServicePort) String() string {
+	str := fmt.Sprintf("%d", p.Expose)
+	if p.PodPort != nil {
+		str = fmt.Sprintf("%s:%s", str, p.PodPort.String())
+	}
+
+	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
+		// No need to specify protocol
+		return str
+	}
+
+	return fmt.Sprintf("%s://%s", p.Protocol, str)
+}
+
+func (p *ServicePort) ToInt() (int32, error) {
+	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
+		if p.PodPort == nil {
+			return p.Expose, nil
+		}
+	}
+	return -1, util.PrettyTypeError(p, "can't serialize as int32")
+}
+
+func (p *ServicePort) UnmarshalJSON(data []byte) error {
+	var i int32
+	err := json.Unmarshal(data, &i)
+	if err == nil {
+		p.InitFromInt(i)
+		return nil
+	}
+
+	var s string
+	err = json.Unmarshal(data, &s)
+	if err != nil {
+		glog.Error("Expected a string or int for ServicePort")
+		return err
+	}
+
+	return p.InitFromString(s)
+}
+
+func (p ServicePort) MarshalJSON() ([]byte, error) {
+	i, err := p.ToInt()
+	if err == nil {
+		return json.Marshal(i)
+	}
+
+	return json.Marshal(p.String())
+}
+
+func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {
+	if len(obj) > 2 {
+		return util.PrettyTypeError(obj, "expected at most 2 fields for NamedServicePort")
+	}
+
+	for key, val := range obj {
+		if key == "node_port" {
+			if val, ok := val.(float64); ok {
+				n.NodePort = int32(val)
+			}
+		} else {
+			n.Name = key
+			switch val := val.(type) {
+			case string:
+				n.Port.InitFromString(val)
+			case float64:
+				n.Port.InitFromInt(int32(val))
+			default:
+				return util.PrettyTypeError(obj, "expected string or int for ServicePort")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (n *NamedServicePort) UnmarshalJSON(data []byte) error {
+	var obj = map[string]interface{}{}
+	err := json.Unmarshal(data, &obj)
+	if err != nil {
+		return util.PrettyTypeError(n, string(data))
+	}
+
+	return n.InitFromMap(obj)
+}
+
+func (n NamedServicePort) MarshalJSON() ([]byte, error) {
+	var obj = map[string]interface{}{}
+	i, err := n.Port.ToInt()
+	if err == nil {
+		obj[n.Name] = i
+	} else {
+		obj[n.Name] = n.Port.String()
+	}
+
+	if n.NodePort > 0 {
+		obj["node_port"] = n.NodePort
+	}
+
+	return json.Marshal(obj)
+}

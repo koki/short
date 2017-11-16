@@ -11,8 +11,23 @@ import (
 	"github.com/kr/pretty"
 
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
 )
+
+var httpServicePort = types.ServicePort{
+	Expose:  80,
+	PodPort: util.IntOrStringPtr(intstr.FromInt(8080)),
+}
+
+var httpNamedServicePort = types.NamedServicePort{
+	Name: "http",
+	Port: types.ServicePort{
+		Expose:  80,
+		PodPort: util.IntOrStringPtr(intstr.FromInt(8080)),
+	},
+	NodePort: 999,
+}
 
 var s0 = &types.ServiceWrapper{
 	Service: types.Service{
@@ -28,11 +43,8 @@ var s1 = &types.ServiceWrapper{
 		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
-		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
-		Port: &types.ServicePort{
-			Expose:  80,
-			PodPort: intstr.FromInt(8080),
-		},
+		ExternalIPs:      []types.IPAddr{types.IPAddr("1.1.1.1")},
+		Port:             &httpServicePort,
 		ClusterIP:        types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
 		ClientIPAffinity: nil,
 	}}
@@ -45,12 +57,8 @@ var s2 = &types.ServiceWrapper{
 			"labelKey": "labelValue",
 		},
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
-		Ports: map[string]types.ServicePort{
-			"http": types.ServicePort{
-				Expose:   80,
-				PodPort:  intstr.FromInt(8080),
-				NodePort: 999,
-			},
+		Ports: []types.NamedServicePort{
+			httpNamedServicePort,
 		},
 		ClusterIP:        types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
 		ClientIPAffinity: intbool.FromBool(true),
@@ -64,13 +72,8 @@ var s3 = &types.ServiceWrapper{
 			"labelKey": "labelValue",
 		},
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
-		Ports: map[string]types.ServicePort{
-			"http": types.ServicePort{
-				Expose:   80,
-				PodPort:  intstr.FromInt(8080),
-				NodePort: 999,
-				Protocol: v1.ProtocolTCP,
-			},
+		Ports: []types.NamedServicePort{
+			httpNamedServicePort,
 		},
 		ClusterIP:             types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
 		ExternalTrafficPolicy: types.ExternalTrafficPolicyLocal,
