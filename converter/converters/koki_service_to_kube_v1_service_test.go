@@ -43,6 +43,7 @@ var s1 = &types.ServiceWrapper{
 		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
+		Type:             types.ClusterIPServiceTypeDefault,
 		ExternalIPs:      []types.IPAddr{types.IPAddr("1.1.1.1")},
 		Port:             &httpServicePort,
 		ClusterIP:        types.ClusterIPAddr(types.IPAddr("1.1.1.10")),
@@ -56,6 +57,7 @@ var s2 = &types.ServiceWrapper{
 		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
+		Type:        types.ClusterIPServiceTypeNodePort,
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
 		Ports: []types.NamedServicePort{
 			httpNamedServicePort,
@@ -71,6 +73,7 @@ var s3 = &types.ServiceWrapper{
 		Selector: map[string]string{
 			"labelKey": "labelValue",
 		},
+		Type:        types.ClusterIPServiceTypeLoadBalancer,
 		ExternalIPs: []types.IPAddr{types.IPAddr("1.1.1.1")},
 		Ports: []types.NamedServicePort{
 			httpNamedServicePort,

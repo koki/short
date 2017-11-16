@@ -29,6 +29,11 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 		return kokiWrapper, nil
 	}
 
+	kokiService.Type, err = convertServiceType(kubeService.Spec.Type)
+	if err != nil {
+		return nil, err
+	}
+
 	kokiService.Selector = kubeService.Spec.Selector
 	kokiService.ClusterIP = types.ClusterIP(kubeService.Spec.ClusterIP)
 	kokiService.ExternalIPs = convertExternalIPs(kubeService.Spec.ExternalIPs)
@@ -57,6 +62,23 @@ func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.Se
 	}
 
 	return kokiWrapper, nil
+}
+
+func convertServiceType(kubeType v1.ServiceType) (types.ClusterIPServiceType, error) {
+	if len(kubeType) == 0 {
+		return "", nil
+	}
+
+	switch kubeType {
+	case v1.ServiceTypeClusterIP:
+		return types.ClusterIPServiceTypeDefault, nil
+	case v1.ServiceTypeNodePort:
+		return types.ClusterIPServiceTypeNodePort, nil
+	case v1.ServiceTypeLoadBalancer:
+		return types.ClusterIPServiceTypeLoadBalancer, nil
+	default:
+		return "", util.InvalidInstanceError(kubeType)
+	}
 }
 
 func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, error) {

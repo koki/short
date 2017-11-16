@@ -15,4 +15,5 @@ service:
   route_policy: node-local
   selector:
     labelKey: labelValue
+  type: load-balancer
   version: v1
