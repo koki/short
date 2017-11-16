@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: docs.koki.io
+  name: doctor
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        koki.io/selector.name: doctor
+    spec:
+      containers:
+      - args:
+        - bundle
+        - exec
+        - rails
+        - s
+        - -p
+        - "3000"
+        - -b
+        - 0.0.0.0
+        env:
+        - name: CONSOLE_IP_WHITELIST
+        - name: IS_DOCKER
+          value: "true"
+        - name: DATABASE_URL
+          value: postgresql://postgres:postgres@posgres/postgres?pool=5
+        - name: RAILS_ENV
+          value: prod
+        - name: SECRET_KEY_BASE
+          value: 59fcaf0a7229c259a51de000f32affbccefd4eecdaf368491f49790459696bb64111ab42d2b6419d4ed8267ffd324ea26f252c64619056022fb35fa8e85401fd
+        image: minio/doctor
+        name: doctor
+        ports:
+        - containerPort: 3000
+          protocol: TCP
