@@ -13,7 +13,7 @@ func ConvertToKubeNative(objs []map[string]interface{}) ([]interface{}, error) {
 
 		typedObj, err := parser.ParseKokiNativeObject(obj)
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 
 		kubeObj, err := DetectAndConvertFromKokiObj(typedObj)
