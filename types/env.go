@@ -56,19 +56,26 @@ func EnvWithFrom(from EnvFrom) Env {
 	}
 }
 
-func ParseEnvVal(s string) (*EnvVal, error) {
+func ParseEnvVal(s string) *EnvVal {
 	segments := strings.SplitN(s, "=", 2)
 	if len(segments) == 2 {
 		return &EnvVal{
 			Key: segments[0],
 			Val: segments[1],
-		}, nil
+		}
 	}
 
-	return nil, util.InvalidInstanceError(s)
+	// Interpret the entire string as the variable name.
+	return &EnvVal{
+		Key: s,
+	}
 }
 
 func UnparseEnvVal(val EnvVal) string {
+	if len(val.Val) == 0 {
+		return val.Key
+	}
+
 	return fmt.Sprintf("%s=%s", val.Key, val.Val)
 }
 
@@ -77,10 +84,7 @@ func (e *Env) UnmarshalJSON(value []byte) error {
 	var s string
 	err := json.Unmarshal(value, &s)
 	if err == nil {
-		envVal, err := ParseEnvVal(s)
-		if err != nil {
-			return util.InvalidValueErrorf(string(value), "unrecognized Env")
-		}
+		envVal := ParseEnvVal(s)
 		e.SetVal(*envVal)
 		return nil
 	}

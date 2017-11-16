@@ -1,0 +1,26 @@
+deployment:
+ name: doctor
+ version: extensions/v1beta1
+ replicas: 1
+ labels:
+   app: docs.koki.io
+ containers:
+  - name: doctor
+    env: 
+     - CONSOLE_IP_WHITELIST
+     - IS_DOCKER=true
+     - DATABASE_URL=postgresql://postgres:postgres@posgres/postgres?pool=5
+     - RAILS_ENV=prod
+     - SECRET_KEY_BASE=59fcaf0a7229c259a51de000f32affbccefd4eecdaf368491f49790459696bb64111ab42d2b6419d4ed8267ffd324ea26f252c64619056022fb35fa8e85401fd
+    image: minio/doctor
+    args: 
+     - bundle
+     - exec
+     - rails
+     - s
+     - -p
+     - '3000'
+     - -b
+     - '0.0.0.0'
+    expose:
+     - 3000

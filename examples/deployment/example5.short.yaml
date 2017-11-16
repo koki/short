@@ -8,7 +8,7 @@ deployment:
   - name: doctor
     env: 
      - IS_DOCKER=true
-#     - DATABASE_URL=postgresql://postgres:postgres@posgres/posgres?pool=5
+     - DATABASE_URL=postgresql://postgres:postgres@posgres/posgres?pool=5
      - RAILS_ENV=prod
     image: minio/doctor
     args: 
