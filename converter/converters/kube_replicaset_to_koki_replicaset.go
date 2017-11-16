@@ -50,7 +50,7 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 		return kokiWrapper, nil
 	}
 
-	return nil, util.PrettyTypeError(genericReplicaSet, "couldn't reserialize as apps/v1beta2.ReplicaSet")
+	return nil, util.InvalidInstanceErrorf(genericReplicaSet, "couldn't reserialize as apps/v1beta2.ReplicaSet")
 }
 
 func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.ReplicaSet) (*types.ReplicaSetWrapper, error) {

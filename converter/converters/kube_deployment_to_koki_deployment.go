@@ -48,7 +48,7 @@ func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (
 		return kokiWrapper, nil
 	}
 
-	return nil, util.PrettyTypeError(genericDeployment, "couldn't reserialize as apps/v1beta2.Deployment")
+	return nil, util.InvalidInstanceErrorf(genericDeployment, "couldn't reserialize as apps/v1beta2.Deployment")
 }
 
 func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *appsv1beta2.Deployment) (*types.DeploymentWrapper, error) {

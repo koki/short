@@ -1,8 +1,6 @@
 package converter
 
 import (
-	"reflect"
-
 	"github.com/koki/short/converter/converters"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
@@ -31,7 +29,7 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	case *types.VolumeWrapper:
 		return &kokiObj.Volume, nil
 	default:
-		return nil, util.TypeErrorf(reflect.TypeOf(kokiObj), "Unsupported Type")
+		return nil, util.TypeError(kokiObj)
 	}
 }
 
@@ -57,6 +55,6 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_Service_to_Koki_Service(kubeObj)
 
 	default:
-		return nil, util.TypeErrorf(reflect.TypeOf(kubeObj), "Unsupported Type")
+		return nil, util.TypeError(kubeObj)
 	}
 }

@@ -69,7 +69,7 @@ func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, erro
 		if len(singleKubeIngress.IP) > 0 {
 			ip := net.ParseIP(singleKubeIngress.IP)
 			if ip == nil {
-				return nil, util.PrettyTypeError(singleKubeIngress, "invalid IP")
+				return nil, util.InvalidInstanceErrorf(singleKubeIngress, "invalid IP")
 			}
 
 			kokiIngress[index] = types.Ingress{IP: ip}
@@ -148,7 +148,7 @@ func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType
 	case v1.ServiceExternalTrafficPolicyTypeCluster:
 		return types.ExternalTrafficPolicyCluster, nil
 	default:
-		return "", util.PrettyTypeError(kubePolicy, "unrecognized value")
+		return "", util.InvalidInstanceError(kubePolicy)
 	}
 }
 

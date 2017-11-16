@@ -134,5 +134,5 @@ func ConvertOperatorLabelSelector(op metav1.LabelSelectorOperator) (string, erro
 	if op == metav1.LabelSelectorOpDoesNotExist {
 		return "", nil
 	}
-	return "", util.TypeValueErrorf(op, "Unexpected value %s", op)
+	return "", util.InvalidInstanceError(op)
 }

@@ -5,8 +5,7 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/golang/glog"
-
+	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
 )
 
@@ -121,8 +120,7 @@ func (i *Ingress) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		glog.Error("Expected a string for Ingress")
-		return err
+		return util.InvalidValueErrorf(string(data), "expected a string for Ingress")
 	}
 
 	i.InitFromString(s)

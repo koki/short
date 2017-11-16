@@ -61,5 +61,5 @@ func convertCapacity(kubeCapacity v1.ResourceList) (*resource.Quantity, error) {
 		}
 	}
 
-	return nil, util.PrettyTypeError(kubeCapacity, "only supports Storage resource")
+	return nil, util.InvalidInstanceErrorf(kubeCapacity, "only supports Storage resource")
 }

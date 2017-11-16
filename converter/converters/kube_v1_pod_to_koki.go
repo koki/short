@@ -232,7 +232,7 @@ func convertPullPolicy(pullPolicy v1.PullPolicy) (types.PullPolicy, error) {
 	if pullPolicy == v1.PullIfNotPresent {
 		return types.PullNever, nil
 	}
-	return "", util.TypeValueErrorf(pullPolicy, "Conversion for %s unknown", pullPolicy)
+	return "", util.InvalidInstanceError(pullPolicy)
 }
 
 func convertLifecycle(lifecycle *v1.Lifecycle) (onStart *types.Action, preStop *types.Action, err error) {
@@ -275,7 +275,7 @@ func convertLifecycleAction(lcHandler *v1.Handler) (*types.Action, error) {
 			}
 
 			if ps.HTTPGet.Port.String() == "" {
-				return nil, util.TypeValueErrorf(ps.HTTPGet, "URL Port is missing")
+				return nil, util.InvalidInstanceErrorf(ps, "URL Port is missing")
 			}
 
 			host := "localhost"
@@ -474,7 +474,7 @@ func convertTerminationMsgPolicy(p v1.TerminationMessagePolicy) (types.Terminati
 	if p == v1.TerminationMessageFallbackToLogsOnError {
 		return types.TerminationMessageFallbackToLogsOnError, nil
 	}
-	return "", util.TypeValueErrorf(p, "Unexpected value %s", p)
+	return "", util.InvalidInstanceError(p)
 }
 
 func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env {
@@ -577,7 +577,7 @@ func convertMountPropagation(p v1.MountPropagationMode) (types.MountPropagation,
 	} else if p == v1.MountPropagationBidirectional {
 		return types.MountPropagationBidirectional, nil
 	}
-	return "", util.TypeValueErrorf(p, "Unexpected value %s", p)
+	return "", util.InvalidInstanceError(p)
 }
 
 func convertAffinity(spec v1.PodSpec) ([]types.Affinity, error) {
@@ -878,7 +878,7 @@ func convertOperator(op v1.NodeSelectorOperator) (string, error) {
 	if op == v1.NodeSelectorOpLt {
 		return "<", nil
 	}
-	return "", util.TypeValueErrorf(op, "Unexpected value %s", op)
+	return "", util.InvalidInstanceError(op)
 }
 
 func convertDNSPolicy(dnsPolicy v1.DNSPolicy) (types.DNSPolicy, error) {
@@ -894,7 +894,7 @@ func convertDNSPolicy(dnsPolicy v1.DNSPolicy) (types.DNSPolicy, error) {
 	if dnsPolicy == v1.DNSDefault {
 		return types.DNSDefault, nil
 	}
-	return "", util.TypeValueErrorf(dnsPolicy, "Unexpected value %s", dnsPolicy)
+	return "", util.InvalidInstanceError(dnsPolicy)
 }
 
 func convertHostAliases(aliases []v1.HostAlias) []string {
@@ -960,7 +960,7 @@ func convertRestartPolicy(policy v1.RestartPolicy) (types.RestartPolicy, error) 
 	if policy == v1.RestartPolicyNever {
 		return types.RestartPolicyNever, nil
 	}
-	return "", util.TypeValueErrorf(policy, "Unexpected value %s", policy)
+	return "", util.InvalidInstanceError(policy)
 }
 
 func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error) {
@@ -975,7 +975,7 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 		} else if toleration.Operator == v1.TolerationOpExists {
 			tolExpr = fmt.Sprintf("%s", toleration.Key)
 		} else {
-			return nil, util.TypeValueErrorf(toleration.Operator, "Unexpected value %s", toleration.Operator)
+			return nil, util.InvalidInstanceError(toleration.Operator)
 		}
 		if tolExpr != "" {
 			if toleration.Effect != "" {
@@ -1018,7 +1018,7 @@ func convertPhase(phase v1.PodPhase) (types.PodPhase, error) {
 	if phase == v1.PodUnknown {
 		return types.PodUnknown, nil
 	}
-	return "", util.TypeValueErrorf(phase, "Unexpected value %s", phase)
+	return "", util.InvalidInstanceError(phase)
 }
 
 func convertPodQOSClass(class v1.PodQOSClass) (types.PodQOSClass, error) {
@@ -1034,7 +1034,7 @@ func convertPodQOSClass(class v1.PodQOSClass) (types.PodQOSClass, error) {
 	if class == v1.PodQOSBestEffort {
 		return types.PodQOSBestEffort, nil
 	}
-	return "", util.TypeValueErrorf(class, "Unexpected value %s", class)
+	return "", util.InvalidInstanceError(class)
 }
 
 func convertPodConditions(conditions []v1.PodCondition) ([]types.PodCondition, error) {
@@ -1077,7 +1077,7 @@ func convertPodConditionType(typ v1.PodConditionType) (types.PodConditionType, e
 	if typ == v1.PodReasonUnschedulable {
 		return types.PodReasonUnschedulable, nil
 	}
-	return "", util.TypeValueErrorf(typ, "Unexpected value %s", typ)
+	return "", util.InvalidInstanceError(typ)
 }
 
 func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
@@ -1093,7 +1093,7 @@ func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, e
 	if status == v1.ConditionUnknown {
 		return types.ConditionUnknown, nil
 	}
-	return "", util.TypeValueErrorf(status, "Unexpected value %s", status)
+	return "", util.InvalidInstanceError(status)
 }
 
 func convertContainerStatuses(initContainerStatuses, containerStatuses []v1.ContainerStatus, kokiContainers []types.Container) error {

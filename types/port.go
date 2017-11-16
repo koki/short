@@ -88,7 +88,7 @@ func (p *Port) InitFromString(str string) error {
 		return nil
 	}
 
-	return fmt.Errorf("Unrecognized port string (%s)", str)
+	return util.InvalidInstanceErrorf(p, "couldn't parse (%s)", str)
 }
 
 func appendColonSegment(str, seg string) string {
@@ -138,7 +138,7 @@ func (p *Port) UnmarshalJSON(data []byte) error {
 	err = json.Unmarshal(data, &obj)
 
 	if len(obj) != 1 {
-		return util.PrettyTypeError(obj, "Expected one entry for Port.")
+		return util.InvalidValueErrorf(obj, "expected only one entry for Port")
 	}
 
 	if err == nil {
@@ -150,7 +150,7 @@ func (p *Port) UnmarshalJSON(data []byte) error {
 			case float64:
 				err = p.InitFromString(fmt.Sprintf("%d", int(val)))
 			default:
-				err = fmt.Errorf("unrecognized map value in (%s)", string(data))
+				err = util.InvalidValueErrorf(obj, "unrecognized value (not a string or number)")
 			}
 		}
 	}

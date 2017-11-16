@@ -18,16 +18,41 @@ func UsageErrorf(commandPath, f interface{}, args ...interface{}) error {
 	return errorf(fmt.Sprintf("See '%s -h' for help and examples", commandPath), f, args...)
 }
 
-func TypeErrorf(t reflect.Type, f interface{}, args ...interface{}) error {
-	return errorf(fmt.Sprintf("Unknown type '%s'", t), f, args...)
+// TypeError means that obj has an unexpected type.
+func TypeError(obj interface{}) error {
+	return fmt.Errorf("unrecognized type (%s)", reflect.TypeOf(obj))
 }
 
-func TypeValueErrorf(obj, f interface{}, args ...interface{}) error {
-	return errorf(fmt.Sprintf("Unknown value for type '%s'", reflect.TypeOf(obj)), f, args...)
+// TypeErrorf is like TypeError, except with a custom message.
+func TypeErrorf(obj interface{}, msgFormat string, args ...interface{}) error {
+	return errorf(pretty.Sprintf(msgFormat, args...), "unrecognized type (%s)", reflect.TypeOf(obj))
 }
 
-func PrettyTypeError(obj interface{}, msg string) error {
-	return TypeValueErrorf(obj, pretty.Sprintf("%s (%# v)", msg, obj))
+// InvalidInstanceError means that obj is the correct type, but there's something
+// wrong with its contents.
+func InvalidInstanceError(obj interface{}) error {
+	return instanceError(obj, "unrecognized instance")
+}
+
+// InvalidInstanceErrorf is like InvalidInstanceError, except with a custom message.
+func InvalidInstanceErrorf(obj interface{}, msgFormat string, args ...interface{}) error {
+	return instanceError(obj, pretty.Sprintf(msgFormat, args...))
+}
+
+// InvalidValueErrorf is used when the type isn't meaningful--just the contents and the
+// context matter.
+func InvalidValueErrorf(val interface{}, msgFormat string, args ...interface{}) error {
+	return pretty.Errorf("%s\n%# v", pretty.Sprintf(msgFormat, args...), val)
+}
+
+// InvalidValueForTypeErrorf is used when the type isn't meaningful--just the contents and the
+// context matter.
+func InvalidValueForTypeErrorf(val, typedObj interface{}, msgFormat string, args ...interface{}) error {
+	return pretty.Errorf("for type (%s), unrecognized value\n%s\n%# v", reflect.TypeOf(typedObj), pretty.Sprintf(msgFormat, args...), val)
+}
+
+func instanceError(obj interface{}, msg string) error {
+	return pretty.Errorf("%s: %s\n(%# v)", reflect.TypeOf(obj), msg, obj)
 }
 
 func errorf(addedMsg, f interface{}, args ...interface{}) error {
@@ -43,6 +68,6 @@ func errorf(addedMsg, f interface{}, args ...interface{}) error {
 		glog.Errorf("unrecognized format type %v", f)
 	}
 
-	msg := fmt.Sprintf(format, args...)
+	msg := pretty.Sprintf(format, args...)
 	return fmt.Errorf("%s\n %s", msg, addedMsg)
 }

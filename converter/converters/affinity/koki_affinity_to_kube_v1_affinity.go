@@ -1,7 +1,6 @@
 package affinity
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -75,7 +74,7 @@ func splitAffinities(affinities []types.Affinity) (node []string, pod, antiPod [
 				Namespaces: affinity.Namespaces,
 			})
 		default:
-			err = util.TypeValueErrorf(affinity, "unrecognized %#v", affinity)
+			err = util.InvalidInstanceError(affinity)
 		}
 	}
 
@@ -139,7 +138,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 
 		var term *v1.PodAffinityTerm
 		if l < 1 {
-			err = fmt.Errorf("unrecognized PodAffinity %s", affinity)
+			err = util.InvalidInstanceError(affinity)
 			return
 		} else {
 			term, err = parsePodExprs(segs[0])
@@ -156,7 +155,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
+				err = util.InvalidInstanceError(affinity)
 				return
 			}
 		}
@@ -224,7 +223,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 
 		var term *v1.NodeSelectorTerm
 		if l < 1 {
-			err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
+			err = util.InvalidInstanceError(affinity)
 			return
 		} else {
 			term, err = parseNodeExprs(segs[0])
@@ -238,7 +237,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = fmt.Errorf("unrecognized NodeAffinity term %s", affinity)
+				err = util.InvalidInstanceError(affinity)
 				return
 			}
 		}

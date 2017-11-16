@@ -88,7 +88,7 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 		return nil, err
 	}
 	if kubeTemplate == nil {
-		return nil, util.TypeValueErrorf(kokiDeployment, "missing pod template")
+		return nil, util.InvalidInstanceErrorf(kokiDeployment, "missing pod template")
 	}
 	kubeTemplate.Labels = templateLabelsOverride
 	kubeSpec.Template = *kubeTemplate

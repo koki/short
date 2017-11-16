@@ -85,7 +85,7 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 		return nil, err
 	}
 	if kubeTemplate == nil {
-		return nil, util.TypeValueErrorf(kokiRS, "missing pod template")
+		return nil, util.InvalidInstanceErrorf(kokiRS, "missing pod template")
 	}
 	kubeTemplate.Labels = templateLabelsOverride
 	kubeSpec.Template = *kubeTemplate

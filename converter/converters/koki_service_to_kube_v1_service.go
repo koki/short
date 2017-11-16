@@ -122,7 +122,7 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	case types.ExternalTrafficPolicyCluster:
 		return v1.ServiceExternalTrafficPolicyTypeCluster, nil
 	default:
-		return "", util.PrettyTypeError(policy, "unrecognized policy")
+		return "", util.InvalidInstanceError(policy)
 	}
 }
 
