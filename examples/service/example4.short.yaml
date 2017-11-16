@@ -10,10 +10,9 @@ service:
   lb_ip: 100.1.1.1
   name: example
   ports:
-    http: 80:8080:999
+  - http: 80:8080
+    node_port: 999
   route_policy: node-local
   selector:
     labelKey: labelValue
   version: v1
-
-

@@ -4,7 +4,7 @@ service:
   - 1.1.1.1
   name: example
   ports:
-  - http: 80:8080
+  - http: 80
     node_port: 999
   selector:
     labelKey: labelValue

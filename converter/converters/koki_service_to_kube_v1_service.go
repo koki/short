@@ -64,17 +64,19 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 	return kubeService, nil
 }
 
-func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, error) {
+func revertPort(name string, kokiPort *types.ServicePort, kokiNodePort int32) (*v1.ServicePort, error) {
 	kubePort := &v1.ServicePort{}
 	kubePort.Port = kokiPort.Expose
-	kubePort.TargetPort = kokiPort.PodPort
+	if kokiPort.PodPort != nil {
+		kubePort.TargetPort = *kokiPort.PodPort
+	}
 
 	if len(name) > 0 {
 		kubePort.Name = name
 	}
 
-	if kokiPort.NodePort != 0 {
-		kubePort.NodePort = kokiPort.NodePort
+	if kokiNodePort > 0 {
+		kubePort.NodePort = kokiNodePort
 	}
 
 	kubePort.Protocol = kokiPort.Protocol
@@ -85,7 +87,7 @@ func revertPort(name string, kokiPort *types.ServicePort) (*v1.ServicePort, erro
 // Set the Service's Ports and its Type (if there are NodePorts).
 func revertPorts(kokiService *types.Service) (hasNodePort bool, kubePorts []v1.ServicePort, err error) {
 	if kokiService.Port != nil {
-		kubePort, err := revertPort("", kokiService.Port)
+		kubePort, err := revertPort("", kokiService.Port, kokiService.NodePort)
 		if err != nil {
 			return false, nil, err
 		}
@@ -96,8 +98,8 @@ func revertPorts(kokiService *types.Service) (hasNodePort bool, kubePorts []v1.S
 	}
 
 	kubePorts = make([]v1.ServicePort, 0, len(kokiService.Ports))
-	for name, kokiPort := range kokiService.Ports {
-		kubePort, err := revertPort(name, &kokiPort)
+	for _, kokiPort := range kokiService.Ports {
+		kubePort, err := revertPort(kokiPort.Name, &kokiPort.Port, kokiPort.NodePort)
 		if err != nil {
 			return false, nil, err
 		}
