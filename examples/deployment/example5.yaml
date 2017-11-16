@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: docs.koki.io
+  name: doctor
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        koki.io/selector.name: doctor
+    spec:
+      containers:
+      - args:
+        - bundle
+        - exec
+        - rails
+        - s
+        - -p
+        - "3000"
+        - -foo
+        - "3000.01"
+        env:
+        - name: IS_DOCKER
+          value: "true"
+        - name: RAILS_ENV
+          value: prod
+        image: minio/doctor
+        name: doctor

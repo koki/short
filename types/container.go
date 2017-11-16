@@ -2,11 +2,13 @@ package types
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/koki/short/util/floatstr"
 )
 
 type Container struct {
 	Command              []string                 `json:"command,omitempty"`
-	Args                 []string                 `json:"args,omitempty"`
+	Args                 []floatstr.FloatOrString `json:"args,omitempty"`
 	Env                  []Env                    `json:"env,omitempty"`
 	Image                string                   `json:"image"`
 	Pull                 PullPolicy               `json:"pull,omitempty"`

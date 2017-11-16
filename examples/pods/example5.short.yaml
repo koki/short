@@ -13,6 +13,7 @@ pod:
       store: data
   - env:
     - SENTINEL=true
+    - DOOT=https://doot.bar?test=yes
     expose:
     - 26379
     image: kubernetes/redis:v1

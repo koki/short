@@ -11,6 +11,7 @@ import (
 	"github.com/koki/short/converter/converters/affinity"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/floatstr"
 )
 
 func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
@@ -482,7 +483,7 @@ func revertKokiContainer(container types.Container) (v1.Container, error) {
 	kubeContainer := v1.Container{}
 
 	kubeContainer.Name = container.Name
-	kubeContainer.Args = container.Args
+	kubeContainer.Args = revertContainerArgs(container.Args)
 	kubeContainer.Command = container.Command
 	kubeContainer.Image = container.Image
 	kubeContainer.WorkingDir = container.WorkingDir
@@ -540,6 +541,18 @@ func revertKokiContainer(container types.Container) (v1.Container, error) {
 	kubeContainer.SecurityContext = sc
 
 	return kubeContainer, nil
+}
+
+func revertContainerArgs(kokiArgs []floatstr.FloatOrString) []string {
+	if kokiArgs == nil {
+		return nil
+	}
+	kubeArgs := make([]string, len(kokiArgs))
+	for i, kokiArg := range kokiArgs {
+		kubeArgs[i] = kokiArg.String()
+	}
+
+	return kubeArgs
 }
 
 func revertSecurityContext(container types.Container) (*v1.SecurityContext, error) {

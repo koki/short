@@ -57,7 +57,7 @@ func EnvWithFrom(from EnvFrom) Env {
 }
 
 func ParseEnvVal(s string) (*EnvVal, error) {
-	segments := strings.Split(s, "=")
+	segments := strings.SplitN(s, "=", 2)
 	if len(segments) == 2 {
 		return &EnvVal{
 			Key: segments[0],

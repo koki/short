@@ -11,6 +11,7 @@ import (
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/floatstr"
 )
 
 func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
@@ -142,7 +143,7 @@ func convertContainer(container *v1.Container) (*types.Container, error) {
 	kokiContainer.Name = container.Name
 	kokiContainer.Command = container.Command
 	kokiContainer.Image = container.Image
-	kokiContainer.Args = container.Args
+	kokiContainer.Args = convertContainerArgs(container.Args)
 	kokiContainer.WorkingDir = container.WorkingDir
 
 	pullPolicy, err := convertPullPolicy(container.ImagePullPolicy)
@@ -217,6 +218,18 @@ func convertContainer(container *v1.Container) (*types.Container, error) {
 	kokiContainer.VolumeMounts = volumeMounts
 
 	return kokiContainer, nil
+}
+
+func convertContainerArgs(kubeArgs []string) []floatstr.FloatOrString {
+	if kubeArgs == nil {
+		return nil
+	}
+	kokiArgs := make([]floatstr.FloatOrString, len(kubeArgs))
+	for i, kubeArg := range kubeArgs {
+		kokiArgs[i] = *floatstr.Parse(kubeArg)
+	}
+
+	return kokiArgs
 }
 
 func convertPullPolicy(pullPolicy v1.PullPolicy) (types.PullPolicy, error) {
