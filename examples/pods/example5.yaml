@@ -27,6 +27,8 @@ spec:
       env:
         - name: SENTINEL
           value: "true"
+        - name: DOOT
+          value: https://doot.bar?test=yes
       ports:
         - containerPort: 26379
   volumes:
