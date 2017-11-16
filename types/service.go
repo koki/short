@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"net"
-	"reflect"
 
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
@@ -25,6 +24,7 @@ type Service struct {
 	ExternalName string `json:"cname,omitempty"`
 
 	// ClusterIP services:
+	Type ClusterIPServiceType `json:"type,omitempty"`
 
 	Selector    map[string]string `json:"selector,omitempty"`
 	ExternalIPs []IPAddr          `json:"external_ips,omitempty"`
@@ -40,7 +40,6 @@ type Service struct {
 	ClientIPAffinity         *intbool.IntOrBool    `json:"stickiness,omitempty"`
 
 	// LoadBalancer services:
-	LoadBalancer        bool      `json:"lb,omitempty"`
 	LoadBalancerIP      IPAddr    `json:"lb_ip,omitempty"`
 	Allowed             []CIDR    `json:"lb_client_ips,omitempty"`
 	HealthCheckNodePort int32     `json:"healthcheck_port,omitempty"`
@@ -54,6 +53,14 @@ type LoadBalancer struct {
 	HealthCheckNodePort int32
 	Ingress             []Ingress
 }
+
+type ClusterIPServiceType string
+
+const (
+	ClusterIPServiceTypeDefault      ClusterIPServiceType = "cluster-ip"
+	ClusterIPServiceTypeNodePort     ClusterIPServiceType = "node-port"
+	ClusterIPServiceTypeLoadBalancer ClusterIPServiceType = "load-balancer"
+)
 
 type IPAddr string
 type CIDR string
@@ -81,30 +88,6 @@ const (
 	ExternalTrafficPolicyLocal   ExternalTrafficPolicy = "node-local"
 	ExternalTrafficPolicyCluster ExternalTrafficPolicy = "cluster-wide"
 )
-
-func (s *Service) HasLoadBalancer() bool {
-	if s.LoadBalancer {
-		return true
-	}
-
-	if len(s.LoadBalancerIP) > 0 {
-		return true
-	}
-
-	if len(s.Allowed) > 0 {
-		return true
-	}
-
-	if s.HealthCheckNodePort > 0 {
-		return true
-	}
-
-	if len(s.Ingress) > 0 {
-		return true
-	}
-
-	return false
-}
 
 func (i *Ingress) InitFromString(s string) {
 	ip := net.ParseIP(s)
@@ -139,17 +122,8 @@ func (i Ingress) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i.String())
 }
 
-func (l LoadBalancer) IsZero() bool {
-	return reflect.DeepEqual(l, LoadBalancer{})
-}
-
 func (s *Service) SetLoadBalancer(lb *LoadBalancer) {
 	if lb == nil {
-		return
-	}
-
-	if lb.IsZero() {
-		s.LoadBalancer = true
 		return
 	}
 

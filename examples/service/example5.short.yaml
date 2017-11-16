@@ -9,4 +9,5 @@ service:
   selector:
     labelKey: labelValue
   stickiness: true
+  type: node-port
   version: v1

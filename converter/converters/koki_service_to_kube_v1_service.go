@@ -27,7 +27,10 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 		return kubeService, nil
 	}
 
-	kubeService.Spec.Type = v1.ServiceTypeClusterIP
+	kubeService.Spec.Type, err = revertServiceType(kokiService.Type)
+	if err != nil {
+		return nil, err
+	}
 
 	kubeService.Spec.Selector = kokiService.Selector
 	kubeService.Spec.ClusterIP = string(kokiService.ClusterIP)
@@ -44,17 +47,13 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 		return nil, err
 	}
 
-	hasNodePort, kubePorts, err := revertPorts(kokiService)
+	kubePorts, err := revertPorts(kokiService)
 	if err != nil {
 		return nil, err
 	}
 	kubeService.Spec.Ports = kubePorts
-	if hasNodePort {
-		kubeService.Spec.Type = v1.ServiceTypeNodePort
-	}
 
-	if kokiService.HasLoadBalancer() {
-		kubeService.Spec.Type = v1.ServiceTypeLoadBalancer
+	if kokiService.Type == types.ClusterIPServiceTypeLoadBalancer {
 		kubeService.Spec.HealthCheckNodePort = kokiService.HealthCheckNodePort
 		kubeService.Spec.LoadBalancerIP = string(kokiService.LoadBalancerIP)
 		kubeService.Spec.LoadBalancerSourceRanges = revertLoadBalancerSources(kokiService.Allowed)
@@ -62,6 +61,22 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 	}
 
 	return kubeService, nil
+}
+
+func revertServiceType(kokiType types.ClusterIPServiceType) (v1.ServiceType, error) {
+	if len(kokiType) == 0 {
+		return v1.ServiceTypeClusterIP, nil
+	}
+	switch kokiType {
+	case types.ClusterIPServiceTypeDefault:
+		return v1.ServiceTypeClusterIP, nil
+	case types.ClusterIPServiceTypeNodePort:
+		return v1.ServiceTypeNodePort, nil
+	case types.ClusterIPServiceTypeLoadBalancer:
+		return v1.ServiceTypeLoadBalancer, nil
+	default:
+		return "", util.InvalidInstanceError(kokiType)
+	}
 }
 
 func revertPort(name string, kokiPort *types.ServicePort, kokiNodePort int32) (*v1.ServicePort, error) {
@@ -84,33 +99,28 @@ func revertPort(name string, kokiPort *types.ServicePort, kokiNodePort int32) (*
 	return kubePort, nil
 }
 
-// Set the Service's Ports and its Type (if there are NodePorts).
-func revertPorts(kokiService *types.Service) (hasNodePort bool, kubePorts []v1.ServicePort, err error) {
+func revertPorts(kokiService *types.Service) (kubePorts []v1.ServicePort, err error) {
 	if kokiService.Port != nil {
 		kubePort, err := revertPort("", kokiService.Port, kokiService.NodePort)
 		if err != nil {
-			return false, nil, err
+			return nil, err
 		}
 
 		kubePorts = []v1.ServicePort{*kubePort}
-		hasNodePort = kubePort.NodePort != 0
-		return hasNodePort, kubePorts, nil
+		return kubePorts, nil
 	}
 
 	kubePorts = make([]v1.ServicePort, 0, len(kokiService.Ports))
 	for _, kokiPort := range kokiService.Ports {
 		kubePort, err := revertPort(kokiPort.Name, &kokiPort.Port, kokiPort.NodePort)
 		if err != nil {
-			return false, nil, err
+			return nil, err
 		}
 
 		kubePorts = append(kubePorts, *kubePort)
-		if kubePort.NodePort != 0 {
-			hasNodePort = true
-		}
 	}
 
-	return hasNodePort, kubePorts, nil
+	return kubePorts, nil
 }
 
 func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.ServiceExternalTrafficPolicyType, error) {
@@ -127,6 +137,10 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 }
 
 func revertIngress(kokiIngress []types.Ingress) []v1.LoadBalancerIngress {
+	if len(kokiIngress) == 0 {
+		return nil
+	}
+
 	kubeIngress := make([]v1.LoadBalancerIngress, len(kokiIngress))
 	for index, singleKokiIngress := range kokiIngress {
 		if singleKokiIngress.IP != nil {
