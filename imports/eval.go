@@ -40,7 +40,7 @@ func (c *EvalContext) EvaluateImport(inModule *Module, imprt *Import) error {
 	if paramsMap, ok := params.(map[string]interface{}); ok {
 		imprt.Params = paramsMap
 	} else {
-		return util.PrettyTypeError(params, "filling a dictionary template resulted in non-dictionary result")
+		return util.InvalidInstanceErrorf(params, "template was a dictionary, but filling it resulted in non-dictionary type")
 	}
 
 	err = c.ApplyParams(imprt.Params, imprt.Module)

@@ -36,17 +36,17 @@ func Parse(rootPath string) (*Module, error) {
 						}
 						imports = append(imports, anImport)
 					} else {
-						return nil, util.PrettyTypeError(imprt, "expected an import declaration in "+rootPath)
+						return nil, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
 					}
 				}
 			} else {
-				return nil, util.PrettyTypeError(imprts, "expected array of imports in "+rootPath)
+				return nil, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 			}
 		} else {
 			return nil, fmt.Errorf("file (%s) should have 'imports' as its first section", rootPath)
 		}
 	} else {
-		return nil, util.PrettyTypeError(components[0], "imports section should be a map in "+rootPath)
+		return nil, util.InvalidInstanceErrorf(components[0], "imports section should be a map in (%s)", rootPath)
 	}
 
 	return &Module{
@@ -59,10 +59,10 @@ func Parse(rootPath string) (*Module, error) {
 func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {
 	var err error
 	if len(imprt) == 0 {
-		return nil, util.PrettyTypeError(imprt, "empty import declaration")
+		return nil, util.InvalidInstanceErrorf(imprt, "empty import declaration")
 	}
 	if len(imprt) > 2 {
-		return nil, util.PrettyTypeError(imprt, "import declaration should have at most params and name:path")
+		return nil, util.InvalidInstanceErrorf(imprt, "import declaration should have at most params and name:path")
 	}
 
 	imp := &Import{}
@@ -71,20 +71,20 @@ func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error)
 			if params, ok := val.(map[string]interface{}); ok {
 				imp.Params = params
 			} else {
-				return nil, util.PrettyTypeError(imprt, "params should be a dictionary")
+				return nil, util.InvalidInstanceErrorf(imprt, "params should be a dictionary")
 			}
 		} else {
 			imp.Name = key
 			if importPath, ok := val.(string); ok {
 				imp.Path = convertImportPath(rootPath, importPath)
 			} else {
-				return nil, util.PrettyTypeError(imprt, "import path should be a string")
+				return nil, util.InvalidInstanceErrorf(imprt, "import path should be a string")
 			}
 		}
 	}
 
 	if len(imp.Name) == 0 {
-		return nil, util.PrettyTypeError(imprt, "expected import name and path")
+		return nil, util.InvalidInstanceErrorf(imprt, "expected import name and path")
 	}
 
 	imp.Module, err = Parse(imp.Path)

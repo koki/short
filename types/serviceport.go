@@ -49,18 +49,16 @@ func (p *ServicePort) InitFromString(str string) error {
 	segments := strings.Split(str, ":")
 	l := len(segments)
 	if l < 1 {
-		glog.Error("Sections for Expose is required.")
-		return fmt.Errorf("too few sections in (%s)", str)
+		return util.InvalidValueForTypeErrorf(str, p, "too few sections")
 	}
 	if l > 2 {
-		glog.Error("Too many sections for ServicePort")
-		return fmt.Errorf("too many sections in (%s)", str)
+		return util.InvalidValueForTypeErrorf(str, p, "too many sections")
 	}
 
 	// Extract the exposed port, which is the only required field.
 	expose, err := strconv.ParseInt(segments[0], 10, 32)
 	if err != nil {
-		return util.PrettyTypeError(p, str)
+		return util.InvalidValueForTypeErrorf(str, p, "couldn't parse exposed service port")
 	}
 	p.Expose = int32(expose)
 
@@ -92,7 +90,7 @@ func (p *ServicePort) ToInt() (int32, error) {
 			return p.Expose, nil
 		}
 	}
-	return -1, util.PrettyTypeError(p, "can't serialize as int32")
+	return -1, util.InvalidInstanceErrorf(p, "can't serialize as int32")
 }
 
 func (p *ServicePort) UnmarshalJSON(data []byte) error {
@@ -107,7 +105,7 @@ func (p *ServicePort) UnmarshalJSON(data []byte) error {
 	err = json.Unmarshal(data, &s)
 	if err != nil {
 		glog.Error("Expected a string or int for ServicePort")
-		return err
+		return util.InvalidValueForTypeErrorf(string(data), p, "expected string or int")
 	}
 
 	return p.InitFromString(s)
@@ -124,7 +122,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 
 func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {
 	if len(obj) > 2 {
-		return util.PrettyTypeError(obj, "expected at most 2 fields for NamedServicePort")
+		return util.InvalidValueForTypeErrorf(obj, n, "expected at most 2 fields")
 	}
 
 	for key, val := range obj {
@@ -140,7 +138,7 @@ func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {
 			case float64:
 				n.Port.InitFromInt(int32(val))
 			default:
-				return util.PrettyTypeError(obj, "expected string or int for ServicePort")
+				return util.InvalidValueForTypeErrorf(obj, n, "expected string or int for ServicePort")
 			}
 		}
 	}
@@ -152,7 +150,7 @@ func (n *NamedServicePort) UnmarshalJSON(data []byte) error {
 	var obj = map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.PrettyTypeError(n, string(data))
+		return util.InvalidValueForTypeErrorf(string(data), n, "couldn't deserialize")
 	}
 
 	return n.InitFromMap(obj)

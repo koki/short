@@ -59,7 +59,7 @@ func (a *AccessModes) ToString() (string, error) {
 		case v1.ReadWriteOnce:
 			modes[i] = "rw_once"
 		default:
-			return "", util.TypeValueErrorf(mode, mode)
+			return "", util.InvalidInstanceError(mode)
 		}
 	}
 
@@ -83,7 +83,7 @@ func (a *AccessModes) InitFromString(s string) error {
 		case "rw_once":
 			a.Modes[i] = v1.ReadWriteOnce
 		default:
-			return util.TypeValueErrorf(a, s)
+			return util.InvalidValueErrorf(a, "couldn't parse (%s)", s)
 		}
 	}
 

@@ -20,7 +20,7 @@ func ApplyReplicationControllerParams(params map[string]interface{}, wrapper *ty
 				}
 			}
 		} else {
-			return util.PrettyTypeError(params, "expected string for 'name'")
+			return util.InvalidValueErrorf(params, "expected string for param 'name'")
 		}
 	}
 
@@ -34,7 +34,7 @@ func ApplyReplicationControllerParams(params map[string]interface{}, wrapper *ty
 			// We'll either use the Pod's Labels or generate a Selector and Labels on conversion to kube obj.
 			rc.Selector = nil
 		} else {
-			return util.PrettyTypeError(kokiObj, "expected a pod")
+			return util.TypeErrorf(kokiObj, "expected a pod")
 		}
 	}
 	return nil

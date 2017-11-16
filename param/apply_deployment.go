@@ -19,7 +19,7 @@ func ApplyDeploymentParams(params map[string]interface{}, wrapper *types.Deploym
 				}
 			}
 		} else {
-			return util.PrettyTypeError(params, "expected string for 'name'")
+			return util.InvalidValueErrorf(params, "expected string for param 'name'")
 		}
 	}
 
@@ -42,7 +42,7 @@ func ApplyDeploymentParams(params map[string]interface{}, wrapper *types.Deploym
 				deployment.Selector = nil
 			}
 		} else {
-			return util.PrettyTypeError(kokiObj, "expected a pod")
+			return util.TypeErrorf(kokiObj, "expected a pod")
 		}
 	}
 

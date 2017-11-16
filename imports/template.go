@@ -115,7 +115,7 @@ func fillString(template string, resolver Resolver) (string, error) {
 		case int:
 			return []byte(pretty.Sprintf("%v", val))
 		default:
-			errors = append(errors, util.PrettyTypeError(val, "not a string or number"))
+			errors = append(errors, util.InvalidValueErrorf(val, "not a string or number"))
 			return match
 		}
 	})

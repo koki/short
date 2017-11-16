@@ -1,7 +1,6 @@
 package param
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/koki/short/parser"
@@ -22,7 +21,7 @@ func ApplyPodParams(params map[string]interface{}, wrapper *types.PodWrapper) er
 				}
 			}
 		} else {
-			return util.PrettyTypeError(params, "expected string for 'name'")
+			return util.InvalidValueErrorf(params, "expected string for param 'name'")
 		}
 	}
 
@@ -45,7 +44,7 @@ func parseVolumeMountParam(key string, value interface{}) (*volumeMountParam, er
 
 	matches := re.FindStringSubmatch(key)
 	if len(matches) == 0 {
-		return nil, fmt.Errorf("(%s) isn't a volume mount param", key)
+		return nil, util.InvalidValueErrorf(key, "not a volume mount param")
 	}
 
 	vmParam := &volumeMountParam{
@@ -88,7 +87,7 @@ func applyVolumeMountParams(params map[string]interface{}, pod *types.Pod) error
 			case *types.VolumeWrapper:
 				applyRegularVolume(vmParam, volume, pod)
 			default:
-				return util.PrettyTypeError(volume, "unsupported type for volume mount")
+				return util.TypeErrorf(volume, "unsupported type for volume mount")
 			}
 		}
 	}

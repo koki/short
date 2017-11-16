@@ -20,7 +20,7 @@ func ApplyServiceParams(params map[string]interface{}, wrapper *types.ServiceWra
 				}
 			}
 		} else {
-			return util.PrettyTypeError(params, "expected string for 'name'")
+			return util.InvalidValueErrorf(params, "expected string for param 'name'")
 		}
 	}
 
@@ -32,7 +32,7 @@ func ApplyServiceParams(params map[string]interface{}, wrapper *types.ServiceWra
 		if kokiPod, ok := kokiObj.(*types.PodWrapper); ok {
 			service.Selector = kokiPod.Pod.Labels
 		} else {
-			return util.PrettyTypeError(kokiObj, "expected a pod")
+			return util.TypeErrorf(kokiObj, "expected a pod")
 		}
 	}
 

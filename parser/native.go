@@ -2,7 +2,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
@@ -12,13 +11,13 @@ import (
 
 func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 	if _, ok := obj.(map[string]interface{}); !ok {
-		return nil, fmt.Errorf("Error casting input object into map[string]interface{}")
+		return nil, util.TypeErrorf(obj, "can only parse map[string]interface{} as koki obj")
 	}
 
 	objMap := obj.(map[string]interface{})
 
 	if len(objMap) != 1 {
-		return nil, util.TypeValueErrorf(objMap, "Invalid koki syntax")
+		return nil, util.InvalidValueErrorf(objMap, "Invalid koki syntax")
 	}
 
 	bytes, err := json.Marshal(objMap)
@@ -58,7 +57,7 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			return volume, err
 		}
 
-		return nil, util.TypeValueErrorf(objMap, "Unexpected value %s", k)
+		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}
 
 	return nil, nil

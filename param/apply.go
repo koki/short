@@ -25,7 +25,7 @@ func ApplyParams(params map[string]interface{}, module *imports.Module) error {
 	case *types.DeploymentWrapper:
 		err = ApplyDeploymentParams(params, obj)
 	default:
-		err = util.TypeValueErrorf(obj, "unsupported type for parameterization")
+		err = util.TypeErrorf(obj, "unsupported type for parameterization")
 	}
 
 	if err != nil {

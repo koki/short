@@ -2,7 +2,6 @@ package intbool
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"runtime/debug"
 
@@ -59,7 +58,7 @@ func (ib *IntOrBool) UnmarshalJSON(value []byte) error {
 		return nil
 	}
 
-	return util.PrettyTypeError(ib, string(value))
+	return util.InvalidValueForTypeErrorf(string(value), ib, "couldn't deserialize")
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -70,6 +69,6 @@ func (ib IntOrBool) MarshalJSON() ([]byte, error) {
 	case Bool:
 		return json.Marshal(ib.BoolVal)
 	default:
-		return []byte{}, fmt.Errorf("impossible IntOrBool.Type")
+		return []byte{}, util.InvalidInstanceError(ib.Type)
 	}
 }

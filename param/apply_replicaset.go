@@ -19,7 +19,7 @@ func ApplyReplicaSetParams(params map[string]interface{}, wrapper *types.Replica
 				}
 			}
 		} else {
-			return util.PrettyTypeError(params, "expected string for 'name'")
+			return util.InvalidValueErrorf(params, "expected string for param 'name'")
 		}
 	}
 
@@ -42,7 +42,7 @@ func ApplyReplicaSetParams(params map[string]interface{}, wrapper *types.Replica
 				replicaSet.Selector = nil
 			}
 		} else {
-			return util.PrettyTypeError(kokiObj, "expected a pod")
+			return util.TypeErrorf(kokiObj, "expected a pod")
 		}
 	}
 

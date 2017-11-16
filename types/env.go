@@ -65,7 +65,7 @@ func ParseEnvVal(s string) (*EnvVal, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("unrecognized EnvVal (%s)", s)
+	return nil, util.InvalidInstanceError(s)
 }
 
 func UnparseEnvVal(val EnvVal) string {
@@ -79,7 +79,7 @@ func (e *Env) UnmarshalJSON(value []byte) error {
 	if err == nil {
 		envVal, err := ParseEnvVal(s)
 		if err != nil {
-			return fmt.Errorf("unrecognized Env (%s)", string(value))
+			return util.InvalidValueErrorf(string(value), "unrecognized Env")
 		}
 		e.SetVal(*envVal)
 		return nil
@@ -92,7 +92,7 @@ func (e *Env) UnmarshalJSON(value []byte) error {
 		return nil
 	}
 
-	return util.PrettyTypeError(e, string(value))
+	return util.InvalidInstanceErrorf(e, "couldn't parse from (%s)", string(value))
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -103,6 +103,6 @@ func (e Env) MarshalJSON() ([]byte, error) {
 	case EnvFromType:
 		return json.Marshal(e.From)
 	default:
-		return []byte{}, fmt.Errorf("impossible Env.Type")
+		return []byte{}, util.InvalidInstanceError(e.Type)
 	}
 }

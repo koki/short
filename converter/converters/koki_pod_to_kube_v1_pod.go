@@ -228,7 +228,7 @@ func revertQOSClass(class types.PodQOSClass) (v1.PodQOSClass, error) {
 	if class == types.PodQOSBestEffort {
 		return v1.PodQOSBestEffort, nil
 	}
-	return "", util.TypeValueErrorf(class, "Unexpected value %s", class)
+	return "", util.InvalidInstanceError(class)
 }
 
 func revertPodPhase(phase types.PodPhase) (v1.PodPhase, error) {
@@ -250,7 +250,7 @@ func revertPodPhase(phase types.PodPhase) (v1.PodPhase, error) {
 	if phase == types.PodUnknown {
 		return v1.PodUnknown, nil
 	}
-	return "", util.TypeValueErrorf(phase, "Unexpected value %s", phase)
+	return "", util.InvalidInstanceError(phase)
 }
 
 func revertPodConditions(conditions []types.PodCondition) ([]v1.PodCondition, error) {
@@ -300,7 +300,7 @@ func revertPodConditionType(typ types.PodConditionType) (v1.PodConditionType, er
 	if typ == types.PodReasonUnschedulable {
 		return v1.PodReasonUnschedulable, nil
 	}
-	return "", util.TypeValueErrorf(typ, "Unexpected value %s", typ)
+	return "", util.InvalidInstanceError(typ)
 }
 
 func revertConditionStatus(status types.ConditionStatus) (v1.ConditionStatus, error) {
@@ -316,7 +316,7 @@ func revertConditionStatus(status types.ConditionStatus) (v1.ConditionStatus, er
 	if status == types.ConditionUnknown {
 		return v1.ConditionUnknown, nil
 	}
-	return "", util.TypeValueErrorf(status, "Unexpected value %s", status)
+	return "", util.InvalidInstanceError(status)
 
 }
 
@@ -338,7 +338,7 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 			kubeToleration.Operator = v1.TolerationOpEqual
 			kubeToleration.Value = fields[1]
 		} else {
-			return nil, util.TypeValueErrorf(toleration, "Unexpected toleration selector %s", toleration.Selector)
+			return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
 		}
 
 		if kubeToleration.Value != "" {
@@ -353,10 +353,10 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 				case "NoExecute":
 					kubeToleration.Effect = v1.TaintEffectNoExecute
 				default:
-					return nil, util.TypeValueErrorf(toleration, "Unexpected toleration selector %s", toleration.Selector)
+					return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
 				}
 			} else if len(fields) != 1 {
-				return nil, util.TypeValueErrorf(toleration, "Unexpected toleration effect %s", toleration.Selector)
+				return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration effect")
 			}
 		}
 
@@ -390,7 +390,7 @@ func revertHostModes(modes []types.HostMode) (net bool, pid bool, ipc bool, err 
 		case types.HostModeIPC:
 			ipc = true
 		default:
-			return false, false, false, util.TypeValueErrorf(modes, "Unexpected host mode value %s", mode)
+			return false, false, false, util.InvalidInstanceError(mode)
 		}
 	}
 
@@ -408,16 +408,14 @@ func revertServiceAccount(account string) (string, *bool, error) {
 		if fields[1] == "auto" {
 			auto = true
 		} else {
-			return "", &auto, util.TypeValueErrorf(account, "Unexpected service account automount value %s", fields[1])
+			return "", &auto, util.InvalidValueErrorf(account, "unexpected service account automount value (%s)", fields[1])
 		}
 		return fields[1], &auto, nil
 	} else if len(fields) == 1 {
 		return fields[0], &auto, nil
-	} else {
-		return "", &auto, util.TypeValueErrorf(account, "Unexpected service account value %s", account)
 	}
 
-	return "", &auto, nil
+	return "", &auto, util.InvalidValueErrorf(account, "unexpected service account automount value")
 }
 
 func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
@@ -433,8 +431,7 @@ func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
 	if dnsPolicy == types.DNSDefault {
 		return v1.DNSDefault, nil
 	}
-	return "", util.TypeValueErrorf(dnsPolicy, "Unexpected value %s", dnsPolicy)
-
+	return "", util.InvalidInstanceError(dnsPolicy)
 }
 
 func revertAffinity(affinities []types.Affinity) (*v1.Affinity, error) {
@@ -454,7 +451,7 @@ func revertRestartPolicy(policy types.RestartPolicy) (v1.RestartPolicy, error) {
 	if policy == types.RestartPolicyNever {
 		return v1.RestartPolicyNever, nil
 	}
-	return "", util.TypeValueErrorf(policy, "Unexpected restart policy %s", policy)
+	return "", util.InvalidInstanceError(policy)
 }
 
 func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
@@ -474,7 +471,7 @@ func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
 				}
 			}
 		} else {
-			return nil, util.TypeValueErrorf(alias, "Unexpected value %s", alias)
+			return nil, util.InvalidInstanceError(alias)
 		}
 		hostAliases = append(hostAliases, hostAlias)
 	}
@@ -565,7 +562,7 @@ func revertSecurityContext(container types.Container) (*v1.SecurityContext, erro
 		rw := *container.RW
 
 		if !((!ro && rw) || (!rw && ro)) {
-			return nil, util.TypeValueErrorf(container, "Conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
+			return nil, util.InvalidInstanceErrorf(container, "conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
 		}
 
 		sc.ReadOnlyRootFilesystem = &ro
@@ -670,7 +667,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 		} else if len(fields) == 1 {
 			host = hostPort
 		} else {
-			return nil, util.TypeValueErrorf(action.Net, "Unexpected HostPort %s", action.Net.URL)
+			return nil, util.InvalidInstanceErrorf(action.Net, "unexpected HostPort %s", action.Net.URL)
 		}
 
 		if urlStruct.Scheme == "HTTP" || urlStruct.Scheme == "HTTPS" {
@@ -688,7 +685,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 				header := action.Net.Headers[i]
 				fields := strings.Split(header, ":")
 				if len(fields) != 2 {
-					return nil, util.TypeValueErrorf(action.Net, "Unexpected HTTP Header %s", header)
+					return nil, util.InvalidInstanceErrorf(action.Net, "unexpected HTTP Header %s", header)
 				}
 				kubeHeader := v1.HTTPHeader{
 					Name:  fields[0],
@@ -710,7 +707,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 				Port: port,
 			}
 		} else {
-			return nil, util.TypeValueErrorf(action.Net, "Unexpected URL Scheme %s", urlStruct.Scheme)
+			return nil, util.InvalidInstanceErrorf(action.Net, "unexpected URL Scheme %s", urlStruct.Scheme)
 		}
 	}
 
@@ -807,7 +804,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")
 			if len(fields) != 2 && len(fields) != 1 {
-				return nil, util.TypeValueErrorf(urlStruct, "Unexpected value %s", hostPort)
+				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
 			}
 			host := fields[0]
 			port := "80"
@@ -825,7 +822,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")
 			if len(fields) != 2 && len(fields) != 1 {
-				return nil, util.TypeValueErrorf(urlStruct, "Unexpected value %s", hostPort)
+				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
 			}
 			host := fields[0]
 			port := "80"
@@ -840,7 +837,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			} else if strings.ToLower(urlStruct.Scheme) == "https" {
 				scheme = v1.URISchemeHTTPS
 			} else {
-				return nil, util.TypeValueErrorf(urlStruct, "Unexpected scheme %s", urlStruct.Scheme)
+				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL Scheme")
 			}
 
 			kubeProbe.HTTPGet = &v1.HTTPGetAction{
@@ -857,7 +854,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 				h := probe.Net.Headers[i]
 				fields := strings.Split(h, ":")
 				if len(fields) != 2 {
-					return nil, util.TypeValueErrorf(h, "Unexpected value %s", h)
+					return nil, util.InvalidValueErrorf(h, "unrecognized Probe HTTPHeader")
 				}
 				header := v1.HTTPHeader{
 					Name:  fields[0],
@@ -867,7 +864,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			}
 			kubeProbe.HTTPGet.HTTPHeaders = headers
 		} else {
-			return nil, util.TypeValueErrorf(urlStruct, "Unexpected value %s", probe.Net.URL)
+			return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL")
 		}
 	}
 	return kubeProbe, nil
@@ -982,7 +979,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", from.From)
+				return nil, nil, util.InvalidInstanceError(e)
 			}
 			continue
 		}
@@ -1017,7 +1014,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", from.From)
+				return nil, nil, util.InvalidInstanceError(e)
 			}
 			continue
 		}
