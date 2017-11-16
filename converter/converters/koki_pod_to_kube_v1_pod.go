@@ -926,26 +926,24 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 
 	for i := range envs {
 		e := envs[i]
-		if e.From == "" {
-			fields := strings.Split(string(e.EnvStr), "=")
-			if len(fields) != 2 {
-				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", string(e.EnvStr))
-			}
+		if e.Type == types.EnvValType {
 			envVar := v1.EnvVar{
-				Name:  fields[0],
-				Value: fields[1],
+				Name:  e.Val.Key,
+				Value: e.Val.Val,
 			}
 			envVars = append(envVars, envVar)
 			continue
 		}
 
+		from := e.From
+
 		// ResourceFieldRef
-		if strings.Index(e.From, "limits.") == 0 || strings.Index(e.From, "requests.") == 0 {
+		if strings.Index(from.From, "limits.") == 0 || strings.Index(from.From, "requests.") == 0 {
 			envVar := v1.EnvVar{
-				Name: string(e.EnvStr),
+				Name: from.Key,
 				ValueFrom: &v1.EnvVarSource{
 					ResourceFieldRef: &v1.ResourceFieldSelector{
-						Resource: e.From,
+						Resource: from.From,
 					},
 				},
 			}
@@ -954,19 +952,19 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 		}
 
 		// ConfigMapKeyRef or ConfigMapEnvSource
-		if strings.Index(e.From, "config:") == 0 {
-			fields := strings.Split(e.From, ":")
+		if strings.Index(from.From, "config:") == 0 {
+			fields := strings.Split(from.From, ":")
 			if len(fields) == 3 {
 				//ConfigMapKeyRef
 				envVar := v1.EnvVar{
-					Name: string(e.EnvStr),
+					Name: from.Key,
 					ValueFrom: &v1.EnvVarSource{
 						ConfigMapKeyRef: &v1.ConfigMapKeySelector{
 							LocalObjectReference: v1.LocalObjectReference{
 								Name: fields[1],
 							},
 							Key:      fields[2],
-							Optional: e.Required,
+							Optional: from.Required,
 						},
 					},
 				}
@@ -974,62 +972,62 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 			} else if len(fields) == 2 {
 				//ConfigMapEnvSource
 				envVarFromSrc := v1.EnvFromSource{
-					Prefix: string(e.EnvStr),
+					Prefix: from.Key,
 					ConfigMapRef: &v1.ConfigMapEnvSource{
 						LocalObjectReference: v1.LocalObjectReference{
 							Name: fields[1],
 						},
-						Optional: e.Required,
+						Optional: from.Required,
 					},
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", e.From)
+				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", from.From)
 			}
 			continue
 		}
 
 		// SecretKeyRef or SecretEnvSource
-		if strings.Index(e.From, "secret:") == 0 {
-			fields := strings.Split(e.From, ":")
+		if strings.Index(from.From, "secret:") == 0 {
+			fields := strings.Split(from.From, ":")
 			if len(fields) == 3 {
 				//SecretKeyRef
 				envVar := v1.EnvVar{
-					Name: string(e.EnvStr),
+					Name: from.Key,
 					ValueFrom: &v1.EnvVarSource{
 						SecretKeyRef: &v1.SecretKeySelector{
 							LocalObjectReference: v1.LocalObjectReference{
 								Name: fields[1],
 							},
 							Key:      fields[2],
-							Optional: e.Required,
+							Optional: from.Required,
 						},
 					},
 				}
 				envVars = append(envVars, envVar)
 			} else if len(fields) == 2 {
 				envVarFromSrc := v1.EnvFromSource{
-					Prefix: string(e.EnvStr),
+					Prefix: from.Key,
 					SecretRef: &v1.SecretEnvSource{
 						LocalObjectReference: v1.LocalObjectReference{
 							Name: fields[1],
 						},
-						Optional: e.Required,
+						Optional: from.Required,
 					},
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", e.From)
+				return nil, nil, util.TypeValueErrorf(e, "Unexpected value %s", from.From)
 			}
 			continue
 		}
 
 		// FieldRef
 		envVar := v1.EnvVar{
-			Name: string(e.EnvStr),
+			Name: from.Key,
 			ValueFrom: &v1.EnvVarSource{
 				FieldRef: &v1.ObjectFieldSelector{
-					FieldPath: e.From,
+					FieldPath: from.From,
 				},
 			},
 		}
