@@ -1,0 +1,19 @@
+pod:
+  containers:
+  - command:
+    - /bin/sh
+    - -c
+    - env
+    env:
+    - from: secret:test-secret:key-1
+      key: TEST_CMD_1
+    - from: config:test-configmap:key-2
+      key: TEST_CMD_2
+    - from: metadata.name
+      key: TEST_CMD_3
+    image: gcr.io/google_containers/busybox
+    name: test-container
+  name: env-test-pod
+  restart_policy: Never
+  version: v1
+

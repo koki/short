@@ -482,13 +482,15 @@ func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env 
 	for i := range env {
 		v := env[i]
 		if v.ValueFrom == nil {
-			e := types.Env{}
-			e.EnvStr = types.EnvStr(fmt.Sprintf("%s=%s", v.Name, v.Value))
-			kokiEnvs = append(kokiEnvs, e)
+			kokiEnvs = append(kokiEnvs, types.EnvWithVal(types.EnvVal{
+				Key: v.Name,
+				Val: v.Value,
+			}))
 			continue
 		}
-		e := types.Env{}
-		e.EnvStr = types.EnvStr(v.Name)
+
+		e := types.EnvFrom{}
+		e.Key = v.Name
 		if v.ValueFrom.FieldRef != nil {
 			e.From = v.ValueFrom.FieldRef.FieldPath
 		}
@@ -506,12 +508,12 @@ func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env 
 			required := v.ValueFrom.SecretKeyRef.Optional
 			e.Required = required
 		}
-		kokiEnvs = append(kokiEnvs, e)
+		kokiEnvs = append(kokiEnvs, types.EnvWithFrom(e))
 	}
 	for i := range envFromSrc {
 		v := envFromSrc[i]
-		e := types.Env{}
-		e.EnvStr = types.EnvStr(v.Prefix)
+		e := types.EnvFrom{}
+		e.Key = v.Prefix
 		if v.ConfigMapRef != nil {
 			e.From = fmt.Sprintf("config:%s", v.ConfigMapRef.Name)
 			required := v.ConfigMapRef.Optional
@@ -522,7 +524,7 @@ func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env 
 			required := v.SecretRef.Optional
 			e.Required = required
 		}
-		kokiEnvs = append(kokiEnvs, e)
+		kokiEnvs = append(kokiEnvs, types.EnvWithFrom(e))
 	}
 	return kokiEnvs
 }
