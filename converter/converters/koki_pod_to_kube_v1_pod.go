@@ -28,7 +28,7 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 
 	kubePod.Spec = v1.PodSpec{}
 
-	kubePod.Spec.Volumes = kokiPod.Volumes
+	kubePod.Spec.Volumes = revertVolumes(kokiPod.Volumes)
 	fields := strings.SplitN(kokiPod.Hostname, ".", 2)
 	if len(fields) == 1 {
 		kubePod.Spec.Hostname = kokiPod.Hostname
@@ -171,6 +171,18 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	kubePod.Status.ContainerStatuses = containerStatuses
 
 	return kubePod, nil
+}
+
+func revertVolumes(kokiVolumes []types.Volume) []v1.Volume {
+	kubeVolumes := make([]v1.Volume, len(kokiVolumes))
+	for i, kokiVolume := range kokiVolumes {
+		kubeVolumes[i] = v1.Volume{
+			Name:         kokiVolume.Name,
+			VolumeSource: kokiVolume.VolumeSource.VolumeSource,
+		}
+	}
+
+	return kubeVolumes
 }
 
 func revertContainerStatus(container types.Container) (v1.ContainerStatus, error) {

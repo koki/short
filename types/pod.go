@@ -1,7 +1,6 @@
 package types
 
 import (
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,7 +15,7 @@ type Pod struct {
 	Namespace              string            `json:"namespace,omitempty"`
 	Labels                 map[string]string `json:"labels,omitempty"`
 	Annotations            map[string]string `json:"annotations,omitempty"`
-	Volumes                []v1.Volume       `json:"volumes,omitempty"`
+	Volumes                []Volume          `json:"volumes,omitempty"`
 	Affinity               []Affinity        `json:"affinity,omitempty"`
 	Containers             []Container       `json:"containers,omitempty"`
 	InitContainers         []Container       `json:"init_containers,omitempty"`

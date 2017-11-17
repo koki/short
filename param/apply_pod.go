@@ -117,12 +117,12 @@ func applyPersistentVolume(vmParam *volumeMountParam, volume *types.PersistentVo
 
 // Add the volume and a volume mount.
 func applyRegularVolume(vmParam *volumeMountParam, volume *types.VolumeWrapper, pod *types.Pod) {
-	volumeName := volume.Volume.Volume.Name
+	volumeName := volume.Volume.VolumeMeta.Name
 	volumeMount := &types.VolumeMount{
 		MountPath: "/" + volumeName,
 		Store:     volumeName,
 	}
 
 	appendVolumeMountToContainer(vmParam.ContainerName, volumeMount, pod)
-	pod.Volumes = append(pod.Volumes, volume.Volume.Volume)
+	pod.Volumes = append(pod.Volumes, volume.Volume)
 }

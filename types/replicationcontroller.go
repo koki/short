@@ -30,7 +30,7 @@ type ReplicationController struct {
 
 	// Template fields
 	TemplateMetadata       *RCTemplateMetadata `json:"pod_meta,omitempty"`
-	Volumes                []v1.Volume         `json:"volumes,omitempty"`
+	Volumes                []Volume            `json:"volumes,omitempty"`
 	Affinity               []Affinity          `json:"affinity,omitempty"`
 	Containers             []Container         `json:"containers,omitempty"`
 	InitContainers         []Container         `json:"init_containers,omitempty"`

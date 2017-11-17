@@ -1,19 +1,19 @@
-persistentVolume:
-  accessModes: rw_once
-  hostPath:
-    path: /tmp/data/pv-1
+persistent_volume:
   labels:
     type: local
+  modes: rw_once
   name: local-pv-1
+  path: /tmp/data/pv-1
   storage: 20Gi
+  type: host-path
   version: v1
 ---
-persistentVolume:
-  accessModes: rw_once
-  hostPath:
-    path: /tmp/data/pv-2
+persistent_volume:
   labels:
     type: local
+  modes: rw_once
   name: local-pv-2
+  path: /tmp/data/pv-2
   storage: 20Gi
+  type: host-path
   version: v1

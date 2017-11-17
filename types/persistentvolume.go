@@ -11,7 +11,7 @@ import (
 )
 
 type PersistentVolumeWrapper struct {
-	PersistentVolume PersistentVolume `json:"persistentVolume"`
+	PersistentVolume PersistentVolume `json:"persistent_volume"`
 }
 
 type PersistentVolume struct {

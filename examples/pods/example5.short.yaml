@@ -25,6 +25,6 @@ pod:
   name: redis-master
   version: v1
   volumes:
-  - emptyDir: {}
+  - type: empty-dir
     name: data
 
