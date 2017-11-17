@@ -2,7 +2,6 @@ package types
 
 import (
 	apps "k8s.io/api/apps/v1beta2"
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -38,7 +37,7 @@ type Deployment struct {
 
 	// Template fields
 	TemplateMetadata       *RSTemplateMetadata `json:"pod_meta,omitempty"`
-	Volumes                []v1.Volume         `json:"volumes,omitempty"`
+	Volumes                []Volume            `json:"volumes,omitempty"`
 	Affinity               []Affinity          `json:"affinity,omitempty"`
 	Containers             []Container         `json:"containers,omitempty"`
 	InitContainers         []Container         `json:"init_containers,omitempty"`

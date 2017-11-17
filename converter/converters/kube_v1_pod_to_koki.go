@@ -24,7 +24,7 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	kokiPod.Labels = pod.Labels
 	kokiPod.Annotations = pod.Annotations
 
-	kokiPod.Volumes = pod.Spec.Volumes
+	kokiPod.Volumes = convertVolumes(pod.Spec.Volumes)
 	affinity, err := convertAffinity(pod.Spec)
 	if err != nil {
 		return nil, err
@@ -135,6 +135,22 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	}
 
 	return &types.PodWrapper{Pod: *kokiPod}, nil
+}
+
+func convertVolumes(kubeVolumes []v1.Volume) []types.Volume {
+	kokiVolumes := make([]types.Volume, len(kubeVolumes))
+	for i, kubeVolume := range kubeVolumes {
+		kokiVolumes[i] = types.Volume{
+			VolumeMeta: types.VolumeMeta{
+				Name: kubeVolume.Name,
+			},
+			VolumeSource: types.VolumeSource{
+				VolumeSource: kubeVolume.VolumeSource,
+			},
+		}
+	}
+
+	return kokiVolumes
 }
 
 func convertContainer(container *v1.Container) (*types.Container, error) {

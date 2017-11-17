@@ -11,10 +11,15 @@ import (
 )
 
 type PersistentVolumeWrapper struct {
-	PersistentVolume PersistentVolume `json:"persistentVolume"`
+	PersistentVolume PersistentVolume `json:"persistent_volume"`
 }
 
 type PersistentVolume struct {
+	PersistentVolumeMeta
+	PersistentVolumeSource
+}
+
+type PersistentVolumeMeta struct {
 	Version     string            `json:"version,omitempty"`
 	Cluster     string            `json:"cluster,omitempty"`
 	Name        string            `json:"name,omitempty"`
@@ -22,17 +27,20 @@ type PersistentVolume struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Storage                   *resource.Quantity `json:"storage,omitempty"`
-	v1.PersistentVolumeSource `json:",inline"`
-	AccessModes               *AccessModes                     `json:"accessModes,omitempty"`
-	Claim                     *v1.ObjectReference              `json:"claim,omitempty"`
-	ReclaimPolicy             v1.PersistentVolumeReclaimPolicy `json:"reclaimPolicy,omitempty"`
-	StorageClass              string                           `json:"storageClass,omitempty"`
+	Storage       *resource.Quantity               `json:"storage,omitempty"`
+	AccessModes   *AccessModes                     `json:"modes,omitempty"`
+	Claim         *v1.ObjectReference              `json:"claim,omitempty"`
+	ReclaimPolicy v1.PersistentVolumeReclaimPolicy `json:"reclaim,omitempty"`
+	StorageClass  string                           `json:"storage_class,omitempty"`
 
 	// comma-separated list of options
-	MountOptions string `json:"mountOptions,omitempty" protobuf:"bytes,7,opt,name=mountOptions"`
+	MountOptions string `json:"mount_options,omitempty" protobuf:"bytes,7,opt,name=mountOptions"`
 
 	Status *v1.PersistentVolumeStatus `json:"status,omitempty"`
+}
+
+type PersistentVolumeSource struct {
+	VolumeSource v1.PersistentVolumeSource
 }
 
 // comma-separated list of modes
@@ -107,4 +115,70 @@ func (a *AccessModes) UnmarshalJSON(data []byte) error {
 	}
 
 	return a.InitFromString(str)
+}
+
+func (v *PersistentVolume) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, &v.PersistentVolumeSource)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &v.PersistentVolumeMeta)
+}
+
+func (v PersistentVolume) MarshalJSON() ([]byte, error) {
+	b, err := json.Marshal(v.PersistentVolumeMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	bb, err := v.PersistentVolumeSource.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	metaObj := map[string]interface{}{}
+	err = json.Unmarshal(b, &metaObj)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceObj := map[string]interface{}{}
+	err = json.Unmarshal(bb, &sourceObj)
+	if err != nil {
+		return nil, err
+	}
+
+	// Merge metadata with volume-source
+	for key, val := range metaObj {
+		sourceObj[key] = val
+	}
+
+	return json.Marshal(sourceObj)
+}
+
+func (v *PersistentVolumeSource) UnmarshalJSON(data []byte) error {
+	b, err := PreprocessVolumeSourceJSON(v, data)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, &v.VolumeSource)
+	if err != nil {
+		return util.InvalidValueForTypeErrorf(string(b), v, "couldn't deserialize")
+	}
+
+	return nil
+}
+
+func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
+	var err error
+	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
+
+	b, err := json.Marshal(v.VolumeSource)
+	if err != nil {
+		return nil, err
+	}
+
+	return PostprocessVolumeSourceJSON(v, b)
 }

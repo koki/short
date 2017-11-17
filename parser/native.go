@@ -31,7 +31,7 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 			deployment := &types.DeploymentWrapper{}
 			err := json.Unmarshal(bytes, deployment)
 			return deployment, err
-		case "persistentVolume":
+		case "persistent_volume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)
 			return pv, err
