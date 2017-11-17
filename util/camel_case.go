@@ -28,20 +28,28 @@ func CamelToHyphenCase(in string) string {
 	return strings.Replace(ToSnakeCase(in), "_", "-", -1)
 }
 
+func ConvertMapKeysToSnakeCase(obj map[string]interface{}) map[string]interface{} {
+	result := map[string]interface{}{}
+	for key, val := range obj {
+		result[ToSnakeCase(key)] = ConvertKeysToSnakeCase(val)
+	}
+	return result
+}
+
+func ConvertSliceKeystoSnakeCase(obj []interface{}) []interface{} {
+	result := make([]interface{}, len(obj))
+	for i, val := range obj {
+		result[i] = ConvertKeysToSnakeCase(val)
+	}
+	return result
+}
+
 func ConvertKeysToSnakeCase(obj interface{}) interface{} {
 	switch obj := obj.(type) {
 	case map[string]interface{}:
-		result := map[string]interface{}{}
-		for key, val := range obj {
-			obj[ToSnakeCase(key)] = ConvertKeysToSnakeCase(val)
-		}
-		return result
+		return ConvertMapKeysToSnakeCase(obj)
 	case []interface{}:
-		result := make([]interface{}, len(obj))
-		for i, val := range obj {
-			obj[i] = ConvertKeysToSnakeCase(val)
-		}
-		return result
+		return ConvertSliceKeystoSnakeCase(obj)
 	default:
 		return obj
 	}
@@ -77,20 +85,28 @@ func HyphenToCamelCase(lookup map[string]string, in string) string {
 	return ToCamelCase(lookup, strings.Replace(ToSnakeCase(in), "-", "_", -1))
 }
 
+func ConvertMapKeysToCamelCase(lookup map[string]string, obj map[string]interface{}) map[string]interface{} {
+	result := map[string]interface{}{}
+	for key, val := range obj {
+		result[ToCamelCase(lookup, key)] = ConvertKeysToCamelCase(lookup, val)
+	}
+	return result
+}
+
+func ConvertSliceKeysToCamelCase(lookup map[string]string, obj []interface{}) []interface{} {
+	result := make([]interface{}, len(obj))
+	for i, val := range obj {
+		result[i] = ConvertKeysToCamelCase(lookup, val)
+	}
+	return result
+}
+
 func ConvertKeysToCamelCase(lookup map[string]string, obj interface{}) interface{} {
 	switch obj := obj.(type) {
 	case map[string]interface{}:
-		result := map[string]interface{}{}
-		for key, val := range obj {
-			obj[ToCamelCase(lookup, key)] = ConvertKeysToCamelCase(lookup, val)
-		}
-		return result
+		return ConvertMapKeysToCamelCase(lookup, obj)
 	case []interface{}:
-		result := make([]interface{}, len(obj))
-		for i, val := range obj {
-			obj[i] = ConvertKeysToCamelCase(lookup, val)
-		}
-		return result
+		return ConvertSliceKeysToCamelCase(lookup, obj)
 	default:
 		return obj
 	}
