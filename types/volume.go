@@ -76,17 +76,15 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	return json.Marshal(sourceObj)
 }
 
-// TODO: HostPath Type (key collision) "type: hostPath.directory-or-create"
-
-func (v *VolumeSource) UnmarshalJSON(data []byte) error {
+func PreprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	obj := map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't deserialize")
+		return nil, util.InvalidValueForTypeErrorf(string(data), v, "couldn't deserialize")
 	}
 
 	if len(obj) < 2 {
-		return util.InvalidValueForTypeErrorf(string(data), v, "expected at least two fields: name, type")
+		return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected at least two fields: name, type")
 	}
 
 	var volumeType string
@@ -96,16 +94,16 @@ func (v *VolumeSource) UnmarshalJSON(data []byte) error {
 			volumeType = vType
 			delete(obj, "type")
 		default:
-			return util.InvalidValueForTypeErrorf(string(data), v, "expected 'type' field to be a string")
+			return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected 'type' field to be a string")
 		}
 	} else {
-		return util.InvalidValueForTypeErrorf(string(data), v, "no 'type' field")
+		return nil, util.InvalidValueForTypeErrorf(string(data), v, "no 'type' field")
 	}
 
 	// EXTENSION POINT: Choose to do type-specific deserialization based on volumeType.
 	volumeType, err = untweakVolumeSourceFields(volumeType, obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Generic deserialization:
@@ -117,8 +115,18 @@ func (v *VolumeSource) UnmarshalJSON(data []byte) error {
 
 	b, err := json.Marshal(volumeSourceObj)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(volumeSourceObj, v, "couldn't reserialize VolumeSource obj")
+		return nil, util.InvalidValueForTypeErrorf(volumeSourceObj, v, "couldn't reserialize VolumeSource obj")
 	}
+
+	return b, nil
+}
+
+func (v *VolumeSource) UnmarshalJSON(data []byte) error {
+	b, err := PreprocessVolumeSourceJSON(v, data)
+	if err != nil {
+		return err
+	}
+
 	err = json.Unmarshal(b, &v.VolumeSource)
 	if err != nil {
 		return util.InvalidValueForTypeErrorf(string(b), v, "couldn't deserialize")
@@ -127,17 +135,10 @@ func (v *VolumeSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v VolumeSource) MarshalJSON() ([]byte, error) {
+func PostprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	var err error
-	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
-
-	b, err := json.Marshal(v.VolumeSource)
-	if err != nil {
-		return nil, err
-	}
-
 	obj := map[string]interface{}{}
-	err = json.Unmarshal(b, &obj)
+	err = json.Unmarshal(data, &obj)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +167,18 @@ func (v VolumeSource) MarshalJSON() ([]byte, error) {
 	snakeObj["type"] = kokiType
 
 	return json.Marshal(snakeObj)
+}
+
+func (v VolumeSource) MarshalJSON() ([]byte, error) {
+	var err error
+	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
+
+	b, err := json.Marshal(v.VolumeSource)
+	if err != nil {
+		return nil, err
+	}
+
+	return PostprocessVolumeSourceJSON(v, b)
 }
 
 func tweakVolumeSourceFields(kokiType string, obj map[string]interface{}) (string, error) {

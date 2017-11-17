@@ -488,6 +488,17 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(configmap0, t)
 	testVolumeSource(projected0, t)
 	testVolumeSource(downwardAPI0, t)
+
+	testPersistentVolumeSource(local0, t)
+	testPersistentVolumeSource(persistentAWSEBS0, t)
+	testPersistentVolumeSource(persistentAzuredisk0, t)
+	testPersistentVolumeSource(persistentAzurefile0, t)
+	testPersistentVolumeSource(persistentCephfs0, t)
+	testPersistentVolumeSource(persistentCinder0, t)
+	testPersistentVolumeSource(persistentFC0, t)
+	testPersistentVolumeSource(persistentFlex0, t)
+	testPersistentVolumeSource(persistentFlocker0, t)
+	testPersistentVolumeSource(persistentGCEPersistentDisk, t)
 }
 
 func testVolumeSource(v v1.VolumeSource, t *testing.T) {
@@ -507,6 +518,65 @@ func testVolumeSource(v v1.VolumeSource, t *testing.T) {
 	}
 
 	newVolume := Volume{}
+
+	err = yaml.Unmarshal(b, &newVolume)
+	if err != nil {
+		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", err.Error(), string(b), kokiVolume))
+		return
+	}
+
+	newB, err := yaml.Marshal(newVolume)
+	if err != nil {
+		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", err.Error(), newVolume, kokiVolume, string(b)))
+		return
+	}
+
+	if !reflect.DeepEqual(kokiVolume, newVolume) {
+		t.Error(pretty.Sprintf("failed round-trip\n(%# v)\n(%# v)\n(%s)\n(%s)", kokiVolume, newVolume, string(b), string(newB)))
+		return
+	}
+}
+
+func testPersistentVolumeSource(v v1.PersistentVolumeSource, t *testing.T) {
+	kokiVolume := PersistentVolume{
+		PersistentVolumeMeta: PersistentVolumeMeta{
+			Version:   "v1",
+			Cluster:   "cluster",
+			Name:      "vol-name",
+			Namespace: "namespace",
+			Labels: map[string]string{
+				"labelKey": "labelValue",
+			},
+			Annotations: map[string]string{
+				"annotationKey": "annotationValue",
+			},
+			Storage: &sizeLimit0,
+			AccessModes: &AccessModes{
+				Modes: []v1.PersistentVolumeAccessMode{
+					v1.ReadWriteOnce,
+				},
+			},
+			Claim: &v1.ObjectReference{
+				Name:      "claimName",
+				Namespace: "claimNamespace",
+			},
+			ReclaimPolicy: v1.PersistentVolumeReclaimRecycle,
+			StorageClass:  "storageClass",
+			MountOptions:  "option 1,option 2,option 3",
+			Status:        &v1.PersistentVolumeStatus{},
+		},
+		PersistentVolumeSource: PersistentVolumeSource{
+			VolumeSource: v,
+		},
+	}
+
+	b, err := yaml.Marshal(kokiVolume)
+	if err != nil {
+		t.Error(pretty.Sprintf("%s\n%# v", err.Error(), kokiVolume))
+		return
+	}
+
+	newVolume := PersistentVolume{}
 
 	err = yaml.Unmarshal(b, &newVolume)
 	if err != nil {
