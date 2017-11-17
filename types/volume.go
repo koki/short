@@ -15,7 +15,16 @@ type VolumeWrapper struct {
 }
 
 type Volume struct {
-	Volume v1.Volume
+	VolumeMeta
+	VolumeSource
+}
+
+type VolumeMeta struct {
+	Name string `json:"name"`
+}
+
+type VolumeSource struct {
+	VolumeSource v1.VolumeSource
 }
 
 var volumeSourceLookup = map[string]string{
@@ -27,9 +36,49 @@ var volumeSourceLookup = map[string]string{
 	"downward_api":      "downwardAPI",
 }
 
+func (v *Volume) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, &v.VolumeSource)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &v.VolumeMeta)
+}
+
+func (v Volume) MarshalJSON() ([]byte, error) {
+	b, err := json.Marshal(v.VolumeMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	bb, err := v.VolumeSource.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	metaObj := map[string]interface{}{}
+	err = json.Unmarshal(b, &metaObj)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceObj := map[string]interface{}{}
+	err = json.Unmarshal(bb, &sourceObj)
+	if err != nil {
+		return nil, err
+	}
+
+	// Merge metadata with volume-source
+	for key, val := range metaObj {
+		sourceObj[key] = val
+	}
+
+	return json.Marshal(sourceObj)
+}
+
 // TODO: HostPath Type (key collision) "type: hostPath.directory-or-create"
 
-func (v *Volume) UnmarshalJSON(data []byte) error {
+func (v *VolumeSource) UnmarshalJSON(data []byte) error {
 	obj := map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
@@ -38,19 +87,6 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 
 	if len(obj) < 2 {
 		return util.InvalidValueForTypeErrorf(string(data), v, "expected at least two fields: name, type")
-	}
-
-	var volumeName string
-	if name, ok := obj["name"]; ok {
-		switch name := name.(type) {
-		case string:
-			volumeName = name
-			delete(obj, "name")
-		default:
-			return util.InvalidValueForTypeErrorf(string(data), v, "expected 'name' field to be a string")
-		}
-	} else {
-		return util.InvalidValueForTypeErrorf(string(data), v, "no 'name' field")
 	}
 
 	var volumeType string
@@ -73,18 +109,17 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	}
 
 	// Generic deserialization:
-	volumeSourceObj := util.ConvertMapKeysToCamelCase(volumeSourceLookup, obj)
+	volumeSourceContentsObj := util.ConvertMapKeysToCamelCase(volumeSourceLookup, obj)
 	volumeType = util.HyphenToCamelCase(volumeSourceLookup, volumeType)
-	volumeObj := map[string]interface{}{
-		"name":     volumeName,
-		volumeType: volumeSourceObj,
+	volumeSourceObj := map[string]interface{}{
+		volumeType: volumeSourceContentsObj,
 	}
 
-	b, err := json.Marshal(volumeObj)
+	b, err := json.Marshal(volumeSourceObj)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(volumeObj, v, "couldn't reserialize Volume obj")
+		return util.InvalidValueForTypeErrorf(volumeSourceObj, v, "couldn't reserialize VolumeSource obj")
 	}
-	err = json.Unmarshal(b, &v.Volume)
+	err = json.Unmarshal(b, &v.VolumeSource)
 	if err != nil {
 		return util.InvalidValueForTypeErrorf(string(b), v, "couldn't deserialize")
 	}
@@ -92,11 +127,11 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v Volume) MarshalJSON() ([]byte, error) {
+func (v VolumeSource) MarshalJSON() ([]byte, error) {
 	var err error
 	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
 
-	b, err := json.Marshal(v.Volume)
+	b, err := json.Marshal(v.VolumeSource)
 	if err != nil {
 		return nil, err
 	}
@@ -107,21 +142,8 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	if len(obj) != 2 {
-		return nil, util.InvalidValueForTypeErrorf(obj, v, "should have two fields: 'name', volume-source")
-	}
-
-	var kokiName string
-	if name, ok := obj["name"]; ok {
-		switch name := name.(type) {
-		case string:
-			kokiName = name
-		default:
-			return nil, util.InvalidValueForTypeErrorf(name, v, "'name' field should be a string")
-		}
-		delete(obj, "name")
-	} else {
-		return nil, util.InvalidValueForTypeErrorf(obj, v, "expected a 'name' field")
+	if len(obj) != 1 {
+		return nil, util.InvalidValueForTypeErrorf(obj, v, "should have one field: volume-source")
 	}
 
 	var kokiType string
@@ -141,7 +163,6 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	snakeObj["name"] = kokiName
 	snakeObj["type"] = kokiType
 
 	return json.Marshal(snakeObj)

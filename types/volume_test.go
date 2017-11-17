@@ -492,15 +492,17 @@ func TestVolume(t *testing.T) {
 
 func testVolumeSource(v v1.VolumeSource, t *testing.T) {
 	kokiVolume := Volume{
-		Volume: v1.Volume{
-			Name:         "vol-name",
+		VolumeMeta: VolumeMeta{
+			Name: "vol-name",
+		},
+		VolumeSource: VolumeSource{
 			VolumeSource: v,
 		},
 	}
 
 	b, err := yaml.Marshal(kokiVolume)
 	if err != nil {
-		t.Error(pretty.Sprint(err.Error(), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n%# v", err.Error(), kokiVolume))
 		return
 	}
 
@@ -508,18 +510,18 @@ func testVolumeSource(v v1.VolumeSource, t *testing.T) {
 
 	err = yaml.Unmarshal(b, &newVolume)
 	if err != nil {
-		t.Error(pretty.Sprint(err.Error(), string(b), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", err.Error(), string(b), kokiVolume))
 		return
 	}
 
 	newB, err := yaml.Marshal(newVolume)
 	if err != nil {
-		t.Error(pretty.Sprint(err.Error(), newVolume, kokiVolume, string(b)))
+		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", err.Error(), newVolume, kokiVolume, string(b)))
 		return
 	}
 
 	if !reflect.DeepEqual(kokiVolume, newVolume) {
-		t.Error(pretty.Sprint("failed round-trip", kokiVolume, newVolume, string(b), string(newB)))
+		t.Error(pretty.Sprintf("failed round-trip\n(%# v)\n(%# v)\n(%s)\n(%s)", kokiVolume, newVolume, string(b), string(newB)))
 		return
 	}
 }
