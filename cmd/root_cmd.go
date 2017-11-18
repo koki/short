@@ -1,15 +1,15 @@
 package cmd
 
 import (
-	"encoding/json"
+	"bytes"
 	"flag"
 	"fmt"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
+	"github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
 	"github.com/koki/short/util"
@@ -151,23 +151,22 @@ func short(c *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var outputData []byte
-
+	buf := &bytes.Buffer{}
 	if strings.ToLower(output) == "yaml" {
 		glog.V(3).Info("marshalling converted data into yaml")
-		outputData, err = yaml.Marshal(convertedData)
+		err = client.WriteObjsToYamlStream(convertedData, buf)
 		if err != nil {
 			return err
 		}
 	} else {
 		glog.V(3).Info("marshalling converted data into json")
-		outputData, err = json.MarshalIndent(convertedData, " ", "  ")
+		err = client.WriteObjsToJSONStream(convertedData, buf)
 		if err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf("%s\n", outputData)
+	fmt.Printf("%s\n", buf.String())
 
 	return nil
 }
