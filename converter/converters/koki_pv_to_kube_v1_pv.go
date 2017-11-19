@@ -15,7 +15,11 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 
 	kubePV.Name = kokiPV.Name
 	kubePV.Namespace = kokiPV.Namespace
-	kubePV.APIVersion = kokiPV.Version
+	if len(kokiPV.Version) == 0 {
+		kubePV.APIVersion = "v1"
+	} else {
+		kubePV.APIVersion = kokiPV.Version
+	}
 	kubePV.Kind = "PersistentVolume"
 	kubePV.ClusterName = kokiPV.Cluster
 	kubePV.Labels = kokiPV.Labels

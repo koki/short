@@ -13,7 +13,11 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 
 	kubeRC.Name = kokiRC.Name
 	kubeRC.Namespace = kokiRC.Namespace
-	kubeRC.APIVersion = kokiRC.Version
+	if len(kokiRC.Version) == 0 {
+		kubeRC.APIVersion = "v1"
+	} else {
+		kubeRC.APIVersion = kokiRC.Version
+	}
 	kubeRC.Kind = "ReplicationController"
 	kubeRC.ClusterName = kokiRC.Cluster
 	kubeRC.Labels = kokiRC.Labels
