@@ -62,7 +62,11 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 
 	kubeDeployment.Name = kokiDeployment.Name
 	kubeDeployment.Namespace = kokiDeployment.Namespace
-	kubeDeployment.APIVersion = kokiDeployment.Version
+	if len(kokiDeployment.Version) == 0 {
+		kubeDeployment.APIVersion = "extensions/v1beta1"
+	} else {
+		kubeDeployment.APIVersion = kokiDeployment.Version
+	}
 	kubeDeployment.Kind = "Deployment"
 	kubeDeployment.ClusterName = kokiDeployment.Cluster
 	kubeDeployment.Labels = kokiDeployment.Labels

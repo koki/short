@@ -60,7 +60,11 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 
 	kubeRS.Name = kokiRS.Name
 	kubeRS.Namespace = kokiRS.Namespace
-	kubeRS.APIVersion = kokiRS.Version
+	if len(kokiRS.Version) == 0 {
+		kubeRS.APIVersion = "extensions/v1beta1"
+	} else {
+		kubeRS.APIVersion = kokiRS.Version
+	}
 	kubeRS.Kind = "ReplicaSet"
 	kubeRS.ClusterName = kokiRS.Cluster
 	kubeRS.Labels = kokiRS.Labels
