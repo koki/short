@@ -9,6 +9,12 @@ import (
 	"github.com/kr/pretty"
 )
 
+var verboseErrors = false
+
+func SetVerboseErrors(verbose bool) {
+	verboseErrors = verbose
+}
+
 func ExitWithErr(msg interface{}) {
 	glog.Error(msg)
 	os.Exit(1)
@@ -42,17 +48,29 @@ func InvalidInstanceErrorf(obj interface{}, msgFormat string, args ...interface{
 // InvalidValueErrorf is used when the type isn't meaningful--just the contents and the
 // context matter.
 func InvalidValueErrorf(val interface{}, msgFormat string, args ...interface{}) error {
-	return pretty.Errorf("%s\n%# v", pretty.Sprintf(msgFormat, args...), val)
+	if verboseErrors {
+		return pretty.Errorf("%s\n(%# v)", pretty.Sprintf(msgFormat, args...), val)
+	}
+
+	return pretty.Errorf("(%s) value: %s", reflect.TypeOf(val), pretty.Sprintf(msgFormat, args...))
 }
 
 // InvalidValueForTypeErrorf is used when the type isn't meaningful--just the contents and the
 // context matter.
 func InvalidValueForTypeErrorf(val, typedObj interface{}, msgFormat string, args ...interface{}) error {
-	return pretty.Errorf("for type (%s), unrecognized value\n%s\n%# v", reflect.TypeOf(typedObj), pretty.Sprintf(msgFormat, args...), val)
+	if verboseErrors {
+		return pretty.Errorf("for type (%s), unrecognized value\n%s\n%# v", reflect.TypeOf(typedObj), pretty.Sprintf(msgFormat, args...), val)
+	}
+
+	return pretty.Errorf("for type (%s), unrecognized (%s) value: %s", reflect.TypeOf(typedObj), reflect.TypeOf(val), pretty.Sprintf(msgFormat, args...))
 }
 
 func instanceError(obj interface{}, msg string) error {
-	return pretty.Errorf("%s: %s\n(%# v)", reflect.TypeOf(obj), msg, obj)
+	if verboseErrors {
+		return pretty.Errorf("%s: %s\n(%# v)", reflect.TypeOf(obj), msg, obj)
+	}
+
+	return pretty.Errorf("%s: %s", reflect.TypeOf(obj), msg)
 }
 
 func errorf(addedMsg, f interface{}, args ...interface{}) error {

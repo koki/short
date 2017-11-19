@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -23,7 +24,14 @@ var (
 
 Full documentation available at https://docs.koki.io/short
 `,
-		RunE:         short,
+		RunE: func(c *cobra.Command, args []string) error {
+			err := short(c, args)
+			if err != nil && !verboseErrors {
+				fmt.Fprintln(os.Stderr, "Use flag '--verbose-errors' for more detailed error info.")
+			}
+
+			return err
+		},
 		SilenceUsage: true,
 		Example: `
   # Find the shorthand representation of kubernetes objects
@@ -58,6 +66,8 @@ Full documentation available at https://docs.koki.io/short
 	output string
 	// silent denotes that the conversion output should not be printed to stdout
 	silent bool
+	// verboseErrors denotes that error messages should contain full information instead of just a summary
+	verboseErrors bool
 )
 
 func init() {
@@ -66,6 +76,7 @@ func init() {
 	RootCmd.Flags().StringSliceVarP(&filenames, "filenames", "f", nil, "path or url to input files to read manifests")
 	RootCmd.Flags().StringVarP(&output, "output", "o", "yaml", "output format (yaml*|json)")
 	RootCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence output to stdout")
+	RootCmd.Flags().BoolVarP(&verboseErrors, "verbose-errors", "", false, "include more information in errors")
 
 	// parse the go default flagset to get flags for glog and other packages in future
 	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
@@ -82,6 +93,7 @@ func init() {
 
 func short(c *cobra.Command, args []string) error {
 	var err error
+	util.SetVerboseErrors(verboseErrors)
 	// validate that the user used the command correctly
 	glog.V(3).Infof("validating command %q", args)
 
@@ -104,14 +116,12 @@ func short(c *cobra.Command, args []string) error {
 	}
 
 	useStdin := false
-
 	if len(args) == 1 && args[0] == "-" {
 		glog.V(3).Info("using stdin for input data")
 		useStdin = true
 	}
 
 	var convertedData []interface{}
-
 	if !useStdin && kubeNative {
 		// Imports are only supported for normal files in koki syntax.
 		kokiObjs, err := loadKokiFiles(filenames)
@@ -126,22 +136,41 @@ func short(c *cobra.Command, args []string) error {
 	} else {
 		// parse input data from one of the sources - files or stdin
 		glog.V(3).Info("parsing input data")
-		data, err := parser.Parse(filenames, useStdin)
-		if err != nil {
-			return err
+		fileDatas := map[string][]map[string]interface{}{}
+		if useStdin {
+			fileDatas["stdin"], err = parser.Parse(nil, true)
+			if err != nil {
+				return fmt.Errorf("parsing stdin: %s", err.Error())
+			}
+		} else {
+			for _, filename := range filenames {
+				fileDatas[filename], err = parser.Parse([]string{filename}, false)
+				if err != nil {
+					return fmt.Errorf("parsing %s: %s", filename, err.Error())
+				}
+			}
 		}
 
-		if kubeNative {
-			glog.V(3).Info("converting input to kubernetes native syntax")
-			convertedData, err = converter.ConvertToKubeNative(data)
+		convertedData = []interface{}{}
+		for filename, data := range fileDatas {
 			if err != nil {
 				return err
 			}
-		} else {
-			glog.V(3).Info("converting input to koki native syntax")
-			convertedData, err = converter.ConvertToKokiNative(data)
-			if err != nil {
-				return err
+
+			if kubeNative {
+				glog.V(3).Info("converting input to kubernetes native syntax")
+				objs, err := converter.ConvertToKubeNative(data)
+				if err != nil {
+					return fmt.Errorf("converting %s: %s", filename, err.Error())
+				}
+				convertedData = append(convertedData, objs...)
+			} else {
+				glog.V(3).Info("converting input to koki native syntax")
+				objs, err := converter.ConvertToKokiNative(data)
+				if err != nil {
+					return fmt.Errorf("converting %s: %s", filename, err.Error())
+				}
+				convertedData = append(convertedData, objs...)
 			}
 		}
 
