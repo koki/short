@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	// Just make sure we also build the client package.
+	_ "github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/imports"
 	"github.com/koki/short/param"

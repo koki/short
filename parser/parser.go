@@ -24,7 +24,7 @@ func Parse(filenames []string, useStdin bool) ([]map[string]interface{}, error) 
 		streams = append(streams, os.Stdin)
 	} else {
 		glog.V(3).Info("reading data from input files")
-		s, err := openStreamsFromFiles(filenames)
+		s, err := OpenStreamsFromFiles(filenames)
 		if err != nil {
 			return nil, err
 		}
@@ -32,11 +32,11 @@ func Parse(filenames []string, useStdin bool) ([]map[string]interface{}, error) 
 	}
 
 	glog.V(3).Info("decoding input data")
-	return parseStreams(streams)
+	return ParseStreams(streams)
 }
 
-//parses the stream into a go object and closes the stream once done
-func parseStreams(streams []io.ReadCloser) ([]map[string]interface{}, error) {
+//parses each stream into a go object and closes the stream once done
+func ParseStreams(streams []io.ReadCloser) ([]map[string]interface{}, error) {
 	structs := []map[string]interface{}{}
 
 	for i := range streams {

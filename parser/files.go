@@ -7,7 +7,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func openStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
+func OpenStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
 	readers := []io.ReadCloser{}
 
 	for i := range filenames {
