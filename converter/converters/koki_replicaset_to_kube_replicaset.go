@@ -25,7 +25,7 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 	// Serialize the "generic" kube ReplicaSet.
 	b, err := yaml.Marshal(kubeRS)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(kubeRS, "couldn't serialize 'generic' kube ReplicaSet: %s", err.Error())
 	}
 
 	// Deserialize a versioned kube ReplicaSet using its apiVersion.
@@ -111,7 +111,7 @@ func revertRSSelector(name string, selector *types.RSSelector, templateLabels ma
 	if len(selector.Shorthand) > 0 {
 		labelSelector, err := expressions.ParseLabelSelector(selector.Shorthand)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, util.InvalidInstanceErrorf(selector, "%s", err)
 		}
 		if len(templateLabels) == 0 && len(labelSelector.MatchExpressions) == 0 {
 			// Selector is only Labels, and Template.Labels is empty.

@@ -672,7 +672,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, err
+					return nil, util.InvalidInstanceErrorf(nodeHardAffinity, "unsupported Operator: %s", err.Error())
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -705,7 +705,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, err
+					return nil, util.InvalidInstanceErrorf(nodeSoftAffinity, "unsupported Operator: %s", err.Error())
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -792,7 +792,7 @@ func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.Weighte
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, err
+					return nil, util.InvalidInstanceErrorf(selectorTerm.PodAffinityTerm, "unsupported Operator: %s", err.Error())
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {
@@ -852,7 +852,7 @@ func convertPodAffinityTerms(prefix string, podHardAffinity []v1.PodAffinityTerm
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, err
+					return nil, util.InvalidInstanceErrorf(selectorTerm, "unsupported Operator: %s", err.Error())
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {
@@ -1004,7 +1004,7 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 		} else if toleration.Operator == v1.TolerationOpExists {
 			tolExpr = fmt.Sprintf("%s", toleration.Key)
 		} else {
-			return nil, util.InvalidInstanceError(toleration.Operator)
+			return nil, util.InvalidInstanceErrorf(toleration, "unsupported operator")
 		}
 		if tolExpr != "" {
 			if toleration.Effect != "" {

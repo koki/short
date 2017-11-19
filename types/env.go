@@ -101,12 +101,20 @@ func (e *Env) UnmarshalJSON(value []byte) error {
 
 // MarshalJSON implements the json.Marshaller interface.
 func (e Env) MarshalJSON() ([]byte, error) {
+	var b []byte
+	var err error
 	switch e.Type {
 	case EnvValType:
-		return json.Marshal(UnparseEnvVal(*e.Val))
+		b, err = json.Marshal(UnparseEnvVal(*e.Val))
 	case EnvFromType:
-		return json.Marshal(e.From)
+		b, err = json.Marshal(e.From)
 	default:
 		return []byte{}, util.InvalidInstanceError(e.Type)
 	}
+
+	if err != nil {
+		return nil, util.InvalidInstanceErrorf(e, "couldn't marshal to JSON: %s", err.Error())
+	}
+
+	return b, nil
 }

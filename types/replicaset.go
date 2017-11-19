@@ -6,6 +6,8 @@ import (
 
 	apps "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/koki/short/util"
 )
 
 type ReplicaSetWrapper struct {
@@ -166,25 +168,36 @@ func (rs *ReplicaSet) GetTemplate() *Pod {
 
 func (s *RSSelector) UnmarshalJSON(data []byte) error {
 	var str string
-	err := json.Unmarshal(data, &str)
-	if err == nil {
+	strErr := json.Unmarshal(data, &str)
+	if strErr == nil {
 		s.Shorthand = str
 		return nil
 	}
 
 	labels := map[string]string{}
-	err = json.Unmarshal(data, &labels)
-	if err == nil {
-		s.Labels = labels
+	dictErr := json.Unmarshal(data, &labels)
+	if dictErr != nil {
+		return util.InvalidValueForTypeErrorf(string(data), s, "couldn't parse JSON as string or dictionary: (%s), (%s)", strErr.Error(), dictErr.Error())
 	}
 
-	return err
+	s.Labels = labels
+	return nil
 }
 
 func (s RSSelector) MarshalJSON() ([]byte, error) {
 	if len(s.Shorthand) > 0 {
-		return json.Marshal(s.Shorthand)
+		b, err := json.Marshal(s.Shorthand)
+		if err != nil {
+			return nil, util.InvalidInstanceErrorf(s, "couldn't marshal shorthand string to JSON: %s", err.Error())
+		}
+
+		return b, nil
 	}
 
-	return json.Marshal(s.Labels)
+	b, err := json.Marshal(s.Labels)
+	if err != nil {
+		return nil, util.InvalidInstanceErrorf(s, "couldn't marshal labels dictionary to JSON: %s", err.Error())
+	}
+
+	return b, nil
 }

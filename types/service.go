@@ -119,7 +119,13 @@ func (i Ingress) String() string {
 }
 
 func (i Ingress) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.String())
+	str := i.String()
+	b, err := json.Marshal(str)
+	if err != nil {
+		return nil, util.InvalidInstanceErrorf(i, "couldn't marshal from string (%s) to JSON: %s", str, err.Error())
+	}
+
+	return b, nil
 }
 
 func (s *Service) SetLoadBalancer(lb *LoadBalancer) {

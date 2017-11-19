@@ -6,6 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/ghodss/yaml"
+
+	"github.com/koki/short/util"
 )
 
 func ParseSingleKubeNativeFromBytes(data []byte) (runtime.Object, error) {
@@ -25,12 +27,12 @@ func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
 
 	typedObj, err := creator.New(u.GetObjectKind().GroupVersionKind())
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(u, "unsupported apiVersion/kind (is the manifest kube-native format?): %s", err.Error())
 	}
 
 	if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
-		return nil, err
+		return nil, util.InvalidValueForTypeErrorf(obj, typedObj, "couldn't convert to typed kube obj: %s", err.Error())
 	}
 
-	return typedObj, err
+	return typedObj, nil
 }

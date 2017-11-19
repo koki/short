@@ -25,7 +25,7 @@ func (p *Port) HostPortInt() (int32, error) {
 	if len(p.HostPort) > 0 {
 		hostPort, err := strconv.ParseInt(p.HostPort, 10, 32)
 		if err != nil {
-			return 0, err
+			return 0, util.InvalidInstanceErrorf(p, "HostPort should be an int: %s", err.Error())
 		}
 
 		return int32(hostPort), nil
@@ -38,7 +38,7 @@ func (p *Port) ContainerPortInt() (int32, error) {
 	if len(p.ContainerPort) > 0 {
 		containerPort, err := strconv.ParseInt(p.ContainerPort, 10, 32)
 		if err != nil {
-			return 0, err
+			return 0, util.InvalidInstanceErrorf(p, "ContainerPort should be an int: %s", err.Error())
 		}
 
 		return int32(containerPort), nil
@@ -136,26 +136,27 @@ func (p *Port) UnmarshalJSON(data []byte) error {
 
 	obj := map[string]interface{}{}
 	err = json.Unmarshal(data, &obj)
+	if err != nil {
+		return util.InvalidValueForTypeErrorf(string(data), p, "couldn't parse JSON")
+	}
 
 	if len(obj) != 1 {
 		return util.InvalidValueErrorf(obj, "expected only one entry for Port")
 	}
 
-	if err == nil {
-		for key, val := range obj {
-			p.Name = key
-			switch val := val.(type) {
-			case string:
-				err = p.InitFromString(val)
-			case float64:
-				err = p.InitFromString(fmt.Sprintf("%d", int(val)))
-			default:
-				err = util.InvalidValueErrorf(obj, "unrecognized value (not a string or number)")
-			}
+	for key, val := range obj {
+		p.Name = key
+		switch val := val.(type) {
+		case string:
+			return p.InitFromString(val)
+		case float64:
+			return p.InitFromString(fmt.Sprintf("%d", int(val)))
+		default:
+			return util.InvalidValueErrorf(obj, "unrecognized value (not a string or number)")
 		}
 	}
 
-	return err
+	return nil
 }
 
 func (p Port) MarshalJSON() ([]byte, error) {
@@ -170,18 +171,34 @@ func (p Port) MarshalJSON() ([]byte, error) {
 			obj := map[string]int{
 				p.Name: int(i),
 			}
-			return json.Marshal(&obj)
+			b, err := json.Marshal(&obj)
+			if err != nil {
+				return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with name (%s) and port number (%d): %s", p.Name, i, err.Error())
+			}
+			return b, nil
 		}
 
-		return json.Marshal(&i)
+		b, err := json.Marshal(&i)
+		if err != nil {
+			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with port number (%d): %s", i, err.Error())
+		}
+		return b, nil
 	}
 
 	if len(p.Name) > 0 {
 		obj := map[string]string{
 			p.Name: str,
 		}
-		return json.Marshal(&obj)
+		b, err := json.Marshal(&obj)
+		if err != nil {
+			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with name (%s) and port string (%s): %s", p.Name, str, err.Error())
+		}
+		return b, nil
 	}
 
-	return json.Marshal(&str)
+	b, err := json.Marshal(&str)
+	if err != nil {
+		return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with port string (%s): %s", str, err.Error())
+	}
+	return b, nil
 }

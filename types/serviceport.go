@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/glog"
-
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -95,29 +93,39 @@ func (p *ServicePort) ToInt() (int32, error) {
 
 func (p *ServicePort) UnmarshalJSON(data []byte) error {
 	var i int32
-	err := json.Unmarshal(data, &i)
-	if err == nil {
+	intErr := json.Unmarshal(data, &i)
+	if intErr == nil {
 		p.InitFromInt(i)
 		return nil
 	}
 
 	var s string
-	err = json.Unmarshal(data, &s)
-	if err != nil {
-		glog.Error("Expected a string or int for ServicePort")
-		return util.InvalidValueForTypeErrorf(string(data), p, "expected string or int")
+	strErr := json.Unmarshal(data, &s)
+	if strErr != nil {
+		return util.InvalidValueForTypeErrorf(string(data), p, "couldn't unmarshal JSON as int or string: (%s), (%s)", intErr.Error(), strErr.Error())
 	}
 
 	return p.InitFromString(s)
 }
 
 func (p ServicePort) MarshalJSON() ([]byte, error) {
-	i, err := p.ToInt()
-	if err == nil {
-		return json.Marshal(i)
+	i, intErr := p.ToInt()
+	if intErr == nil {
+		b, err := json.Marshal(i)
+		if err != nil {
+			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal port number (%d) to JSON: %s", i, err.Error())
+		}
+
+		return b, nil
 	}
 
-	return json.Marshal(p.String())
+	str := p.String()
+	b, strErr := json.Marshal(str)
+	if strErr != nil {
+		return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON from string (%s): %s", str, strErr.Error())
+	}
+
+	return b, nil
 }
 
 func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {

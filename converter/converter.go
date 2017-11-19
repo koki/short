@@ -1,8 +1,6 @@
 package converter
 
 import (
-	unstructuredconversion "k8s.io/apimachinery/pkg/conversion/unstructured"
-
 	"github.com/koki/short/parser"
 )
 
@@ -33,10 +31,6 @@ func ConvertToKokiNative(objs []map[string]interface{}) ([]interface{}, error) {
 		obj := objs[i]
 		typedObj, err := parser.ParseSingleKubeNative(obj)
 		if err != nil {
-			return nil, err
-		}
-
-		if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
 			return nil, err
 		}
 
