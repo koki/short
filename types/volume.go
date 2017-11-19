@@ -39,33 +39,38 @@ var volumeSourceLookup = map[string]string{
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &v.VolumeSource)
 	if err != nil {
-		return err
+		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal volume source from JSON: %s", err.Error())
 	}
 
-	return json.Unmarshal(data, &v.VolumeMeta)
+	err = json.Unmarshal(data, &v.VolumeMeta)
+	if err != nil {
+		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal metatdata from JSON: %s", err.Error())
+	}
+
+	return nil
 }
 
 func (v Volume) MarshalJSON() ([]byte, error) {
 	b, err := json.Marshal(v.VolumeMeta)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal metadata to JSON", err.Error())
 	}
 
 	bb, err := v.VolumeSource.MarshalJSON()
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal volume source to JSON", err.Error())
 	}
 
 	metaObj := map[string]interface{}{}
 	err = json.Unmarshal(b, &metaObj)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueForTypeErrorf(string(b), v.VolumeMeta, "couldn't convert metadata to dictionary: %s", err.Error())
 	}
 
 	sourceObj := map[string]interface{}{}
 	err = json.Unmarshal(bb, &sourceObj)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueForTypeErrorf(string(b), v.VolumeSource, "couldn't convert volume source to dictionary: %s", err.Error())
 	}
 
 	// Merge metadata with volume-source
@@ -73,14 +78,18 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 		sourceObj[key] = val
 	}
 
-	return json.Marshal(sourceObj)
+	result, err := json.Marshal(sourceObj)
+	if err != nil {
+		return nil, util.InvalidValueForTypeErrorf(sourceObj, v, "couldn't marshal merged metadata+volume-source dictionary to JSON: %s", err.Error())
+	}
+	return result, nil
 }
 
 func PreprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	obj := map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(data), v, "couldn't deserialize")
+		return nil, util.InvalidValueForTypeErrorf(string(data), v, "couldn't deserialize: %s", err.Error())
 	}
 
 	if len(obj) < 2 {
@@ -140,7 +149,7 @@ func PostprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	obj := map[string]interface{}{}
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected to unmarshal dictionary from JSON: %s", err.Error())
 	}
 
 	if len(obj) != 1 {
@@ -166,7 +175,11 @@ func PostprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	}
 	snakeObj["type"] = kokiType
 
-	return json.Marshal(snakeObj)
+	result, err := json.Marshal(snakeObj)
+	if err != nil {
+		return nil, util.InvalidValueForTypeErrorf(snakeObj, v, "couldn't marshal dictionary representation to JSON", err.Error())
+	}
+	return result, nil
 }
 
 func (v VolumeSource) MarshalJSON() ([]byte, error) {
@@ -175,7 +188,7 @@ func (v VolumeSource) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(v.VolumeSource)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal to JSON: %s", err.Error())
 	}
 
 	return PostprocessVolumeSourceJSON(v, b)
