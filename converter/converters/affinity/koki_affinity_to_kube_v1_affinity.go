@@ -74,7 +74,7 @@ func splitAffinities(affinities []types.Affinity) (node []string, pod, antiPod [
 				Namespaces: affinity.Namespaces,
 			})
 		default:
-			err = util.InvalidInstanceError(affinity)
+			err = util.InvalidInstanceErrorf(affinity, "expected one of: node, pod, pod-anti affinity")
 		}
 	}
 
@@ -137,25 +137,20 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 		l := len(segs)
 
 		var term *v1.PodAffinityTerm
-		if l < 1 {
-			err = util.InvalidInstanceError(affinity)
+		term, err = parsePodExprs(segs[0])
+		if err != nil {
 			return
-		} else {
-			term, err = parsePodExprs(segs[0])
-			if err != nil {
-				return
-			}
-
-			term.TopologyKey = affinity.Topology
-			term.Namespaces = affinity.Namespaces
 		}
+
+		term.TopologyKey = affinity.Topology
+		term.Namespaces = affinity.Namespaces
 
 		if l < 2 {
 			hard = append(hard, *term)
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = util.InvalidInstanceError(affinity)
+				err = util.InvalidInstanceErrorf(affinity, "second affinity segment should be 'soft'")
 				return
 			}
 		}
@@ -166,6 +161,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 		} else {
 			weight, err = strconv.ParseInt(segs[2], 10, 32)
 			if err != nil {
+				err = util.InvalidInstanceErrorf(affinity, "third affinity segment should be a number (weight)")
 				return
 			}
 		}
@@ -182,7 +178,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 func parsePodExprs(s string) (*v1.PodAffinityTerm, error) {
 	labelSelector, err := expressions.ParseLabelSelector(s)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueForTypeErrorf(s, v1.PodAffinityTerm{}, "%s", err.Error())
 	}
 
 	return &v1.PodAffinityTerm{
@@ -222,14 +218,9 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 		l := len(segs)
 
 		var term *v1.NodeSelectorTerm
-		if l < 1 {
-			err = util.InvalidInstanceError(affinity)
+		term, err = parseNodeExprs(segs[0])
+		if err != nil {
 			return
-		} else {
-			term, err = parseNodeExprs(segs[0])
-			if err != nil {
-				return
-			}
 		}
 
 		if l < 2 {
@@ -237,7 +228,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = util.InvalidInstanceError(affinity)
+				err = util.InvalidInstanceErrorf(affinity, "second segment should be 'soft'")
 				return
 			}
 		}
@@ -248,6 +239,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 		} else {
 			weight, err = strconv.ParseInt(segs[2], 10, 32)
 			if err != nil {
+				err = util.InvalidInstanceErrorf(affinity, "third segment should be an integer (weight)")
 				return
 			}
 		}
@@ -267,6 +259,7 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	for _, seg := range segs {
 		expr, err := expressions.ParseExpr(seg, []string{"!=", "=", ">", "<"})
 		if err != nil {
+			err = util.InvalidValueForTypeErrorf(s, v1.NodeSelectorTerm{}, "%s", err.Error())
 			return nil, err
 		}
 

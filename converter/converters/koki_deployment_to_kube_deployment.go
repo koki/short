@@ -25,7 +25,7 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 	// Serialize the "generic" kube Deployment.
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(kubeDeployment, "couldn't serialize 'generic' kube Deployment: %s", err.Error())
 	}
 
 	// Deserialize a versioned kube Deployment using its apiVersion.
@@ -50,6 +50,8 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 		}
 	case *exts.Deployment:
 		// Perform exts/v1beta1-specific initialization here.
+	default:
+		return nil, util.TypeErrorf(versionedDeployment, "deserialized the manifest, but not as a supported kube Deployment")
 	}
 
 	return versionedDeployment, nil

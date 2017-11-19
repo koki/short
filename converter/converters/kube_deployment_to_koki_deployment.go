@@ -24,13 +24,13 @@ func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(kubeDeployment, "couldn't serialize kube Deployment after setting apiVersion to apps/v1beta2: %s", err.Error())
 	}
 
 	// Deserialize the "generic" kube Deployment
 	genericDeployment, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(string(b), "couldn't deserialize 'generic' kube Deployment: %s", err.Error())
 	}
 
 	if genericDeployment, ok := genericDeployment.(*appsv1beta2.Deployment); ok {
@@ -48,7 +48,7 @@ func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericDeployment, "couldn't reserialize as apps/v1beta2.Deployment")
+	return nil, util.InvalidInstanceErrorf(genericDeployment, "didn't deserialize 'generic' kube Deployment as apps/v1beta2.Deployment")
 }
 
 func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *appsv1beta2.Deployment) (*types.DeploymentWrapper, error) {

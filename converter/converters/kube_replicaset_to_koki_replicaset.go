@@ -26,13 +26,13 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeRS)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(kubeRS, "couldn't serialize kube ReplicaSet after setting apiVersion to apps/v1beta2: %s", err.Error())
 	}
 
 	// Deserialize the "generic" kube ReplicaSet
 	genericReplicaSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(string(b), "couldn't deserialize 'generic' kube ReplicaSet: %s", err.Error())
 	}
 
 	if genericReplicaSet, ok := genericReplicaSet.(*appsv1beta2.ReplicaSet); ok {
@@ -50,7 +50,7 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericReplicaSet, "couldn't reserialize as apps/v1beta2.ReplicaSet")
+	return nil, util.InvalidInstanceErrorf(genericReplicaSet, "didn't deserialize 'generic' ReplicaSet as apps/v1beta2.ReplicaSet")
 }
 
 func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.ReplicaSet) (*types.ReplicaSetWrapper, error) {

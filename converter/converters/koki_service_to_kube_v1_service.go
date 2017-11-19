@@ -36,10 +36,6 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 	kubeService.Spec.ClusterIP = string(kokiService.ClusterIP)
 	kubeService.Spec.ExternalIPs = revertExternalIPs(kokiService.ExternalIPs)
 	kubeService.Spec.SessionAffinity, kubeService.Spec.SessionAffinityConfig = revertSessionAffinity(kokiService.ClientIPAffinity)
-	if err != nil {
-		return nil, err
-	}
-
 	kubeService.Spec.PublishNotReadyAddresses = kokiService.PublishNotReadyAddresses
 
 	kubeService.Spec.ExternalTrafficPolicy, err = revertExternalTrafficPolicy(kokiService.ExternalTrafficPolicy)
