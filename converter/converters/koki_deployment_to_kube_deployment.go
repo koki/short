@@ -1,12 +1,9 @@
 package converters
 
 import (
-	"reflect"
-
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	exts "k8s.io/api/extensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ghodss/yaml"
 
@@ -39,15 +36,6 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 		// Perform apps/v1beta1-specific initialization here.
 	case *appsv1beta2.Deployment:
 		// Perform apps/v1beta2-specific initialization here.
-		selector := versionedDeployment.Spec.Selector
-		if selector == nil || reflect.DeepEqual(selector, metav1.LabelSelector{}) {
-			if len(versionedDeployment.Spec.Template.Labels) > 0 {
-				// Fill in a default selector since v1beta2 doesn't have one.
-				versionedDeployment.Spec.Selector = &metav1.LabelSelector{
-					MatchLabels: versionedDeployment.Spec.Template.Labels,
-				}
-			}
-		}
 	case *exts.Deployment:
 		// Perform exts/v1beta1-specific initialization here.
 	default:
