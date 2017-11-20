@@ -1,7 +1,6 @@
 package pager
 
 import (
-	"index/suffixarray"
 	"io"
 	"strings"
 
@@ -12,9 +11,9 @@ type Pager struct {
 	buf *ViewBuffer
 }
 
-func NewPager(r io.Reader, index *suffixarray.Index) *Pager {
+func NewPager(r io.Reader) *Pager {
 	return &Pager{
-		buf: NewViewBuffer(r, index),
+		buf: NewViewBuffer(r),
 	}
 }
 
@@ -48,8 +47,7 @@ func (p *Pager) Render() error {
 			switch ev.Key {
 			case termbox.KeyEnter:
 				if search || search_result {
-					p.buf.Search(token)
-					search_result = true
+					search_result = p.buf.Search(token)
 				} else {
 					p.buf.ScrollDown()
 				}
