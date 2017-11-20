@@ -10,11 +10,11 @@ type ViewBuffer struct {
 	// Lines
 	buf []string
 
-	begin_index int
-	max_height  int
+	beginIndex int
+	maxHeight  int
 
 	// Line index of the last line (-1 if we haven't gotten there yet.)
-	last_line int
+	lastLine int
 
 	scanner *bufio.Scanner
 
@@ -25,34 +25,34 @@ type ViewBuffer struct {
 
 func NewViewBuffer(r io.Reader) *ViewBuffer {
 	return &ViewBuffer{
-		buf:         []string{},
-		begin_index: 0,
-		last_line:   -1,
-		max_height:  64,
-		scanner:     bufio.NewScanner(r),
+		buf:        []string{},
+		beginIndex: 0,
+		lastLine:   -1,
+		maxHeight:  64,
+		scanner:    bufio.NewScanner(r),
 	}
 }
 
 func (v *ViewBuffer) SetMaxHeight(height int) {
-	v.max_height = height
+	v.maxHeight = height
 }
 
 func (v *ViewBuffer) CurrentView() []string {
-	for len(v.buf)-v.begin_index < v.max_height {
+	for len(v.buf)-v.beginIndex < v.maxHeight {
 		if !v.scan() {
 			break
 		}
 	}
-	if len(v.buf)-v.begin_index < v.max_height {
-		v.begin_index = len(v.buf) - v.max_height
+	if len(v.buf)-v.beginIndex < v.maxHeight {
+		v.beginIndex = len(v.buf) - v.maxHeight
 	}
 
-	if v.begin_index < 0 {
-		v.begin_index = 0
+	if v.beginIndex < 0 {
+		v.beginIndex = 0
 	}
 
-	start := v.begin_index
-	end := v.begin_index + v.max_height
+	start := v.beginIndex
+	end := v.beginIndex + v.maxHeight
 	if end > len(v.buf) {
 		end = len(v.buf)
 	}
@@ -61,13 +61,13 @@ func (v *ViewBuffer) CurrentView() []string {
 }
 
 func (v *ViewBuffer) scan() bool {
-	if v.last_line != -1 {
+	if v.lastLine != -1 {
 		// Reached the end of input earlier.
 		return false
 	}
 	if !v.scanner.Scan() {
 		// Just reached the end of input.
-		v.last_line = len(v.buf)
+		v.lastLine = len(v.buf)
 		return false
 	}
 
@@ -79,49 +79,49 @@ func (v *ViewBuffer) scan() bool {
 }
 
 func (v *ViewBuffer) ScrollUp() {
-	if v.begin_index > 0 {
-		v.begin_index = v.begin_index - 1
+	if v.beginIndex > 0 {
+		v.beginIndex = v.beginIndex - 1
 	}
 }
 
 func (v *ViewBuffer) ScrollTop() {
-	v.begin_index = 0
+	v.beginIndex = 0
 }
 
 func (v *ViewBuffer) ScrollDown() {
-	if len(v.buf)-v.begin_index > v.max_height {
-		v.begin_index = v.begin_index + 1
-	} else if v.last_line == -1 {
+	if len(v.buf)-v.beginIndex > v.maxHeight {
+		v.beginIndex = v.beginIndex + 1
+	} else if v.lastLine == -1 {
 		if v.scan() {
-			v.begin_index = v.begin_index + 1
+			v.beginIndex = v.beginIndex + 1
 		}
 	}
 }
 
 func (v *ViewBuffer) ScrollDownN(n int) {
-	if len(v.buf)-v.begin_index > v.max_height {
-		if len(v.buf)-v.begin_index >= v.max_height+n {
-			v.begin_index = v.begin_index + n
+	if len(v.buf)-v.beginIndex > v.maxHeight {
+		if len(v.buf)-v.beginIndex >= v.maxHeight+n {
+			v.beginIndex = v.beginIndex + n
 		} else {
-			remaining := len(v.buf) - v.begin_index - v.max_height
-			v.begin_index = v.begin_index + remaining
+			remaining := len(v.buf) - v.beginIndex - v.maxHeight
+			v.beginIndex = v.beginIndex + remaining
 		}
-	} else if v.last_line == -1 {
+	} else if v.lastLine == -1 {
 		var i int
 		for i = 0; i < n; i++ {
 			if !v.scan() {
 				break
 			}
 		}
-		v.begin_index = v.begin_index + i
+		v.beginIndex = v.beginIndex + i
 	}
 }
 
 func (v *ViewBuffer) ScrollToLine(projectedBeginIndex int) {
-	projectedEndIndex := projectedBeginIndex + v.max_height
+	projectedEndIndex := projectedBeginIndex + v.maxHeight
 	if projectedBeginIndex <= 0 {
 		// Scroll to the top.
-		v.begin_index = 0
+		v.beginIndex = 0
 		return
 	}
 
@@ -134,20 +134,20 @@ func (v *ViewBuffer) ScrollToLine(projectedBeginIndex int) {
 
 	// Don't actually scroll past the end of the buffer.
 	if len(v.buf) >= projectedEndIndex {
-		v.begin_index = projectedBeginIndex
+		v.beginIndex = projectedBeginIndex
 		return
 	}
 
 	// Scroll to the bottom.
-	v.begin_index = len(v.buf) - v.max_height
+	v.beginIndex = len(v.buf) - v.maxHeight
 }
 
 func (v *ViewBuffer) ScrollBottom() {
 	for v.scan() {
 	}
-	v.begin_index = len(v.buf) - v.max_height
-	if v.begin_index <= 0 {
-		v.begin_index = 0
+	v.beginIndex = len(v.buf) - v.maxHeight
+	if v.beginIndex <= 0 {
+		v.beginIndex = 0
 	}
 }
 
