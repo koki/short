@@ -93,7 +93,7 @@ func WriteObjsToJSONStream(objs []interface{}, jsonStream io.Writer) error {
 			}
 		}
 
-		b, err := json.Marshal(obj)
+		b, err := json.MarshalIndent(obj, "", "  ")
 		if err != nil {
 			return util.InvalidValueErrorf(obj, "couldn't serialize as json")
 		}
