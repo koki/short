@@ -13,7 +13,7 @@ var (
 		Use:   "version",
 		Short: "Prints the version of short",
 		Run: func(*cobra.Command, []string) {
-			fmt.Printf("koki/shorthand: %s\n", GITCOMMIT)
+			fmt.Printf("koki/short: %s\n", GITCOMMIT)
 		},
 	}
 )
