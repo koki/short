@@ -44,7 +44,7 @@ func ConvertEitherStreamsToKube(eitherStreams []io.ReadCloser) ([]interface{}, e
 		return nil, err
 	}
 
-	kubeObjs := make([]interface{}, len(eitherStreams))
+	kubeObjs := make([]interface{}, len(objs))
 	for i, obj := range objs {
 		kubeObjs[i], err = converter.ConvertOneToKubeNative(obj)
 		if err == nil {
