@@ -1,8 +1,6 @@
 package converters
 
 import (
-	"reflect"
-
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,17 +35,10 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 	switch versionedReplicaSet := versionedReplicaSet.(type) {
 	case *appsv1beta2.ReplicaSet:
 		// Perform apps/v1beta2-specific initialization here.
-		selector := versionedReplicaSet.Spec.Selector
-		if selector == nil || reflect.DeepEqual(selector, metav1.LabelSelector{}) {
-			if len(versionedReplicaSet.Spec.Template.Labels) > 0 {
-				// Fill in a default selector since v1beta2 doesn't have one.
-				versionedReplicaSet.Spec.Selector = &metav1.LabelSelector{
-					MatchLabels: versionedReplicaSet.Spec.Template.Labels,
-				}
-			}
-		}
 	case *exts.ReplicaSet:
 		// Perform exts/v1beta1-specific initialization here.
+	default:
+		return nil, util.TypeErrorf(versionedReplicaSet, "deserialized the manifest, but not as a supported kube ReplicaSet")
 	}
 
 	return versionedReplicaSet, nil
@@ -107,9 +98,12 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 
 func revertRSSelector(name string, selector *types.RSSelector, templateLabels map[string]string) (*metav1.LabelSelector, map[string]string, error) {
 	if selector == nil {
-		return nil, map[string]string{
+		defaultSelector := map[string]string{
 			"koki.io/selector.name": name,
-		}, nil
+		}
+		return &metav1.LabelSelector{
+			MatchLabels: defaultSelector,
+		}, defaultSelector, nil
 	}
 
 	if len(selector.Shorthand) > 0 {
@@ -120,19 +114,23 @@ func revertRSSelector(name string, selector *types.RSSelector, templateLabels ma
 		if len(templateLabels) == 0 && len(labelSelector.MatchExpressions) == 0 {
 			// Selector is only Labels, and Template.Labels is empty.
 			// Push the Selector Labels down into the Template.
-			return nil, labelSelector.MatchLabels, nil
+			return labelSelector, labelSelector.MatchLabels, nil
 		}
 
-		// Can't push the Selector down into the Template.
+		// Template already has Labels specified OR Selector isn't just MatchLabels.
+		// Can't copy the Selector into the Template Labels.
 		return labelSelector, templateLabels, nil
 	}
 
 	if len(templateLabels) == 0 {
-		// Push the Selector Labels down into the Template.
-		return nil, selector.Labels, nil
+		// Copy the Selector Labels into the Template Labels.
+		return &metav1.LabelSelector{
+			MatchLabels: selector.Labels,
+		}, selector.Labels, nil
 	}
 
-	// Can't push the Selector down into the Template.
+	// Template already has Labels specified.
+	// Can't copy the Selector into the Template Labels.
 	return &metav1.LabelSelector{
 		MatchLabels: selector.Labels,
 	}, templateLabels, nil
