@@ -122,58 +122,44 @@ func short(c *cobra.Command, args []string) error {
 	}
 
 	var convertedData []interface{}
-	if !useStdin && kubeNative {
-		// Imports are only supported for normal files in koki syntax.
-		kokiObjs, err := loadKokiFiles(filenames)
+	// parse input data from one of the sources - files or stdin
+	glog.V(3).Info("parsing input data")
+	fileDatas := map[string][]map[string]interface{}{}
+	if useStdin {
+		fileDatas["stdin"], err = parser.Parse(nil, true)
 		if err != nil {
-			return err
-		}
-
-		convertedData, err = convertKokiObjs(kokiObjs)
-		if err != nil {
-			return err
+			return fmt.Errorf("parsing stdin: %s", err.Error())
 		}
 	} else {
-		// parse input data from one of the sources - files or stdin
-		glog.V(3).Info("parsing input data")
-		fileDatas := map[string][]map[string]interface{}{}
-		if useStdin {
-			fileDatas["stdin"], err = parser.Parse(nil, true)
+		for _, filename := range filenames {
+			fileDatas[filename], err = parser.Parse([]string{filename}, false)
 			if err != nil {
-				return fmt.Errorf("parsing stdin: %s", err.Error())
+				return fmt.Errorf("parsing %s: %s", filename, err.Error())
 			}
+		}
+	}
+
+	convertedData = []interface{}{}
+	for filename, data := range fileDatas {
+		if err != nil {
+			return err
+		}
+
+		if kubeNative {
+			glog.V(3).Info("converting input to kubernetes native syntax")
+			objs, err := converter.ConvertToKubeNative(data)
+			if err != nil {
+				return fmt.Errorf("converting %s: %s", filename, err.Error())
+			}
+			convertedData = append(convertedData, objs...)
 		} else {
-			for _, filename := range filenames {
-				fileDatas[filename], err = parser.Parse([]string{filename}, false)
-				if err != nil {
-					return fmt.Errorf("parsing %s: %s", filename, err.Error())
-				}
-			}
-		}
-
-		convertedData = []interface{}{}
-		for filename, data := range fileDatas {
+			glog.V(3).Info("converting input to koki native syntax")
+			objs, err := converter.ConvertToKokiNative(data)
 			if err != nil {
-				return err
+				return fmt.Errorf("converting %s: %s", filename, err.Error())
 			}
-
-			if kubeNative {
-				glog.V(3).Info("converting input to kubernetes native syntax")
-				objs, err := converter.ConvertToKubeNative(data)
-				if err != nil {
-					return fmt.Errorf("converting %s: %s", filename, err.Error())
-				}
-				convertedData = append(convertedData, objs...)
-			} else {
-				glog.V(3).Info("converting input to koki native syntax")
-				objs, err := converter.ConvertToKokiNative(data)
-				if err != nil {
-					return fmt.Errorf("converting %s: %s", filename, err.Error())
-				}
-				convertedData = append(convertedData, objs...)
-			}
+			convertedData = append(convertedData, objs...)
 		}
-
 	}
 
 	if silent {
