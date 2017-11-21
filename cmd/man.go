@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"index/suffixarray"
 
 	"github.com/spf13/cobra"
 
@@ -30,9 +29,7 @@ func man(c *cobra.Command, args []string) error {
 		return util.UsageErrorf(c.CommandPath, "Unsupported resource name %s", resourceName)
 	}
 
-	index := suffixarray.New(data)
-
 	buf := bytes.NewBuffer(data)
-	p := pager.NewPager(buf, index)
+	p := pager.NewPager(buf)
 	return p.Render()
 }
