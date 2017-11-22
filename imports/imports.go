@@ -1,58 +1,82 @@
 package imports
 
 import (
-	"fmt"
 	"path/filepath"
 
+	"github.com/golang/glog"
+
+	"github.com/koki/short/parser"
 	"github.com/koki/short/util"
 )
 
-func Parse(rootPath string) (*Module, error) {
-	components, err := ReadYamls(rootPath)
+func Parse(rootPath string) ([]Module, error) {
+	objs, err := parser.Parse([]string{rootPath}, false)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(rootPath, "error reading module: %s", err.Error())
 	}
 
-	if len(components) > 2 {
-		return nil, fmt.Errorf("file (%s) should have at most one imports section and one manifest section", rootPath)
+	if len(objs) > 1 {
+		glog.V(1).Infof("(%s) has multiple sections. only the first section can be imported by other modules.", rootPath)
 	}
 
-	if len(components) == 1 {
+	modules := make([]Module, len(objs))
+	for i, obj := range objs {
+		module, err := ParseComponent(rootPath, obj)
+		if err != nil {
+			return nil, err
+		}
+
+		modules[i] = *module
+	}
+
+	return modules, nil
+}
+
+func ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error) {
+	if len(obj) == 1 {
+		// obj is a koki resource wrapper without imports
 		return &Module{
 			Path: rootPath,
-			Raw:  components[0],
+			Raw:  obj,
 		}, nil
 	}
 
+	if len(obj) > 2 {
+		return nil, util.InvalidInstanceErrorf(obj, "expected one field for the koki resource and one optional field for imports in (%s)", rootPath)
+	}
+
 	imports := []*Import{}
-	if imprtsDoc, ok := components[0].(map[string]interface{}); ok {
-		if imprts, ok := imprtsDoc["imports"]; ok {
-			if imprts, ok := imprts.([]interface{}); ok {
-				for _, imprt := range imprts {
-					if imprt, ok := imprt.(map[string]interface{}); ok {
-						anImport, err := parseImport(rootPath, imprt)
-						if err != nil {
-							return nil, err
-						}
-						imports = append(imports, anImport)
-					} else {
-						return nil, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
+	if imprts, ok := obj["imports"]; ok {
+		if imprts, ok := imprts.([]interface{}); ok {
+			for _, imprt := range imprts {
+				if imprt, ok := imprt.(map[string]interface{}); ok {
+					anImport, err := parseImport(rootPath, imprt)
+					if err != nil {
+						return nil, util.InvalidValueForTypeErrorf(imprt, Import{}, "error processing import in module (%s): %s", rootPath, err.Error())
 					}
+					imports = append(imports, anImport)
+				} else {
+					return nil, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
 				}
-			} else {
-				return nil, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 			}
 		} else {
-			return nil, fmt.Errorf("file (%s) should have 'imports' as its first section", rootPath)
+			return nil, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 		}
 	} else {
-		return nil, util.InvalidInstanceErrorf(components[0], "imports section should be a map in (%s)", rootPath)
+		return nil, util.InvalidInstanceErrorf(obj["imports"], "imports section should be a list in (%s)", rootPath)
+	}
+
+	kokiResource := map[string]interface{}{}
+	for key, val := range obj {
+		if key != "imports" {
+			kokiResource[key] = val
+		}
 	}
 
 	return &Module{
 		Path:    rootPath,
 		Imports: imports,
-		Raw:     components[1],
+		Raw:     kokiResource,
 	}, nil
 }
 
@@ -87,10 +111,11 @@ func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error)
 		return nil, util.InvalidInstanceErrorf(imprt, "expected import name and path")
 	}
 
-	imp.Module, err = Parse(imp.Path)
+	importModules, err := Parse(imp.Path)
 	if err != nil {
 		return nil, err
 	}
+	imp.Module = &importModules[0]
 
 	return imp, nil
 }

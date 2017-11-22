@@ -25,6 +25,19 @@ pod:
   name: redis-master
   version: v1
   volumes:
-  - type: empty-dir
-    name: data
+  - name: data
+    type: empty-dir
+---
+pod:
+  containers:
+  - cpu:
+      max: "1"
+    image: gcr.io/google_containers/serve_hostname
+    mem:
+      max: 512Mi
+    name: kubernetes-serve-hostname
+  labels:
+    name: valid-pod
+  name: valid-pod
+  version: v1
 

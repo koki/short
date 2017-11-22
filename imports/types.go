@@ -3,26 +3,26 @@ package imports
 type Import struct {
 	Name   string
 	Path   string
-	Params map[string]interface{}
+	Params map[string]interface{} `json:"-"`
 
 	// IsEvaluated have the Params been applied to the Module?
-	IsEvaluated bool
+	IsEvaluated bool `json:"-"`
 
 	Module *Module
 }
 
 type Module struct {
-	Path    string
-	Imports []*Import
+	Path    string    `json:"-"`
+	Imports []*Import `json:"Imports,omitempty"`
 
 	// Raw yaml parsed as string or map[string]interface{}
-	Raw interface{}
+	Raw map[string]interface{} `json:"Contents"`
 
 	// IsEvaluated has the Raw yaml been evaluated (template holes filled, etc)?
-	IsEvaluated bool
+	IsEvaluated bool `json:"-"`
 
 	// TypedResult a koki object (or other object with special meaning)
-	TypedResult interface{}
+	TypedResult interface{} `json:"-"`
 }
 
 type EvalContext struct {

@@ -22,7 +22,7 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 
 	bytes, err := json.Marshal(objMap)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidValueErrorf(objMap, "error converting to JSON before re-parsing as as koki obj: %s", err.Error())
 	}
 
 	for k := range objMap {
@@ -30,31 +30,52 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 		case "deployment":
 			deployment := &types.DeploymentWrapper{}
 			err := json.Unmarshal(bytes, deployment)
-			return deployment, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, deployment, err.Error())
+			}
+			return deployment, nil
 		case "persistent_volume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)
-			return pv, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, pv, err.Error())
+			}
+			return pv, nil
 		case "pod":
 			pod := &types.PodWrapper{}
 			err := json.Unmarshal(bytes, pod)
-			return pod, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, pod, err.Error())
+			}
+			return pod, nil
 		case "replica_set":
 			replicaSet := &types.ReplicaSetWrapper{}
 			err := json.Unmarshal(bytes, replicaSet)
-			return replicaSet, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, replicaSet, err.Error())
+			}
+			return replicaSet, nil
 		case "replication_controller":
 			replicationController := &types.ReplicationControllerWrapper{}
 			err := json.Unmarshal(bytes, replicationController)
-			return replicationController, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, replicationController, err.Error())
+			}
+			return replicationController, nil
 		case "service":
 			service := &types.ServiceWrapper{}
 			err := json.Unmarshal(bytes, service)
-			return service, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, service, err.Error())
+			}
+			return service, nil
 		case "volume":
 			volume := &types.VolumeWrapper{}
 			err := json.Unmarshal(bytes, volume)
-			return volume, err
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, volume, err.Error())
+			}
+			return volume, nil
 		}
 
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
@@ -67,7 +88,7 @@ func UnparseKokiNativeObject(kokiObj interface{}) (map[string]interface{}, error
 	// Marshal the koki object back into yaml.
 	bytes, err := yaml.Marshal(kokiObj)
 	if err != nil {
-		return nil, err
+		return nil, util.InvalidInstanceErrorf(kokiObj, "couldn't convert to yaml: %s", err.Error())
 	}
 
 	obj := map[string]interface{}{}
@@ -76,5 +97,5 @@ func UnparseKokiNativeObject(kokiObj interface{}) (map[string]interface{}, error
 		return nil, err
 	}
 
-	return obj, err
+	return obj, util.InvalidInstanceErrorf(kokiObj, "couldn't convert to dictionary: %s", err.Error())
 }

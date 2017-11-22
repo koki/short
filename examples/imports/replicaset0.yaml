@@ -1,7 +1,0 @@
-imports:
-- pod: ../pods/example2.short.yaml
-- replicaset: ../replicaset/example1.short.yaml
-  params:
-    pod: ${pod}
----
-${replicaset}

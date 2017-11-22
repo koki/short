@@ -44,26 +44,28 @@ func replaceAny(template interface{}, resolver Resolver) (interface{}, error) {
 
 func replaceMap(template map[string]interface{}, resolver Resolver) (map[string]interface{}, error) {
 	var err error
+	newTemplate := map[string]interface{}{}
 	for key, val := range template {
-		template[key], err = replaceAny(val, resolver)
+		newTemplate[key], err = replaceAny(val, resolver)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return template, nil
+	return newTemplate, nil
 }
 
 func replaceSlice(template []interface{}, resolver Resolver) ([]interface{}, error) {
 	var err error
+	newTemplate := make([]interface{}, len(template))
 	for ix, val := range template {
-		template[ix], err = replaceAny(val, resolver)
+		newTemplate[ix], err = replaceAny(val, resolver)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return template, nil
+	return newTemplate, nil
 }
 
 func replaceString(template string, resolver Resolver) (interface{}, error) {
