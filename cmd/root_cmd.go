@@ -68,6 +68,13 @@ Full documentation available at https://docs.koki.io/short
 	silent bool
 	// verboseErrors denotes that error messages should contain full information instead of just a summary
 	verboseErrors bool
+	// debugImportsDepth is the number of levels of imports to output debug info for
+	debugImportsDepth int
+)
+
+const (
+	// default value for debugImportsDepth
+	defaultDebugImportsDepth = 0
 )
 
 func init() {
@@ -77,6 +84,7 @@ func init() {
 	RootCmd.Flags().StringVarP(&output, "output", "o", "yaml", "output format (yaml*|json)")
 	RootCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence output to stdout")
 	RootCmd.Flags().BoolVarP(&verboseErrors, "verbose-errors", "", false, "include more information in errors")
+	RootCmd.Flags().IntVarP(&debugImportsDepth, "debug-imports-depth", "", defaultDebugImportsDepth, "how many levels of imports to output debug info for")
 
 	// parse the go default flagset to get flags for glog and other packages in future
 	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
@@ -124,12 +132,12 @@ func short(c *cobra.Command, args []string) error {
 	var convertedData []interface{}
 	if !useStdin && kubeNative {
 		// Imports are only supported for normal files in koki syntax.
-		kokiObjs, err := loadKokiFiles(filenames)
+		kokiModules, err := loadKokiFiles(filenames)
 		if err != nil {
 			return err
 		}
 
-		convertedData, err = convertKokiObjs(kokiObjs)
+		convertedData, err = convertKokiModules(kokiModules)
 		if err != nil {
 			return err
 		}

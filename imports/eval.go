@@ -59,10 +59,11 @@ func (c *EvalContext) EvaluateModule(module *Module) error {
 
 	var err error
 
-	module.Raw, err = FillTemplate(module.Raw, c.ResolverForModule(module))
+	raw, err := replaceMap(module.Raw, c.ResolverForModule(module))
 	if err != nil {
 		return err
 	}
+	module.Raw = raw
 
 	module.TypedResult, err = c.RawToTyped(module.Raw)
 	if err != nil {
@@ -83,10 +84,11 @@ func (c *EvalContext) ResolverForModule(module *Module) Resolver {
 					return nil, err
 				}
 
-				return imprt.Module.Raw, nil
+				_, val, err := util.GetOnlyMapEntry(imprt.Module.Raw)
+				return val, err
 			}
 		}
 
-		return nil, fmt.Errorf("no value for (%s) in file (%s)", ident, module.Path)
+		return nil, fmt.Errorf("no value for template param (%s) in file (%s)", ident, module.Path)
 	})
 }

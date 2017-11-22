@@ -1,0 +1,9 @@
+containers:
+- name: busybox
+  image: busybox:latest
+  tty: true
+  stdin: true
+- name: busybox1
+  image: busybox:latest
+  tty: true
+  stdin: true

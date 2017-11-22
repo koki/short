@@ -1,0 +1,5 @@
+affinity:
+- pod: app=frontend:soft
+  topology: kubernetes.io/hostname
+- anti_pod: app=backend
+  topology: kubernetes.io/hostname
