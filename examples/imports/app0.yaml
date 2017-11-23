@@ -1,0 +1,5 @@
+imports:
+- pod: ./pod0.yaml
+  params:
+    name: doot
+pod: ${pod}

@@ -41,10 +41,82 @@ func ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error
 		}, nil
 	}
 
-	if len(obj) > 2 {
-		return nil, util.InvalidInstanceErrorf(obj, "expected one field for the koki resource and one optional field for imports in (%s)", rootPath)
+	imports, err := parseImports(rootPath, obj)
+	if err != nil {
+		return nil, err
 	}
 
+	params, err := parseParamDefs(rootPath, obj)
+	if err != nil {
+		return nil, err
+	}
+
+	kokiResource := map[string]interface{}{}
+	for key, val := range obj {
+		if key != "imports" && key != "params" {
+			kokiResource[key] = val
+		}
+	}
+
+	return &Module{
+		Path:    rootPath,
+		Imports: imports,
+		Params:  params,
+		Raw:     kokiResource,
+	}, nil
+}
+
+func parseParamDefs(rootPath string, obj map[string]interface{}) (map[string]ParamDef, error) {
+	params := map[string]ParamDef{}
+	if paramsObj, ok := obj["params"]; ok {
+		if paramObjs, ok := paramsObj.([]interface{}); ok {
+			for _, paramObj := range paramObjs {
+				paramName, paramDef, err := parseParamDef(paramObj)
+				if err != nil {
+					return nil, util.ContextualizeErrorf(err, "couldn't parse a Param in (%s)", rootPath)
+				}
+				params[paramName] = paramDef
+			}
+		} else {
+			return nil, util.InvalidValueForTypeErrorf(paramsObj, params, "expected array of params in %s", rootPath)
+		}
+	}
+
+	if len(params) == 0 {
+		return nil, nil
+	}
+
+	return params, nil
+}
+
+func parseParamDef(obj interface{}) (string, ParamDef, error) {
+	def := ParamDef{}
+	switch obj := obj.(type) {
+	case string:
+		return obj, def, nil
+	case map[string]interface{}:
+		name := ""
+		for key, val := range obj {
+			switch key {
+			case "default":
+				def.Default = val
+			default:
+				name = key
+				if description, ok := val.(string); ok {
+					def.Description = description
+				} else {
+					return name, def, util.InvalidValueForTypeErrorf(val, def, "interpreted key (%s) as param name. expected string value (for param description).", key)
+				}
+			}
+		}
+
+		return name, def, nil
+	default:
+		return "", def, util.InvalidValueForTypeErrorf(obj, def, "expected string or map")
+	}
+}
+
+func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, error) {
 	imports := []*Import{}
 	if imprts, ok := obj["imports"]; ok {
 		if imprts, ok := imprts.([]interface{}); ok {
@@ -62,22 +134,13 @@ func ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error
 		} else {
 			return nil, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 		}
-	} else {
-		return nil, util.InvalidInstanceErrorf(obj["imports"], "imports section should be a list in (%s)", rootPath)
 	}
 
-	kokiResource := map[string]interface{}{}
-	for key, val := range obj {
-		if key != "imports" {
-			kokiResource[key] = val
-		}
+	if len(imports) == 0 {
+		return nil, nil
 	}
 
-	return &Module{
-		Path:    rootPath,
-		Imports: imports,
-		Raw:     kokiResource,
-	}, nil
+	return imports, nil
 }
 
 func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {

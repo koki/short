@@ -8,7 +8,6 @@ import (
 	_ "github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/imports"
-	"github.com/koki/short/param"
 	"github.com/koki/short/parser"
 )
 
@@ -36,12 +35,11 @@ func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 		}
 
 		evalContext := imports.EvalContext{
-			RawToTyped:  parser.ParseKokiNativeObject,
-			ApplyParams: param.ApplyParams,
+			RawToTyped: parser.ParseKokiNativeObject,
 		}
 
 		for _, module := range modules {
-			err = evalContext.EvaluateModule(&module)
+			err = evalContext.EvaluateModule(&module, nil)
 			if err != nil {
 				debugLogModule(module)
 				return nil, err

@@ -1,5 +1,8 @@
+params:
+- this_app: the app label for this app
+- colocate_with: the app label to colocate with
 affinity:
-- pod: app=frontend:soft
+- pod: app=${colocate_with}:soft
   topology: kubernetes.io/hostname
-- anti_pod: app=backend
+- anti_pod: app=${this_app}
   topology: kubernetes.io/hostname

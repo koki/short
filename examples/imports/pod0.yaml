@@ -1,14 +1,21 @@
 imports:
 - affinity: ./affinity.yaml
-- containers: ./containers.yaml
+  params:
+    this_app: ${name}
+    colocate_with: backend
+- sidecars: ./containers.yaml
+  params:
+    prefix: ${name}
+params:
+- name: a name for the app
 pod:
   labels:
-    app: backend
-  name: backend
+    app: ${name}
+  name: ${name}
   affinity: ${affinity}
   containers:
-  - name: app-container
+  - name: ${name}-container
     image: busybox:latest
     tty: true
     stdin: true
-  - ${containers...}
+  - ${sidecars...}

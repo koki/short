@@ -25,11 +25,13 @@ type Resolver func(ident string) (interface{}, error)
 
 func ResolverForParams(params map[string]interface{}) Resolver {
 	return func(ident string) (interface{}, error) {
-		if val, ok := params[ident]; ok {
-			return val, nil
+		if len(params) > 0 {
+			if val, ok := params[ident]; ok {
+				return val, nil
+			}
 		}
 
-		return nil, util.InvalidValueErrorf(ident, "invalid template identifier not in params")
+		return nil, util.InvalidValueErrorf(params, "template identifier (%s) not in params", ident)
 	}
 }
 
