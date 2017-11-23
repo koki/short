@@ -1,9 +1,14 @@
 imports:
 - affinity: ./affinity.yaml
-- containers: ./container.yaml
+- containers: ./containers.yaml
 pod:
   labels:
     app: backend
   name: backend
   affinity: ${affinity}
-  containers: ${containers}
+  containers:
+  - name: app-container
+    image: busybox:latest
+    tty: true
+    stdin: true
+  - ${containers...}

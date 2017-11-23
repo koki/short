@@ -1,8 +1,7 @@
 package imports
 
 import (
-	"fmt"
-
+	"github.com/koki/short/template"
 	"github.com/koki/short/util"
 )
 
@@ -33,15 +32,11 @@ func (c *EvalContext) EvaluateImport(inModule *Module, imprt *Import) error {
 		return err
 	}
 
-	params, err := FillTemplate(imprt.Params, c.ResolverForModule(inModule))
+	params, err := template.ReplaceMap(imprt.Params, c.ResolverForModule(inModule))
 	if err != nil {
 		return err
 	}
-	if paramsMap, ok := params.(map[string]interface{}); ok {
-		imprt.Params = paramsMap
-	} else {
-		return util.InvalidInstanceErrorf(params, "template was a dictionary, but filling it resulted in non-dictionary type")
-	}
+	imprt.Params = params
 
 	err = c.ApplyParams(imprt.Params, imprt.Module)
 	if err != nil {
@@ -59,7 +54,7 @@ func (c *EvalContext) EvaluateModule(module *Module) error {
 
 	var err error
 
-	raw, err := replaceMap(module.Raw, c.ResolverForModule(module))
+	raw, err := template.ReplaceMap(module.Raw, c.ResolverForModule(module))
 	if err != nil {
 		return err
 	}
@@ -74,8 +69,8 @@ func (c *EvalContext) EvaluateModule(module *Module) error {
 	return nil
 }
 
-func (c *EvalContext) ResolverForModule(module *Module) Resolver {
-	return Resolver(func(ident string) (interface{}, error) {
+func (c *EvalContext) ResolverForModule(module *Module) template.Resolver {
+	return template.Resolver(func(ident string) (interface{}, error) {
 		for _, imprt := range module.Imports {
 			if imprt.Name == ident {
 				// Make sure the Import has been evaluated.
@@ -89,6 +84,6 @@ func (c *EvalContext) ResolverForModule(module *Module) Resolver {
 			}
 		}
 
-		return nil, fmt.Errorf("no value for template param (%s) in file (%s)", ident, module.Path)
+		return nil, util.InvalidValueErrorf(ident, "invalid template param for (%s)", module.Path)
 	})
 }
