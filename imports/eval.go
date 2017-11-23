@@ -1,8 +1,6 @@
 package imports
 
 import (
-	"fmt"
-
 	"github.com/koki/short/template"
 	"github.com/koki/short/util"
 )
@@ -86,6 +84,6 @@ func (c *EvalContext) ResolverForModule(module *Module) template.Resolver {
 			}
 		}
 
-		return nil, fmt.Errorf("no value for template param (%s) in file (%s)", ident, module.Path)
+		return nil, util.InvalidValueErrorf(ident, "invalid template param for (%s)", module.Path)
 	})
 }
