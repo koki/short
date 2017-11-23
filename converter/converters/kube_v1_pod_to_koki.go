@@ -665,7 +665,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 		nodeHardAffinity := nodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
 		for i := range nodeHardAffinity.NodeSelectorTerms {
 			selectorTerm := nodeHardAffinity.NodeSelectorTerms[i]
-			affinityString := "node:"
+			affinityString := ""
 			for i := range selectorTerm.MatchExpressions {
 
 				expr := selectorTerm.MatchExpressions[i]
@@ -681,13 +681,13 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				if expr.Operator == v1.NodeSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if affinityString == "node:" {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
 			}
-			if affinityString != "node:" {
+			if len(affinityString) > 0 {
 				affinity = append(affinity, types.Affinity{NodeAffinity: affinityString})
 			}
 		}
@@ -698,7 +698,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 		nodeSoftAffinity := nodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution
 		for i := range nodeSoftAffinity {
 			selectorTerm := nodeSoftAffinity[i]
-			affinityString := "node:"
+			affinityString := ""
 			weight := selectorTerm.Weight
 			for i := range selectorTerm.Preference.MatchExpressions {
 				expr := selectorTerm.Preference.MatchExpressions[i]
@@ -714,14 +714,15 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				if expr.Operator == v1.NodeSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if affinityString == "node:" {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
 			}
-			if affinityString != "node:" {
+			if len(affinityString) > 0 {
 				affinityString = fmt.Sprintf("%s:soft", affinityString)
+				// The default value for Weight is 1. 0 means "unspecified".
 				if weight != 0 {
 					affinityString = fmt.Sprintf("%s:%d", affinityString, weight)
 				}
@@ -737,12 +738,12 @@ func convertPodAffinity(podAffinity *v1.PodAffinity) ([]types.Affinity, error) {
 		return nil, nil
 	}
 
-	hardAffinity, err := convertPodAffinityTerms("pod:", podAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+	hardAffinity, err := convertPodAffinityTerms(false, podAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
 	if err != nil {
 		return nil, err
 	}
 
-	softAffinity, err := convertPodWeightedAffinityTerms("pod:", podAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+	softAffinity, err := convertPodWeightedAffinityTerms(false, podAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
 	if err != nil {
 		return nil, err
 	}
@@ -755,12 +756,12 @@ func convertPodAntiAffinity(podAntiAffinity *v1.PodAntiAffinity) ([]types.Affini
 		return nil, nil
 	}
 
-	hardAffinity, err := convertPodAffinityTerms("!pod:", podAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+	hardAffinity, err := convertPodAffinityTerms(true, podAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
 	if err != nil {
 		return nil, err
 	}
 
-	softAffinity, err := convertPodWeightedAffinityTerms("!pod:", podAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+	softAffinity, err := convertPodWeightedAffinityTerms(true, podAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
 	if err != nil {
 		return nil, err
 	}
@@ -768,19 +769,19 @@ func convertPodAntiAffinity(podAntiAffinity *v1.PodAntiAffinity) ([]types.Affini
 	return append(hardAffinity, softAffinity...), nil
 }
 
-func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.WeightedPodAffinityTerm) ([]types.Affinity, error) {
+func convertPodWeightedAffinityTerms(isAntiAffinity bool, podSoftAffinity []v1.WeightedPodAffinityTerm) ([]types.Affinity, error) {
 	var affinity []types.Affinity
 	// Pod soft affinity
 	for i := range podSoftAffinity {
 		selectorTerm := podSoftAffinity[i]
 		weight := selectorTerm.Weight
-		affinityString := prefix
+		affinityString := ""
 		if selectorTerm.PodAffinityTerm.LabelSelector != nil {
 			// parse through match labels first
 			for k, v := range selectorTerm.PodAffinityTerm.LabelSelector.MatchLabels {
 				kokiExpr := fmt.Sprintf("%s=%s", k, v)
-				if affinityString == prefix {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
@@ -801,14 +802,14 @@ func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.Weighte
 				if expr.Operator == metav1.LabelSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if affinityString == prefix {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
 			}
 		}
-		if affinityString != prefix {
+		if len(affinityString) > 0 {
 			affinityString = fmt.Sprintf("%s:soft", affinityString)
 			if weight != 0 {
 				affinityString = fmt.Sprintf("%s:%d", affinityString, weight)
@@ -818,7 +819,7 @@ func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.Weighte
 				Namespaces:  selectorTerm.PodAffinityTerm.Namespaces,
 				Topology:    selectorTerm.PodAffinityTerm.TopologyKey,
 			}
-			if prefix[:1] == "!" {
+			if isAntiAffinity {
 				a.PodAntiAffinity = a.PodAffinity
 				a.PodAffinity = ""
 			}
@@ -828,19 +829,19 @@ func convertPodWeightedAffinityTerms(prefix string, podSoftAffinity []v1.Weighte
 	return affinity, nil
 }
 
-func convertPodAffinityTerms(prefix string, podHardAffinity []v1.PodAffinityTerm) ([]types.Affinity, error) {
+func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffinityTerm) ([]types.Affinity, error) {
 	var affinity []types.Affinity
 	// Pod hard affinity
 	for i := range podHardAffinity {
 		selectorTerm := podHardAffinity[i]
-		affinityString := prefix
+		affinityString := ""
 
 		if selectorTerm.LabelSelector != nil {
 			// parse through match labels first
 			for k, v := range selectorTerm.LabelSelector.MatchLabels {
 				kokiExpr := fmt.Sprintf("%s=%s", k, v)
-				if affinityString == prefix {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
@@ -861,21 +862,21 @@ func convertPodAffinityTerms(prefix string, podHardAffinity []v1.PodAffinityTerm
 				if expr.Operator == metav1.LabelSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if affinityString == prefix {
-					affinityString = fmt.Sprintf("%s%s", affinityString, kokiExpr)
+				if len(affinityString) == 0 {
+					affinityString = kokiExpr
 					continue
 				}
 				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
 			}
 		}
 
-		if affinityString != prefix {
+		if len(affinityString) > 0 {
 			a := types.Affinity{
 				PodAffinity: affinityString,
 				Namespaces:  selectorTerm.Namespaces,
 				Topology:    selectorTerm.TopologyKey,
 			}
-			if prefix[:1] == "!" {
+			if isAntiAffinity {
 				a.PodAntiAffinity = a.PodAffinity
 				a.PodAffinity = ""
 			}

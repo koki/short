@@ -51,7 +51,7 @@ func ParseLabelSelector(s string) (*metav1.LabelSelector, error) {
 			glog.Fatal("unreachable")
 		}
 
-		if len(expr.Values) == 1 {
+		if op == metav1.LabelSelectorOpIn && len(expr.Values) == 1 {
 			labels[expr.Key] = expr.Values[0]
 		} else {
 			reqs = append(reqs, metav1.LabelSelectorRequirement{
