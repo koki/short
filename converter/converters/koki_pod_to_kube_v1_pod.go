@@ -990,7 +990,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 								Name: fields[1],
 							},
 							Key:      fields[2],
-							Optional: from.Required,
+							Optional: from.Optional(),
 						},
 					},
 				}
@@ -1003,7 +1003,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 						LocalObjectReference: v1.LocalObjectReference{
 							Name: fields[1],
 						},
-						Optional: from.Required,
+						Optional: from.Optional(),
 					},
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
@@ -1026,7 +1026,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 								Name: fields[1],
 							},
 							Key:      fields[2],
-							Optional: from.Required,
+							Optional: from.Optional(),
 						},
 					},
 				}
@@ -1038,7 +1038,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 						LocalObjectReference: v1.LocalObjectReference{
 							Name: fields[1],
 						},
-						Optional: from.Required,
+						Optional: from.Optional(),
 					},
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)

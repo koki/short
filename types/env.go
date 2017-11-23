@@ -32,6 +32,15 @@ const (
 	EnvValType
 )
 
+func (e EnvFrom) Optional() *bool {
+	if e.Required == nil {
+		return nil
+	}
+
+	optional := !(*e.Required)
+	return &optional
+}
+
 func (e *Env) SetVal(val EnvVal) {
 	e.Type = EnvValType
 	e.Val = &val
