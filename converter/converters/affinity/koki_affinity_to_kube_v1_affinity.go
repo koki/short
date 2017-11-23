@@ -196,8 +196,9 @@ func revertNodeAffinity(affinities []string) (*v1.NodeAffinity, error) {
 		return nil, err
 	}
 
-	if len(hard) == 0 {
-		hard = nil
+	var hardSelector *v1.NodeSelector
+	if len(hard) > 0 {
+		hardSelector = &v1.NodeSelector{hard}
 	}
 
 	if len(soft) == 0 {
@@ -205,7 +206,7 @@ func revertNodeAffinity(affinities []string) (*v1.NodeAffinity, error) {
 	}
 
 	return &v1.NodeAffinity{
-		RequiredDuringSchedulingIgnoredDuringExecution:  &v1.NodeSelector{hard},
+		RequiredDuringSchedulingIgnoredDuringExecution:  hardSelector,
 		PreferredDuringSchedulingIgnoredDuringExecution: soft,
 	}, nil
 }
@@ -235,7 +236,8 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 
 		var weight int64
 		if l < 3 {
-			weight = 1
+			// Use 0 to mean "unspecified".
+			weight = 0
 		} else {
 			weight, err = strconv.ParseInt(segs[2], 10, 32)
 			if err != nil {
