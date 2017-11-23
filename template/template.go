@@ -23,6 +23,16 @@ this structure when inserted into the template.
 // Resolver gets the value to substitute into the template.
 type Resolver func(ident string) (interface{}, error)
 
+func ResolverForParams(params map[string]interface{}) Resolver {
+	return func(ident string) (interface{}, error) {
+		if val, ok := params[ident]; ok {
+			return val, nil
+		}
+
+		return nil, util.InvalidValueErrorf(ident, "invalid template identifier not in params")
+	}
+}
+
 func FillTemplate(template interface{}, resolver Resolver) (interface{}, error) {
 	return ReplaceAny(template, resolver)
 }
@@ -56,16 +66,58 @@ func ReplaceMap(template map[string]interface{}, resolver Resolver) (map[string]
 }
 
 func ReplaceSlice(template []interface{}, resolver Resolver) ([]interface{}, error) {
-	var err error
-	newTemplate := make([]interface{}, len(template))
-	for ix, val := range template {
-		newTemplate[ix], err = ReplaceAny(val, resolver)
+	newTemplate := []interface{}{}
+	for _, val := range template {
+		// Spread replacement - append a list of items.
+		newItems, didSpread, err := GetSpread(val, resolver)
 		if err != nil {
 			return nil, err
 		}
+		if didSpread {
+			for _, newItem := range newItems {
+				newTemplate = append(newTemplate, newItem)
+			}
+			continue
+		}
+
+		// Normal replacement - set a single list item.
+		newItem, err := ReplaceAny(val, resolver)
+		if err != nil {
+			return nil, err
+		}
+		newTemplate = append(newTemplate, newItem)
 	}
 
 	return newTemplate, nil
+}
+
+var (
+	spreadRegexp = regexp.MustCompile(`^\$\{([^\{\}]*)\.\.\.\}$`)
+	expandRegexp = regexp.MustCompile(`^\$\{([^\{\}]*)\}$`)
+	fillRegexp   = regexp.MustCompile(`\$\{[^\{\}]*\}`)
+)
+
+func GetSpread(template interface{}, resolver Resolver) ([]interface{}, bool, error) {
+	if template, ok := template.(string); ok {
+		matches := spreadRegexp.FindStringSubmatch(template)
+		if len(matches) == 0 {
+			return nil, false, nil
+		}
+
+		key := matches[1]
+		val, err := resolver(key)
+		if err != nil {
+			return nil, false, err
+		}
+
+		if listVal, ok := val.([]interface{}); ok {
+			return listVal, true, nil
+		} else {
+			return nil, false, util.InvalidValueErrorf(val, "expected a list for template spread %s", template)
+		}
+	}
+
+	return nil, false, nil
 }
 
 func ReplaceString(template string, resolver Resolver) (interface{}, error) {
@@ -84,8 +136,7 @@ func ReplaceString(template string, resolver Resolver) (interface{}, error) {
 
 // Returns true if it expanded the template.
 func expandString(template string, resolver Resolver) (interface{}, bool, error) {
-	re := regexp.MustCompile("^\\$\\{([^\\{\\}]*)\\}$")
-	matches := re.FindStringSubmatch(template)
+	matches := expandRegexp.FindStringSubmatch(template)
 	if len(matches) == 0 {
 		return template, false, nil
 	}
@@ -100,9 +151,8 @@ func expandString(template string, resolver Resolver) (interface{}, bool, error)
 }
 
 func fillString(template string, resolver Resolver) (string, error) {
-	re := regexp.MustCompile("\\$\\{[^\\{\\}]*\\}")
 	errors := []error{}
-	result := re.ReplaceAllFunc([]byte(template), func(match []byte) []byte {
+	result := fillRegexp.ReplaceAllFunc([]byte(template), func(match []byte) []byte {
 		key := match[2 : len(match)-1]
 		val, err := resolver(string(key))
 		if err != nil {
@@ -117,7 +167,7 @@ func fillString(template string, resolver Resolver) (string, error) {
 		case int:
 			return []byte(pretty.Sprintf("%v", val))
 		default:
-			errors = append(errors, util.InvalidValueErrorf(val, "not a string or number"))
+			errors = append(errors, util.InvalidValueErrorf(val, "expected a string or number for param (%s)", string(key)))
 			return match
 		}
 	})

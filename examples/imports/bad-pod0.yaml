@@ -1,6 +1,6 @@
 imports:
 - affinity: ./bad-affinity.yaml
-- containers: ./bad-container.yaml
+- containers: ./bad-containers.yaml
 pod:
   labels:
     app: backend
