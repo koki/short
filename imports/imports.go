@@ -33,60 +33,126 @@ func Parse(rootPath string) ([]Module, error) {
 }
 
 func ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error) {
-	if len(obj) == 1 {
+	imports, hasImportsKey, err := parseImports(rootPath, obj)
+	if err != nil {
+		return nil, err
+	}
+	delete(obj, "imports")
+
+	params, hasParamsKey, err := parseParamDefs(rootPath, obj)
+	if err != nil {
+		return nil, err
+	}
+	delete(obj, "params")
+
+	exports, hasExportsKey, err := parseExports(rootPath, obj)
+	if err != nil {
+		return nil, err
+	}
+	delete(obj, "exports")
+
+	if hasImportsKey || hasParamsKey || hasExportsKey {
+		if len(obj) > 0 {
+			return nil, util.InvalidValueErrorf(rootPath, "a koki module file can only have imports/params/exports as its top-level keys")
+		}
+	} else {
+		if len(obj) != 1 {
+			return nil, util.InvalidValueErrorf(rootPath, "a simple koki resource file must have exactly one top-level key")
+		}
+
 		// obj is a koki resource wrapper without imports
 		return &Module{
 			Path: rootPath,
-			Raw:  obj,
+			Exports: map[string]*Resource{
+				"default": &Resource{
+					Raw: obj,
+				},
+			},
 		}, nil
-	}
-
-	imports, err := parseImports(rootPath, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	params, err := parseParamDefs(rootPath, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	kokiResource := map[string]interface{}{}
-	for key, val := range obj {
-		if key != "imports" && key != "params" {
-			kokiResource[key] = val
-		}
 	}
 
 	return &Module{
 		Path:    rootPath,
 		Imports: imports,
 		Params:  params,
-		Raw:     kokiResource,
+		Exports: exports,
 	}, nil
 }
 
-func parseParamDefs(rootPath string, obj map[string]interface{}) (map[string]ParamDef, error) {
+func parseExports(rootPath string, obj map[string]interface{}) (map[string]*Resource, bool, error) {
+	hasExportsKey := false
+	exports := map[string]*Resource{}
+	if exportsObj, ok := obj["exports"]; ok {
+		hasExportsKey = true
+		if exportObjs, ok := exportsObj.([]interface{}); ok {
+			for _, exportObj := range exportObjs {
+				exportName, exportDef, err := parseExport(exportObj)
+				if err != nil {
+					return nil, hasExportsKey, util.ContextualizeErrorf(err, "couldn't parse an Export in (%s)", rootPath)
+				}
+				exports[exportName] = exportDef
+			}
+		} else {
+			return nil, hasExportsKey, util.InvalidValueForTypeErrorf(exportsObj, exports, "expected array of exports in %s", rootPath)
+		}
+	}
+
+	if len(exports) == 0 {
+		return nil, hasExportsKey, nil
+	}
+
+	return exports, hasExportsKey, nil
+}
+
+func parseExport(obj interface{}) (string, *Resource, error) {
+	def := &Resource{}
+	if dict, ok := obj.(map[string]interface{}); ok {
+		if val, ok := dict["value"]; ok {
+			def.Raw = val
+		} else {
+			return "", def, util.InvalidValueForTypeErrorf(dict, def, "exports entry must contain a \"value\" key with the exported value")
+		}
+		if len(dict) != 2 {
+			return "", def, util.InvalidValueForTypeErrorf(obj, def, "exports entry should have two keys, one for the exported name, and one for the exported value")
+		}
+		for name, description := range dict {
+			if name != "value" {
+				if descriptionStr, ok := description.(string); ok {
+					def.Description = descriptionStr
+					return name, def, nil
+				}
+
+				return "", def, util.InvalidValueForTypeErrorf(dict, def, "expected the export description to be a string value for name key (%s)", name)
+			}
+		}
+	}
+
+	return "", def, util.InvalidValueForTypeErrorf(obj, def, "expected exports entry to be a dictionary with two keys, one for the exported name, and one for the exported value")
+}
+
+func parseParamDefs(rootPath string, obj map[string]interface{}) (map[string]ParamDef, bool, error) {
+	hasParamsKey := false
 	params := map[string]ParamDef{}
 	if paramsObj, ok := obj["params"]; ok {
+		hasParamsKey = true
 		if paramObjs, ok := paramsObj.([]interface{}); ok {
 			for _, paramObj := range paramObjs {
 				paramName, paramDef, err := parseParamDef(paramObj)
 				if err != nil {
-					return nil, util.ContextualizeErrorf(err, "couldn't parse a Param in (%s)", rootPath)
+					return nil, hasParamsKey, util.ContextualizeErrorf(err, "couldn't parse a Param in (%s)", rootPath)
 				}
 				params[paramName] = paramDef
 			}
 		} else {
-			return nil, util.InvalidValueForTypeErrorf(paramsObj, params, "expected array of params in %s", rootPath)
+			return nil, hasParamsKey, util.InvalidValueForTypeErrorf(paramsObj, params, "expected array of params in %s", rootPath)
 		}
 	}
 
 	if len(params) == 0 {
-		return nil, nil
+		return nil, hasParamsKey, nil
 	}
 
-	return params, nil
+	return params, hasParamsKey, nil
 }
 
 func parseParamDef(obj interface{}) (string, ParamDef, error) {
@@ -116,31 +182,33 @@ func parseParamDef(obj interface{}) (string, ParamDef, error) {
 	}
 }
 
-func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, error) {
+func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, bool, error) {
+	hasImportsKey := false
 	imports := []*Import{}
 	if imprts, ok := obj["imports"]; ok {
+		hasImportsKey = true
 		if imprts, ok := imprts.([]interface{}); ok {
 			for _, imprt := range imprts {
 				if imprt, ok := imprt.(map[string]interface{}); ok {
 					anImport, err := parseImport(rootPath, imprt)
 					if err != nil {
-						return nil, util.InvalidValueForTypeErrorf(imprt, Import{}, "error processing import in module (%s): %s", rootPath, err.Error())
+						return nil, hasImportsKey, util.InvalidValueForTypeErrorf(imprt, Import{}, "error processing import in module (%s): %s", rootPath, err.Error())
 					}
 					imports = append(imports, anImport)
 				} else {
-					return nil, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
+					return nil, hasImportsKey, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
 				}
 			}
 		} else {
-			return nil, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
+			return nil, hasImportsKey, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 		}
 	}
 
 	if len(imports) == 0 {
-		return nil, nil
+		return nil, hasImportsKey, nil
 	}
 
-	return imports, nil
+	return imports, hasImportsKey, nil
 }
 
 func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {
