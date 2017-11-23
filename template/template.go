@@ -1,4 +1,4 @@
-package imports
+package template
 
 import (
 	"regexp"
@@ -24,17 +24,17 @@ this structure when inserted into the template.
 type Resolver func(ident string) (interface{}, error)
 
 func FillTemplate(template interface{}, resolver Resolver) (interface{}, error) {
-	return replaceAny(template, resolver)
+	return ReplaceAny(template, resolver)
 }
 
-func replaceAny(template interface{}, resolver Resolver) (interface{}, error) {
+func ReplaceAny(template interface{}, resolver Resolver) (interface{}, error) {
 	switch template := template.(type) {
 	case string:
-		return replaceString(template, resolver)
+		return ReplaceString(template, resolver)
 	case []interface{}:
-		return replaceSlice(template, resolver)
+		return ReplaceSlice(template, resolver)
 	case map[string]interface{}:
-		return replaceMap(template, resolver)
+		return ReplaceMap(template, resolver)
 	default:
 		// No template parameters in other data types.
 	}
@@ -42,11 +42,11 @@ func replaceAny(template interface{}, resolver Resolver) (interface{}, error) {
 	return template, nil
 }
 
-func replaceMap(template map[string]interface{}, resolver Resolver) (map[string]interface{}, error) {
+func ReplaceMap(template map[string]interface{}, resolver Resolver) (map[string]interface{}, error) {
 	var err error
 	newTemplate := map[string]interface{}{}
 	for key, val := range template {
-		newTemplate[key], err = replaceAny(val, resolver)
+		newTemplate[key], err = ReplaceAny(val, resolver)
 		if err != nil {
 			return nil, err
 		}
@@ -55,11 +55,11 @@ func replaceMap(template map[string]interface{}, resolver Resolver) (map[string]
 	return newTemplate, nil
 }
 
-func replaceSlice(template []interface{}, resolver Resolver) ([]interface{}, error) {
+func ReplaceSlice(template []interface{}, resolver Resolver) ([]interface{}, error) {
 	var err error
 	newTemplate := make([]interface{}, len(template))
 	for ix, val := range template {
-		newTemplate[ix], err = replaceAny(val, resolver)
+		newTemplate[ix], err = ReplaceAny(val, resolver)
 		if err != nil {
 			return nil, err
 		}
@@ -68,8 +68,8 @@ func replaceSlice(template []interface{}, resolver Resolver) ([]interface{}, err
 	return newTemplate, nil
 }
 
-func replaceString(template string, resolver Resolver) (interface{}, error) {
-	// Find all template holes and replace them with param values.
+func ReplaceString(template string, resolver Resolver) (interface{}, error) {
+	// Find all template holes and Replace them with param values.
 	expanded, modified, err := expandString(template, resolver)
 	if err != nil {
 		return nil, err
