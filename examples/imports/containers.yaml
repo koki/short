@@ -1,9 +1,11 @@
+params:
+- prefix: naming prefix for the containers
 containers:
-- name: busybox
+- name: ${prefix}-sidecar0
   image: busybox:latest
   tty: true
   stdin: true
-- name: busybox1
+- name: ${prefix}-sidecar1
   image: busybox:latest
   tty: true
   stdin: true

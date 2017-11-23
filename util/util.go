@@ -65,6 +65,13 @@ func InvalidValueForTypeErrorf(val, typedObj interface{}, msgFormat string, args
 	return pretty.Errorf("for type (%s), unrecognized (%s) value: %s", reflect.TypeOf(typedObj), reflect.TypeOf(val), pretty.Sprintf(msgFormat, args...))
 }
 
+// ContextualizeErrorf is for adding an additional message to an existing error.
+// This method is only intended for simple messages (contextFormat).
+// e.g. If the context includes a printout of a Go struct, use one of the other error generators in this package.
+func ContextualizeErrorf(err error, contextFormat string, contextArgs ...interface{}) error {
+	return pretty.Errorf("%s: %s", pretty.Sprintf(contextFormat, contextArgs...), err.Error())
+}
+
 func instanceError(obj interface{}, msg string) error {
 	if verboseErrors {
 		return pretty.Errorf("%s: %s\n(%# v)", reflect.TypeOf(obj), msg, obj)
