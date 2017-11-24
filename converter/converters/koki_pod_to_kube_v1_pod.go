@@ -451,10 +451,6 @@ func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
 	return "", util.InvalidInstanceError(dnsPolicy)
 }
 
-func revertAffinity(affinities []types.Affinity) (*v1.Affinity, error) {
-	return nil, nil
-}
-
 func revertRestartPolicy(policy types.RestartPolicy) (v1.RestartPolicy, error) {
 	if policy == "" {
 		return "", nil
