@@ -45,9 +45,11 @@ func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 				return nil, err
 			}
 
-			if err, ok := module.TypedResult.(error); ok {
-				debugLogModule(module)
-				return nil, err
+			for _, export := range module.Exports {
+				if err, ok := export.TypedResult.(error); ok {
+					debugLogModule(module)
+					return nil, err
+				}
 			}
 
 			results = append(results, module)
@@ -58,13 +60,15 @@ func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 }
 
 func convertKokiModules(kokiModules []imports.Module) ([]interface{}, error) {
-	var err error
-	kubeObjs := make([]interface{}, len(kokiModules))
-	for i, kokiModule := range kokiModules {
-		kubeObjs[i], err = converter.DetectAndConvertFromKokiObj(kokiModule.TypedResult)
-		if err != nil {
-			debugLogModule(kokiModule)
-			return nil, err
+	kubeObjs := []interface{}{}
+	for _, kokiModule := range kokiModules {
+		for _, kokiExport := range kokiModule.Exports {
+			kubeObj, err := converter.DetectAndConvertFromKokiObj(kokiExport.TypedResult)
+			if err != nil {
+				debugLogModule(kokiModule)
+				return nil, err
+			}
+			kubeObjs = append(kubeObjs, kubeObj)
 		}
 	}
 

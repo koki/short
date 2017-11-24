@@ -1,11 +1,19 @@
 params:
 - prefix: naming prefix for the containers
-containers:
-- name: ${prefix}-sidecar0
-  image: busybox:latest
-  tty: true
-  stdin: true
-- name: ${prefix}-sidecar1
-  image: busybox:latest
-  tty: true
-  stdin: true
+exports:
+- sidecars: some sidecar containers
+  value: 
+  - name: ${prefix}-sidecar0
+    image: busybox:latest
+    tty: true
+    stdin: true
+  - name: ${prefix}-sidecar1
+    image: busybox:latest
+    tty: true
+    stdin: true
+- dummy: a dummy container
+  value:
+    name: ${prefix}-dummy
+    image: busybox:latest
+    tty: true
+    stdin: true

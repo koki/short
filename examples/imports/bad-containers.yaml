@@ -1,10 +1,14 @@
-containers:
-- name: busybox
-  expose: asdf
-  image: busybox:latest
-  tty: true
-  stdin: true
-- name: busybox1
-  image: busybox:latest
-  tty: true
-  stdin: true
+params:
+- prefix: naming prefix for the containers
+exports:
+- default: some sidecar containers
+  value: 
+  - name: ${prefix}-sidecar0
+    image: busybox:latest
+    tty: true
+    stdin: true
+    expose: asdf
+  - name: ${prefix}-sidecar1
+    image: busybox:latest
+    tty: true
+    stdin: true

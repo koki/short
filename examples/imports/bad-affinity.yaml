@@ -1,5 +1,10 @@
-affinity:
-- pod: app=frontend:soft:asdf
-  topology: kubernetes.io/hostname
-- anti_pod: app=backend
-  topology: kubernetes.io/hostname
+params:
+- this_app: the app label for this app
+- colocate_with: the app label to colocate with
+exports:
+- default: some affinity rules
+  value:
+  - pod: app=${colocate_with}:soft:asdf
+    topology: kubernetes.io/hostname
+  - anti_pod: app=${this_app}
+    topology: kubernetes.io/hostname

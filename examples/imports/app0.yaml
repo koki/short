@@ -2,4 +2,10 @@ imports:
 - pod: ./pod0.yaml
   params:
     name: doot
-pod: ${pod}
+- some_deployment: ../deployment/example5.short.yaml
+exports:
+- app_pod: "the application's pod"
+  value: ${pod}
+- example_deployment: an example deployment
+  value: ${some_deployment}
+

@@ -2,7 +2,6 @@ package imports
 
 import (
 	"github.com/koki/short/template"
-	"github.com/koki/short/util"
 )
 
 /*
@@ -48,44 +47,29 @@ func (c *EvalContext) EvaluateModule(module *Module, params map[string]interface
 		return nil
 	}
 
-	// Lazy-evaluate all variables and substitute them into any template holes.
-	// (ResolverForModule does the lazy evaluation.)
-	// Evaluation is lazy so we don't have to determine ahead-of-time which order to evaluate the imports in.
-	raw, err := template.ReplaceMap(module.Raw, c.ResolverForModule(module, params))
-	if err != nil {
-		return err
-	}
-	module.Raw = raw
-
-	// All template substitutions should be complete. Evaluate all exports.
-	module.TypedResult, err = c.RawToTyped(module.Raw)
-	if err != nil {
-		module.TypedResult = err
+	for _, export := range module.Exports {
+		c.EvaluateExport(module, params, export)
 	}
 
 	module.IsEvaluated = true
 	return nil
 }
 
-func (c *EvalContext) ResolverForModule(module *Module, params map[string]interface{}) template.Resolver {
-	return template.Resolver(func(ident string) (interface{}, error) {
-		if val, ok := params[ident]; ok {
-			return val, nil
-		}
+func (c *EvalContext) EvaluateExport(module *Module, params map[string]interface{}, export *Resource) error {
+	// Lazy-evaluate all variables and substitute them into any template holes.
+	// (ResolverForModule does the lazy evaluation.)
+	// Evaluation is lazy so we don't have to determine ahead-of-time which order to evaluate the imports in.
+	raw, err := template.ReplaceAny(export.Raw, c.ResolverForModule(module, params))
+	if err != nil {
+		return err
+	}
+	export.Raw = raw
 
-		for _, imprt := range module.Imports {
-			if imprt.Name == ident {
-				// Make sure the Import has been evaluated.
-				err := c.EvaluateImport(module, params, imprt)
-				if err != nil {
-					return nil, err
-				}
+	// All template substitutions should be complete. Evaluate the result.
+	export.TypedResult, err = c.RawToTyped(export.Raw)
+	if err != nil {
+		export.TypedResult = err
+	}
 
-				_, val, err := util.GetOnlyMapEntry(imprt.Module.Raw)
-				return val, err
-			}
-		}
-
-		return nil, util.InvalidValueErrorf(ident, "invalid template param (%s) for (%s)", ident, module.Path)
-	})
+	return nil
 }

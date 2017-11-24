@@ -16,19 +16,24 @@ type ParamDef struct {
 	Default     interface{}
 }
 
+type Resource struct {
+	Description string
+	// Raw yaml parsed as string or map[string]interface{}
+	Raw interface{} `json:"Value"`
+
+	// TypedResult a koki object (or other object with special meaning)
+	TypedResult interface{} `json:"-"`
+}
+
 type Module struct {
 	Path    string              `json:"-"`
 	Imports []*Import           `json:"Imports,omitempty"`
 	Params  map[string]ParamDef `json:"Params,omitempty"`
 
-	// Raw yaml parsed as string or map[string]interface{}
-	Raw map[string]interface{} `json:"Contents"`
-
-	// IsEvaluated has the Raw yaml been evaluated (template holes filled, etc)?
+	// IsEvaluated has the Raw yaml in Exports been evaluated (template holes filled, etc)?
 	IsEvaluated bool `json:"-"`
 
-	// TypedResult a koki object (or other object with special meaning)
-	TypedResult interface{} `json:"-"`
+	Exports map[string]*Resource
 }
 
 type EvalContext struct {
