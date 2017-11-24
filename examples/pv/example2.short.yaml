@@ -1,7 +1,7 @@
 persistent_volume:
   labels:
     type: local
-  modes: rw_once
+  modes: rw-once
   name: local-pv-1
   path: /tmp/data/pv-1
   storage: 20Gi
@@ -11,7 +11,7 @@ persistent_volume:
 persistent_volume:
   labels:
     type: local
-  modes: rw_once
+  modes: rw-once
   name: local-pv-2
   path: /tmp/data/pv-2
   storage: 20Gi

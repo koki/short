@@ -27,17 +27,25 @@ type PersistentVolumeMeta struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Storage       *resource.Quantity               `json:"storage,omitempty"`
-	AccessModes   *AccessModes                     `json:"modes,omitempty"`
-	Claim         *v1.ObjectReference              `json:"claim,omitempty"`
-	ReclaimPolicy v1.PersistentVolumeReclaimPolicy `json:"reclaim,omitempty"`
-	StorageClass  string                           `json:"storage_class,omitempty"`
+	Storage       *resource.Quantity            `json:"storage,omitempty"`
+	AccessModes   *AccessModes                  `json:"modes,omitempty"`
+	Claim         *v1.ObjectReference           `json:"claim,omitempty"`
+	ReclaimPolicy PersistentVolumeReclaimPolicy `json:"reclaim,omitempty"`
+	StorageClass  string                        `json:"storage_class,omitempty"`
 
 	// comma-separated list of options
 	MountOptions string `json:"mount_options,omitempty" protobuf:"bytes,7,opt,name=mountOptions"`
 
 	Status *v1.PersistentVolumeStatus `json:"status,omitempty"`
 }
+
+type PersistentVolumeReclaimPolicy string
+
+const (
+	PersistentVolumeReclaimRecycle PersistentVolumeReclaimPolicy = "recycle"
+	PersistentVolumeReclaimDelete  PersistentVolumeReclaimPolicy = "delete"
+	PersistentVolumeReclaimRetain  PersistentVolumeReclaimPolicy = "retain"
+)
 
 type PersistentVolumeSource struct {
 	VolumeSource v1.PersistentVolumeSource
@@ -65,7 +73,7 @@ func (a *AccessModes) ToString() (string, error) {
 		case v1.ReadWriteMany:
 			modes[i] = "rw"
 		case v1.ReadWriteOnce:
-			modes[i] = "rw_once"
+			modes[i] = "rw-once"
 		default:
 			return "", util.InvalidInstanceError(mode)
 		}
@@ -88,7 +96,7 @@ func (a *AccessModes) InitFromString(s string) error {
 			a.Modes[i] = v1.ReadOnlyMany
 		case "rw":
 			a.Modes[i] = v1.ReadWriteMany
-		case "rw_once":
+		case "rw-once":
 			a.Modes[i] = v1.ReadWriteOnce
 		default:
 			return util.InvalidValueErrorf(a, "couldn't parse (%s)", s)

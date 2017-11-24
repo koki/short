@@ -1071,7 +1071,7 @@ func revertExpose(ports []types.Port) ([]v1.ContainerPort, error) {
 		kubePort := v1.ContainerPort{}
 
 		kubePort.Name = port.Name
-		kubePort.Protocol = port.Protocol
+		kubePort.Protocol = revertProtocol(port.Protocol)
 
 		kubePort.HostPort, err = port.HostPortInt()
 		if err != nil {
@@ -1086,4 +1086,8 @@ func revertExpose(ports []types.Port) ([]v1.ContainerPort, error) {
 		kubeContainerPorts = append(kubeContainerPorts, kubePort)
 	}
 	return kubeContainerPorts, nil
+}
+
+func revertProtocol(kokiProtocol types.Protocol) v1.Protocol {
+	return v1.Protocol(strings.ToUpper(string(kokiProtocol)))
 }

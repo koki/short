@@ -480,7 +480,7 @@ func convertContainerPorts(ports []v1.ContainerPort) ([]types.Port, error) {
 		kokiPort := types.Port{}
 
 		kokiPort.Name = port.Name
-		kokiPort.Protocol = port.Protocol
+		kokiPort.Protocol = convertProtocol(port.Protocol)
 		kokiPort.IP = port.HostIP
 		if port.HostPort != 0 {
 			kokiPort.HostPort = fmt.Sprintf("%d", port.HostPort)
@@ -491,6 +491,10 @@ func convertContainerPorts(ports []v1.ContainerPort) ([]types.Port, error) {
 		p = append(p, kokiPort)
 	}
 	return p, nil
+}
+
+func convertProtocol(kubeProtocol v1.Protocol) types.Protocol {
+	return types.Protocol(strings.ToLower(string(kubeProtocol)))
 }
 
 func convertTerminationMsgPolicy(p v1.TerminationMessagePolicy) (types.TerminationMessagePolicy, error) {

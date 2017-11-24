@@ -8,18 +8,23 @@ import (
 	"strconv"
 	"strings"
 
-	"k8s.io/api/core/v1"
-
 	"github.com/koki/short/util"
 )
 
 type Port struct {
 	Name          string
-	Protocol      v1.Protocol
+	Protocol      Protocol
 	IP            string
 	HostPort      string
 	ContainerPort string
 }
+
+type Protocol string
+
+const (
+	ProtocolTCP Protocol = "tcp"
+	ProtocolUDP Protocol = "udp"
+)
 
 func (p *Port) HostPortInt() (int32, error) {
 	if len(p.HostPort) > 0 {
@@ -57,15 +62,15 @@ expose:
   - port_name: 192.168.1.2:8090:80
 */
 
-var protocolPortRegexp = regexp.MustCompile(`^(UDP|TCP)://([0-9.:]*)$`)
+var protocolPortRegexp = regexp.MustCompile(`^(udp|tcp)://([0-9.:]*)$`)
 
 func (p *Port) InitFromString(str string) error {
 	matches := protocolPortRegexp.FindStringSubmatch(str)
 	if len(matches) > 0 {
-		p.Protocol = v1.Protocol(matches[1])
+		p.Protocol = Protocol(matches[1])
 		str = matches[2]
 	} else {
-		p.Protocol = v1.ProtocolTCP
+		p.Protocol = ProtocolTCP
 	}
 
 	segments := strings.Split(str, ":")
@@ -113,7 +118,7 @@ func (p *Port) ToString() (string, error) {
 		str = appendColonSegment(str, p.ContainerPort)
 	}
 
-	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
+	if len(p.Protocol) == 0 || p.Protocol == ProtocolTCP {
 		// No need to specify protocol
 		return str, nil
 	}

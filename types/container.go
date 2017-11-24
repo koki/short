@@ -70,28 +70,28 @@ type ContainerStateTerminated struct {
 
 type VolumeMount struct {
 	MountPath   string           `json:"mount,omitempty"`
-	Propagation MountPropagation `json:"propogation,omitempty"`
+	Propagation MountPropagation `json:"propagation,omitempty"`
 	Store       string           `json:"store,omitempty"`
 }
 
 type MountPropagation string
 
 const (
-	MountPropagationHostToContainer MountPropagation = "HostToContainer"
-	MountPropagationBidirectional   MountPropagation = "Bidirectional"
+	MountPropagationHostToContainer MountPropagation = "host-to-container"
+	MountPropagationBidirectional   MountPropagation = "bidirectional"
 )
 
 type TerminationMessagePolicy string
 
 const (
-	TerminationMessageReadFile              TerminationMessagePolicy = "File"
-	TerminationMessageFallbackToLogsOnError TerminationMessagePolicy = "FallbackToLogsOnError"
+	TerminationMessageReadFile              TerminationMessagePolicy = "file"
+	TerminationMessageFallbackToLogsOnError TerminationMessagePolicy = "fallback-to-logs-on-error"
 )
 
 type PullPolicy string
 
 const (
-	PullAlways       PullPolicy = "Always"
-	PullNever        PullPolicy = "Never"
-	PullIfNotPresent PullPolicy = "IfNotPresent"
+	PullAlways       PullPolicy = "always"
+	PullNever        PullPolicy = "never"
+	PullIfNotPresent PullPolicy = "if-not-present"
 )
