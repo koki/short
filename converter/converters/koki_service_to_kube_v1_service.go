@@ -94,7 +94,7 @@ func revertPort(name string, kokiPort *types.ServicePort, kokiNodePort int32) (*
 		kubePort.NodePort = kokiNodePort
 	}
 
-	kubePort.Protocol = kokiPort.Protocol
+	kubePort.Protocol = revertProtocol(kokiPort.Protocol)
 
 	return kubePort, nil
 }

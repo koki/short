@@ -4,15 +4,13 @@ import (
 	"reflect"
 	"testing"
 
-	"k8s.io/api/core/v1"
-
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
 )
 
 var port0 = &Port{
 	Name:          "port0",
-	Protocol:      v1.ProtocolUDP,
+	Protocol:      ProtocolUDP,
 	IP:            "1.2.3.4",
 	HostPort:      "8080",
 	ContainerPort: "80",
@@ -20,50 +18,50 @@ var port0 = &Port{
 
 var port1 = &Port{
 	Name:          "port1",
-	Protocol:      v1.ProtocolUDP,
+	Protocol:      ProtocolUDP,
 	HostPort:      "8080",
 	ContainerPort: "80",
 }
 
 var port2 = &Port{
 	Name:          "port2",
-	Protocol:      v1.ProtocolTCP,
+	Protocol:      ProtocolTCP,
 	HostPort:      "8080",
 	ContainerPort: "80",
 }
 
 var port3 = &Port{
 	Name:          "port3",
-	Protocol:      v1.ProtocolTCP,
+	Protocol:      ProtocolTCP,
 	IP:            "1.2.3.4",
 	HostPort:      "8080",
 	ContainerPort: "80",
 }
 
 var port4 = &Port{
-	Protocol:      v1.ProtocolTCP,
+	Protocol:      ProtocolTCP,
 	IP:            "1.2.3.4",
 	ContainerPort: "80",
 }
 
 var port5 = &Port{
-	Protocol:      v1.ProtocolTCP,
+	Protocol:      ProtocolTCP,
 	ContainerPort: "80",
 }
 
 var port6 = &Port{
 	Name:          "port6",
-	Protocol:      v1.ProtocolTCP,
+	Protocol:      ProtocolTCP,
 	ContainerPort: "80",
 }
 
 func TestPort(t *testing.T) {
-	doTest("UDP://1.2.3.4:8080:80", t)
+	doTest("udp://1.2.3.4:8080:80", t)
 	doTest("1.2.3.4:8080:80", t)
 	doTest("8080:80", t)
 
-	doPortTest(port0, "port0: UDP://1.2.3.4:8080:80\n", t)
-	doPortTest(port1, "port1: UDP://8080:80\n", t)
+	doPortTest(port0, "port0: udp://1.2.3.4:8080:80\n", t)
+	doPortTest(port1, "port1: udp://8080:80\n", t)
 	doPortTest(port2, "port2: 8080:80\n", t)
 	doPortTest(port3, "port3: 1.2.3.4:8080:80\n", t)
 	doPortTest(port4, "1.2.3.4:80\n", t)

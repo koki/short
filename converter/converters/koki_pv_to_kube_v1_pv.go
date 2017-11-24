@@ -32,7 +32,7 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 		kubeSpec.AccessModes = kokiPV.AccessModes.Modes
 	}
 	kubeSpec.ClaimRef = kokiPV.Claim
-	kubeSpec.PersistentVolumeReclaimPolicy = kokiPV.ReclaimPolicy
+	kubeSpec.PersistentVolumeReclaimPolicy = revertReclaimPolicy(kokiPV.ReclaimPolicy)
 	kubeSpec.StorageClassName = kokiPV.StorageClass
 	if len(kokiPV.MountOptions) > 0 {
 		kubeSpec.MountOptions = strings.Split(kokiPV.MountOptions, ",")
@@ -43,6 +43,10 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 	}
 
 	return kubePV, nil
+}
+
+func revertReclaimPolicy(kokiPolicy types.PersistentVolumeReclaimPolicy) v1.PersistentVolumeReclaimPolicy {
+	return v1.PersistentVolumeReclaimPolicy(strings.Title(string(kokiPolicy)))
 }
 
 func revertCapacity(kokiStorage *resource.Quantity) v1.ResourceList {

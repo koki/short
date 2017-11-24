@@ -15,6 +15,6 @@ pod:
     image: gcr.io/google_containers/busybox
     name: test-container
   name: env-test-pod
-  restart_policy: Never
+  restart_policy: never
   version: v1
 

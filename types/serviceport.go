@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/util"
@@ -25,11 +24,11 @@ type ServicePort struct {
 	PodPort *intstr.IntOrString
 
 	// Protocol is optional. "" is empty.
-	Protocol v1.Protocol
+	Protocol Protocol
 }
 
 func (p *ServicePort) InitFromInt(i int32) {
-	p.Protocol = v1.ProtocolTCP
+	p.Protocol = ProtocolTCP
 	p.Expose = i
 }
 
@@ -38,10 +37,10 @@ func (p *ServicePort) InitFromString(str string) error {
 
 	// Extract the Protocol first.
 	if len(matches) > 0 {
-		p.Protocol = v1.Protocol(matches[1])
+		p.Protocol = Protocol(matches[1])
 		str = matches[2]
 	} else {
-		p.Protocol = v1.ProtocolTCP
+		p.Protocol = ProtocolTCP
 	}
 
 	segments := strings.Split(str, ":")
@@ -74,7 +73,7 @@ func (p *ServicePort) String() string {
 		str = fmt.Sprintf("%s:%s", str, p.PodPort.String())
 	}
 
-	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
+	if len(p.Protocol) == 0 || p.Protocol == ProtocolTCP {
 		// No need to specify protocol
 		return str
 	}
@@ -83,7 +82,7 @@ func (p *ServicePort) String() string {
 }
 
 func (p *ServicePort) ToInt() (int32, error) {
-	if len(p.Protocol) == 0 || p.Protocol == v1.ProtocolTCP {
+	if len(p.Protocol) == 0 || p.Protocol == ProtocolTCP {
 		if p.PodPort == nil {
 			return p.Expose, nil
 		}

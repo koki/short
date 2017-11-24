@@ -61,26 +61,26 @@ type PodCondition struct {
 type PodConditionType string
 
 const (
-	PodScheduled           PodConditionType = "PodScheduled"
-	PodReady               PodConditionType = "Ready"
-	PodInitialized         PodConditionType = "Initialized"
-	PodReasonUnschedulable                  = "Unschedulable"
+	PodScheduled           PodConditionType = "pod-scheduled"
+	PodReady               PodConditionType = "ready"
+	PodInitialized         PodConditionType = "initialized"
+	PodReasonUnschedulable                  = "unschedulable"
 )
 
 type ConditionStatus string
 
 const (
-	ConditionTrue    ConditionStatus = "True"
-	ConditionFalse   ConditionStatus = "False"
-	ConditionUnknown ConditionStatus = "Unknown"
+	ConditionTrue    ConditionStatus = "true"
+	ConditionFalse   ConditionStatus = "false"
+	ConditionUnknown ConditionStatus = "unknown"
 )
 
 type DNSPolicy string
 
 const (
-	DNSClusterFirstWithHostNet DNSPolicy = "ClusterFirstWithHostNet"
-	DNSClusterFirst            DNSPolicy = "ClusterFirst"
-	DNSDefault                 DNSPolicy = "Default"
+	DNSClusterFirstWithHostNet DNSPolicy = "cluster-first-with-host-net"
+	DNSClusterFirst            DNSPolicy = "cluster-first"
+	DNSDefault                 DNSPolicy = "default"
 )
 
 type HostMode string
@@ -94,25 +94,25 @@ const (
 type RestartPolicy string
 
 const (
-	RestartPolicyAlways    RestartPolicy = "Always"
-	RestartPolicyOnFailure RestartPolicy = "OnFailure"
-	RestartPolicyNever     RestartPolicy = "Never"
+	RestartPolicyAlways    RestartPolicy = "always"
+	RestartPolicyOnFailure RestartPolicy = "on-failure"
+	RestartPolicyNever     RestartPolicy = "never"
 )
 
 type PodPhase string
 
 const (
-	PodPending   PodPhase = "Pending"
-	PodRunning   PodPhase = "Running"
-	PodSucceeded PodPhase = "Succeeded"
-	PodFailed    PodPhase = "Failed"
-	PodUnknown   PodPhase = "Unknown"
+	PodPending   PodPhase = "pending"
+	PodRunning   PodPhase = "running"
+	PodSucceeded PodPhase = "succeeded"
+	PodFailed    PodPhase = "failed"
+	PodUnknown   PodPhase = "unknown"
 )
 
 type PodQOSClass string
 
 const (
-	PodQOSGuaranteed PodQOSClass = "Guaranteed"
-	PodQOSBurstable  PodQOSClass = "Burstable"
-	PodQOSBestEffort PodQOSClass = "BestEffort"
+	PodQOSGuaranteed PodQOSClass = "guaranteed"
+	PodQOSBurstable  PodQOSClass = "burstable"
+	PodQOSBestEffort PodQOSClass = "best-effort"
 )

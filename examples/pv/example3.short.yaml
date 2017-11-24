@@ -1,6 +1,6 @@
 persistent_volume:
   fs_type: ext4
-  modes: rw_once
+  modes: rw-once
   name: wordpress-pv-1
   pd_name: wordpress-1
   storage: 20Gi
@@ -9,7 +9,7 @@ persistent_volume:
 ---
 persistent_volume:
   fs_type: ext4
-  modes: rw_once
+  modes: rw-once
   name: wordpress-pv-2
   pd_name: wordpress-2
   storage: 20Gi

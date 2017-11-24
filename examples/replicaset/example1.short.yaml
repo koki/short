@@ -6,11 +6,11 @@ replica_set:
   replicas: 1
   containers:
   - image: gcr.io/kuard-demo/kuard-amd64:1
-    pull: IfNotPresent
+    pull: if-not-present
     name: kuard
     resources: {}
-  dns_policy: ClusterFirst
-  restart_policy: Never
+  dns_policy: cluster-first
+  restart_policy: never
   pod_meta:
     labels:
       component: example

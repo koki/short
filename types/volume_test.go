@@ -560,7 +560,7 @@ func testPersistentVolumeSource(v v1.PersistentVolumeSource, t *testing.T) {
 				Name:      "claimName",
 				Namespace: "claimNamespace",
 			},
-			ReclaimPolicy: v1.PersistentVolumeReclaimRecycle,
+			ReclaimPolicy: PersistentVolumeReclaimRecycle,
 			StorageClass:  "storageClass",
 			MountOptions:  "option 1,option 2,option 3",
 			Status:        &v1.PersistentVolumeStatus{},

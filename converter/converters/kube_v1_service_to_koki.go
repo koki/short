@@ -135,7 +135,7 @@ func convertPort(kubePort v1.ServicePort) (*types.ServicePort, int32) {
 		kokiPort.PodPort = &kubePort.TargetPort
 	}
 
-	kokiPort.Protocol = kubePort.Protocol
+	kokiPort.Protocol = convertProtocol(kubePort.Protocol)
 
 	return kokiPort, kubePort.NodePort
 }

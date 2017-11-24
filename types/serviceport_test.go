@@ -42,7 +42,7 @@ func tryNamedServicePort(s string, t *testing.T) {
 func TestServicePort(t *testing.T) {
 	tryServicePort("8080\n", t)
 	tryServicePort("8080:12345\n", t)
-	tryServicePort("UDP://8080:12345\n", t)
+	tryServicePort("udp://8080:12345\n", t)
 	tryServicePort("8080:containerPortName\n", t)
 }
 
