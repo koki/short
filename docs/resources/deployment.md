@@ -6,7 +6,7 @@
 |:---------:|:--------:|:-----------------------------------------------:|
 | extensions/v1beta1  | Deployment |  [skel](../skel/deployment.extensions.v1beta1.kube.skel.yaml)         |
 | apps/v1beta1  | Deployment |  [skel](../skel/deployment.apps.v1beta1.kube.skel.yaml)         |
-| apps/v1beta12  | Deployment |  [skel](../skel/deployment.apps.v1beta2.kube.skel.yaml)         |
+| apps/v1beta2  | Deployment |  [skel](../skel/deployment.apps.v1beta2.kube.skel.yaml)         |
 
 Here's an example Kubernetes Deployment:
 ```yaml
