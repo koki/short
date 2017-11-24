@@ -38,4 +38,10 @@ type Module struct {
 
 type EvalContext struct {
 	RawToTyped func(raw interface{}) (interface{}, error)
+
+	// Get an "absolute" path for a given import.
+	ResolveImportPath func(rootPath string, importPath string) (string, error)
+
+	// Read the contents of a given path.
+	ReadFromPath func(path string) ([]map[string]interface{}, error)
 }

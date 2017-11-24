@@ -29,13 +29,15 @@ func debugLogModule(module imports.Module) {
 func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 	results := []imports.Module{}
 	for _, filename := range filenames {
-		modules, err := imports.Parse(filename)
-		if err != nil {
-			return nil, err
+		evalContext := imports.EvalContext{
+			RawToTyped:        parser.ParseKokiNativeObject,
+			ResolveImportPath: imports.ResolveImportLocalPath,
+			ReadFromPath:      imports.ReadFromLocalPath,
 		}
 
-		evalContext := imports.EvalContext{
-			RawToTyped: parser.ParseKokiNativeObject,
+		modules, err := evalContext.Parse(filename)
+		if err != nil {
+			return nil, err
 		}
 
 		for _, module := range modules {

@@ -9,8 +9,8 @@ import (
 	"github.com/koki/short/util"
 )
 
-func Parse(rootPath string) ([]Module, error) {
-	objs, err := parser.Parse([]string{rootPath}, false)
+func (c *EvalContext) Parse(rootPath string) ([]Module, error) {
+	objs, err := c.ReadFromPath(rootPath)
 	if err != nil {
 		return nil, util.InvalidValueErrorf(rootPath, "error reading module: %s", err.Error())
 	}
@@ -21,7 +21,7 @@ func Parse(rootPath string) ([]Module, error) {
 
 	modules := make([]Module, len(objs))
 	for i, obj := range objs {
-		module, err := ParseComponent(rootPath, obj)
+		module, err := c.ParseComponent(rootPath, obj)
 		if err != nil {
 			return nil, err
 		}
@@ -32,8 +32,8 @@ func Parse(rootPath string) ([]Module, error) {
 	return modules, nil
 }
 
-func ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error) {
-	imports, hasImportsKey, err := parseImports(rootPath, obj)
+func (c *EvalContext) ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error) {
+	imports, hasImportsKey, err := c.parseImports(rootPath, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func parseParamDef(obj interface{}) (string, ParamDef, error) {
 	}
 }
 
-func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, bool, error) {
+func (c *EvalContext) parseImports(rootPath string, obj map[string]interface{}) ([]*Import, bool, error) {
 	hasImportsKey := false
 	imports := []*Import{}
 	if imprts, ok := obj["imports"]; ok {
@@ -190,7 +190,7 @@ func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, bool,
 		if imprts, ok := imprts.([]interface{}); ok {
 			for _, imprt := range imprts {
 				if imprt, ok := imprt.(map[string]interface{}); ok {
-					anImport, err := parseImport(rootPath, imprt)
+					anImport, err := c.parseImport(rootPath, imprt)
 					if err != nil {
 						return nil, hasImportsKey, util.InvalidValueForTypeErrorf(imprt, Import{}, "error processing import in module (%s): %s", rootPath, err.Error())
 					}
@@ -211,7 +211,7 @@ func parseImports(rootPath string, obj map[string]interface{}) ([]*Import, bool,
 	return imports, hasImportsKey, nil
 }
 
-func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {
+func (c *EvalContext) parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {
 	var err error
 	if len(imprt) == 0 {
 		return nil, util.InvalidInstanceErrorf(imprt, "empty import declaration")
@@ -231,7 +231,10 @@ func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error)
 		} else {
 			imp.Name = key
 			if importPath, ok := val.(string); ok {
-				imp.Path = convertImportPath(rootPath, importPath)
+				imp.Path, err = c.ResolveImportPath(rootPath, importPath)
+				if err != nil {
+					return nil, util.InvalidValueErrorf(importPath, "couldn't resolve 'absolute' path for import (%s) in module (%s)", importPath, rootPath)
+				}
 			} else {
 				return nil, util.InvalidInstanceErrorf(imprt, "import path should be a string")
 			}
@@ -242,7 +245,7 @@ func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error)
 		return nil, util.InvalidInstanceErrorf(imprt, "expected import name and path")
 	}
 
-	importModules, err := Parse(imp.Path)
+	importModules, err := c.Parse(imp.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +254,15 @@ func parseImport(rootPath string, imprt map[string]interface{}) (*Import, error)
 	return imp, nil
 }
 
-func convertImportPath(rootPath string, relativePath string) string {
-	dirPath, _ := filepath.Split(rootPath)
-	return filepath.Join(dirPath, relativePath)
+func ResolveImportLocalPath(rootPath string, importPath string) (string, error) {
+	if len(rootPath) > 0 {
+		dirPath, _ := filepath.Split(rootPath)
+		return filepath.Join(dirPath, importPath), nil
+	}
+
+	return importPath, nil
+}
+
+func ReadFromLocalPath(path string) ([]map[string]interface{}, error) {
+	return parser.Parse([]string{path}, false)
 }

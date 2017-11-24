@@ -48,7 +48,10 @@ func (c *EvalContext) EvaluateModule(module *Module, params map[string]interface
 	}
 
 	for _, export := range module.Exports {
-		c.EvaluateExport(module, params, export)
+		err := c.EvaluateExport(module, params, export)
+		if err != nil {
+			return err
+		}
 	}
 
 	module.IsEvaluated = true
