@@ -1,0 +1,13 @@
+service:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  ports:
+  - node_port: 32317
+    web: 80:8080
+  version: v1
+

@@ -1,0 +1,33 @@
+pod:
+  affinity:
+  - node: k8s.io/hostname=docs.koki.io
+  - node: failure-domain=us-east1&instance-type=t2.large
+  - node: failure-domain=us-east1,us-east2
+  - node: failure-domain=us-east1,us-east2&instance-type=t2.large
+  - node: failure-domain=us-east1:soft:10
+  - pod: app=front-end
+  - pod: app=front-end
+    topology: k8s.io/failure-domain
+  - pod: app=front-end&name=react:soft:1
+  - pod: app=front-end&name=react:soft:10
+  - pod: name=react&app=front-end,back-end:soft:10
+  - pod: app=front-end&name=react:soft:1
+    topology: k8s.io/hostname
+  - namespaces:
+    - default
+    - kube-system
+    pod: app=front-end&name=react:soft:10
+    topology: k8s.io/hostname
+  - anti_pod: app=front-end
+  - anti_pod: app=front-end&name=react:soft:1
+  - anti_pod: app=front-end&name=react:soft:10
+  - anti_pod: name=react&app=front-end,back-end:soft:10
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+

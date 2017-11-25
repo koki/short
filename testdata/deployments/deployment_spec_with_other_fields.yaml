@@ -1,0 +1,16 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: meta_test
+  labels:
+    app: meta_test
+  annotations:
+    meta: _test 
+  namespace: test
+  clusterName: test_cluster
+spec:
+  minReadySeconds: 32
+  revisionHistoryLimit: 32
+  paused: true
+  rollbackConfig: 4352
+  progressDeadlineSeconds: 32
