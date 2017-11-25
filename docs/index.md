@@ -3,7 +3,7 @@
 Manageable Kubernetes manifests through composable, reusable syntax
 
 ## Motivation
-The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. Anecdotally, it has been 
+The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. Anecdotally, it has been:
 
  - Time consuming to write
  - Error-prone, hard to get right without referring to documentation
@@ -38,7 +38,7 @@ spec:
             - us-east2
 ```
 
-The Short format is designed to be user friendly, intuitive, reusable, and maintainable. The same pod denoted in Short syntax looks like
+The Short format is designed to be user friendly, intuitive, reusable, and maintainable. The same pod in Short syntax looks like
 
 ```yaml
 pod:
@@ -56,7 +56,7 @@ Our approach is to reframe Kubernetes manifests in an operator-friendly syntax w
 
 Koki Short can transform Kubernetes syntax into Short and Short syntax back into Kubernetes. No information is lost in either direction.
 
-For more information on Koki Short transformations, please refer to [Resources.](resources)
+For more information on Koki Short transformations, please refer to [Resources.](https://docs.koki.io/short/resources)
 
 ## Modular and Reusable
 
@@ -89,7 +89,7 @@ exports:
       affinity: ${affinity}  # re-use the affinity resource here
 ```
 
-For more information on Koki Modules, please refer to [Modules.](modules)
+For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/modules)
 
 ## Getting started
 
@@ -172,7 +172,7 @@ short man pod
 
 ```
 
-For more information, refer to our [getting started guide.](getting-started)
+For more information, refer to our [getting started guide.](https://docs.koki.io/user-guide#getting-started)
 
 ## Contribute
 Koki is completely open source community driven, including the roadmaps, planning, and implementation. We encourage everyone to help us make Kubernetes manifests more manageable. We welcome Issues, Pull Requests and participation in our [weekly meetings]().

@@ -87,4 +87,3 @@ The following types are currently supported
 | extensions/v1beta1 | Replica Set | [Replica Set](./replica-set.md) | [Replica Set Skeleton](./replica-set.md#skeleton) | [Replica Set Examples](./replica-set.md#examples) |
 | apps/v1beta2 | Replica Set | [Replica Set](./replica-set.md) | [Replica Set Skeleton](./replica-set.md#skeleton) | [Replica Set Examples](./replica-set.md#examples) |
 | core/v1 | Replication Controller | [Replication Controller](./replication-controller.md) | [Replication Controller Skeleton](./replication-controller.md#skeleton) | [Replication Controller Examples](./replication-controller.md#examples) |
-| core/v1 | PersistentVolume | [Volume](./volume.md) | [Volume Skeleton](./volume.md#skeleton) | [Volume Examples](./volume.md#examples) |

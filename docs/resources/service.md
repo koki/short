@@ -28,25 +28,25 @@ The following sections contain detailed information about each field in Short sy
 | Field | Type | K8s counterpart(s) | Description         |
 |:-----:|:----:|:-------:|:----------------------:|
 |version| `string` | `apiVersion` | The version of the resource object | 
-|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Service is running |
+|cluster| `string` | `metadata.` `clusterName` | The name of the cluster on which this Service is running |
 |name | `string` | `metadata.name`| The name of the Service | 
-|namespace | `string` | `metadata.namespace` | The K8s namespace this Service will be a member of | 
+|namespace | `string` | `metadata.` `namespace` | The K8s namespace this Service will be a member of | 
 |labels | `string` | `metadata.labels`| Metadata about the Service, including identifying information | 
-|annotations| `string` | `metadata.annotations`| Non-identifying information about the Service | 
+|annotations| `string` | `metadata.` `annotations`| Non-identifying information about the Service | 
 |cname | `string` | `externalName` | This service will return a CNAME that is set by this field. No proxying will be performed|
 |type | `string` | `type` | The type of the service. Can be omitted (for `cname` services) or set to "cluster-ip", "node-port" or "load-balancer"|
-|selector| `map[string]string` | `selector` | A set of key-value pairs that match the labels of pods that should be proxied to|
+|selector| `map[string]` `string` | `selector` | A set of key-value pairs that match the labels of pods that should be proxied to|
 |external_ips| `[]string` | `externalIPs` | A set of ip addresses for which nodes in the cluster will accept traffic|
-|port | `string` | `ports` | Unnamed port mapping of format `$PROTOCOL://$SERVICE_PORT:$CONTAINER_PORT`. More details below|
+|port | `string` | `ports` | Unnamed port mapping of format `$PROTOCOL://$SVC_PORT:$CONTAINER_PORT`. More details below|
 |node_port| `int32` | `ports` | Request specific node port for a node-port service | 
 |ports | `[]NamedPort`| `ports` | A list of named ports to expose. See [Named Port Overview](#named-port-overview)|
 |cluster_ip| `string` | `clusterIP`| Request specific cluster ip for the service|
-|unready_endpoints| `bool` | `publishNotReadyAddresses` | Publish addresses before backends are ready|
-|route_policy| `string` | `externalTrafficPolicy` | Policy for routing external traffic. Can be "node-local" or "cluster-wide" |
-|stickiness | `int` or `bool` | `sessionAffinity` and `sessionAffinityConfig` | Stickiness Policy for the service. More information below |
-|lb_ip | `string` | loadBalancerIP | Request specific IP address for the created LB service|
-|lb_client_ips | `[]string` | `loadBalancerSourceRanges` | (for LB service) IP addresses to allow traffic from. Can specify CIDR here |
-|healthecheck_port | `int32` | `healthCheckNodePort`  | Port for health check|
+|unready_ endpoints| `bool` | `publishNot` `ReadyAddresses` | Publish addresses before backends are ready|
+|route_policy| `string` | `externalTraffic` `Policy` | Policy for routing external traffic. Can be "node-local" or "cluster-wide" |
+|stickiness | `int` or `bool` | `sessionAffinity` and `sessionAffinity` `Config` | Stickiness Policy for the service. More information below |
+|lb_ip | `string` | `loadBalancerIP` | Request specific IP address for the created LB service|
+|lb_client_ips | `[]string` | `loadBalancer` `SourceRanges` | (for LB service) IP addresses to allow traffic from. Can specify CIDR here |
+|healthcheck_ port | `int32` | `healthCheck` `NodePort`  | Port for health check|
 
 The following fields are status fields, and cannot be set
 

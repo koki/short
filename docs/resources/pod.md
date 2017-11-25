@@ -49,22 +49,22 @@ The following sections contain detailed information about each field in Short sy
 |namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
 |labels | `string` | `metadata.labels`| Metadata about the Pod, including identifying information | 
 |annotations| `string` | `metadata.annotations`| Non-identifying information about the Pod | 
-|volumes | [`Volume`](#volume-overview) | `spec.volumes` | Denotes the volumes that are a part of the Pod. See [Volume Overview](#volume-overview) |
-| affinity | [`[]Affinity`](#affinity-overview) | `spec.affinity` and `spec.NodeSelector` | The Pod's scheduling rules, expressed as (anti-)affinities for nodes or other Pods. See [Affinity Overview](#affinity-overview) |
+|volumes | `Volume` | `spec.volumes` | Denotes the volumes that are a part of the Pod. See [Volume Overview](#volume-overview) |
+| affinity | `[]Affinity` | `spec.affinity` and `spec.NodeSelector` | The Pod's scheduling rules, expressed as (anti-)affinities for nodes or other Pods. See [Affinity Overview](#affinity-overview) |
 | node | `string` | `spec.nodeName` | Request that the Pod be scheduled on a specific node. | 
-| containers |[`Container`](../skel/container.short.skel.yaml) | `spec.containers` and `status`| Containers that run as a part of the Pod. See [Container Overview](#container-overview) |
-| init_containers | [`Container`](../skel/container.short.skel.yaml) | `spec.initContainers` and `status` | Containers that run as a part of the initialization process of the Pod. See [Container Overview](#container-overview) | 
-| dns_policy | [`DNSPolicy`](#dns-policy-overview) | `spec.dnsPolicy` | The DNS Policy of the Pod. See [DNS Policy Overview](#dns-policy-overview) |
+| containers |`Container` | `spec.containers` and `status`| Containers that run as a part of the Pod. See [Container Overview](#container-overview) |
+| init_containers | `Container` | `spec.initContainers` and `status` | Containers that run as a part of the initialization process of the Pod. See [Container Overview](#container-overview) | 
+| dns_policy | `DNSPolicy` | `spec.dnsPolicy` | The DNS Policy of the Pod. See [DNS Policy Overview](#dns-policy-overview) |
 | host_aliases | `[]string` | `spec.aliases` | Set of additional records to be placed in `/etc/hosts` file inside the Pod. See [Host Aliases Overview](#host-aliases-overview) |
 | host_mode | `[]string` | `spec.hostPID`, `spec.hostNetwork` and `spec.hostIPC`| The Pod's access to host resources. See [Host Mode Conversion](#host-mode-conversion) |
 | hostname | `string` | `spec.hostname` and `spec.subDomain` | The fully qualified domain name of the pod|
 | registry_secrets | `[]string` |`spec.ImagePullSecrets` | A list of k8s secret resource names that contain credentials to required to access private registries. |
-| restart_policy | [`RestartPolicy`](#restart-policy) | `spec.restartPolicy` | Behavior of a Pod when it dies. Can be "always", "on-failure" or "never" |
+| restart_policy | `RestartPolicy` | `spec.restartPolicy` | Behavior of a Pod when it dies. Can be "always", "on-failure" or "never" |
 | scheduler_name | `string` | `spec.schedulerName` | The value from `spec.schedulerName` is stored here |
-| account | `string` | `spec.serviceAccountName` and `spec.automountServiceAccountToken` | The Pod's access to the K8s API. See [Account Conversion](#account-conversion) | 
-| tolerations | [`[]Toleration`](../skel/toleration.short.skel.yaml) | `spec.tolerations` | Set of host taints this Pod tolerates. See [Toleration Conversion](#toleration-conversion) |
-| termination_grace_period | `int64`  | `spec.terminationGracePeriodSeconds` | Number of seconds to wait before forcefully killing the Pod. |
-| active_deadline | `int64` | `spec.activeDeadlineSeconds`| Number of seconds the Pod is allowed to be active  |  
+| account | `string` | `spec.serviceAccountName` and `automountService` `AccountToken` | The Pod's access to the K8s API. See [Account Conversion](#account-conversion) | 
+| tolerations | `[]Toleration` | `spec.tolerations` | Set of host taints this Pod tolerates. See [Toleration Conversion](#toleration-conversion) |
+| termination_ grace_period | `int64`  | `spec.termination` `GracePeriodSeconds` | Number of seconds to wait before forcefully killing the Pod. |
+| active_deadline | `int64` | `spec.` `activeDeadlineSeconds`| Number of seconds the Pod is allowed to be active  |  
 | priority | `Priority` | `spec.priorityClassName` and `spec.priority` | Specifies the Pod's Priority. See [Priority](#priority) |
 | condition | `[]Pod Condition` | `status.conditions` | The list of current and previous conditions of the Pod. See [Pod Condition](#pod-condition) |
 | node_ip | `string` | `status.hostIP` | The IP address of the Pod's host | 
@@ -74,8 +74,8 @@ The following sections contain detailed information about each field in Short sy
 | phase | `string` | `status.phase` | The current phase of the Pod |
 | reason | `string` | `status.reason` | Reason indicating the cause for the current state of the Pod |
 | qos | `string` | `status.qosClass` | The QOS class assigned to the Pod based on resource requirements |
-| fs_gid | `int64` | `spec.securityContext.fsGroup` | Special supplemental group that applies to all the Containers in the Pod |
-| gids | `[]int64` | `spec.securityContext.supplementalGroups` | A list of groups applied to the first process in each of the Containers in the Pod |
+| fs_gid | `int64` | `spec.securityContext.` `fsGroup` | Special supplemental group that applies to all the Containers in the Pod |
+| gids | `[]int64` | `spec.securityContext.` `supplementalGroups` | A list of groups applied to the first process in each of the Containers in the Pod |
 
 #### Affinity Overview
 
@@ -84,8 +84,8 @@ The following sections contain detailed information about each field in Short sy
 | node | `string` | `affinity.nodeAffinity` | The Pod's affinity for certain nodes. More information below | 
 | pod | `string` | `affinity.podAffinity` | The Pod's affinity for certain other other Pods in the cluster. More information below |
 | anti_pod | `string` | `affinity.podAntiAffinity` | The Pod's anti-affinity for certain other Pods in the cluster. More information below |
-| topology | `string` | `affinity.pod*.podAffinityTerm.topologyKey` | A node label key, e.g. "kubernetes.io/hostname". Determines the scope (same host vs same region vs ...) of the Pod's (anti-)affinity for certain Pods. More information below| 
-| namespaces | `[]string` | `affinity.pod*.podAffinityTerm.namespaces` | A list of namespaces in which the `pod` and `anti_pod` affinities are applied |
+| topology | `string` | `affinity.pod*.` `podAffinityTerm.topologyKey` | A node label key, e.g. "kubernetes.io/hostname". Determines the scope (same host vs same region vs ...) of the Pod's (anti-)affinity for certain Pods. More information below| 
+| namespaces | `[]string` | `affinity.pod*.` `podAffinityTerm.namespaces` | A list of namespaces in which the `pod` and `anti_pod` affinities are applied |
 
 `node`, `pod` and `anti_pod` are string fields that expect `expressions` that denote affinities of the Pod to nodes, other pods and anti-affinity to other pods respectively.
 
@@ -408,13 +408,11 @@ action:
 | headers | `[]string` | `container.lifecycle.postStart.httpGet.headers` | The headers that get sent as a part of the network call |
 | url | `string` | `container.lifecycle.postStart.httpGet.(path|port|host|scheme)` | The url of the network call |
 
-The URL should be of the form
+The URL should be of this form:
 
 `$SCHEME://$HOST:$PORT`
 
-Where,
- 
-`$SCHEME` can be `HTTP` (default), `HTTPS` or `TCP`
+where `$SCHEME` can be `HTTP` (default), `HTTPS` or `TCP`
 
 Here's few examples of net actions
 

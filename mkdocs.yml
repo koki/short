@@ -13,7 +13,6 @@ pages:
    - Deployment: resources/deployment.md
    - ReplicaSet: resources/replica-set.md
    - ReplicationController: resources/replication-controller.md
-   - Volume: resources/volume.md
  - Modules:
    - Introduction: modules/index.md
 theme: readthedocs
