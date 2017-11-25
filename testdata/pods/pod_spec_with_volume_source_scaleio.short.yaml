@@ -1,0 +1,24 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+  - fs_type: xfs
+    gateway: gateway
+    name: test_volume
+    protection_domain: domain
+    read_only: true
+    secret_ref:
+      name: secret
+    ssl_enabled: true
+    storage_mode: storage.mode
+    storage_pool: storage.pool
+    system: system
+    type: scale-io
+    volume_name: volName
+

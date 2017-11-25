@@ -1,0 +1,22 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+  - monitors:
+    - monitor1
+    - monitor2
+    name: ceph_fs_test_volume
+    path: /path/to/nowhere
+    read_only: true
+    secret_file: /path/to/secret
+    secret_ref:
+      name: secret_name
+    type: cephfs
+    user: username
+

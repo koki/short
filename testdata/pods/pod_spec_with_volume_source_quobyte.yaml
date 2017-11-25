@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: meta_test
+  labels:
+    app: meta_test
+  annotations:
+    meta: _test 
+  namespace: test
+  clusterName: test_cluster
+spec:
+  volumes:
+  - name: test_volume
+    quobyte:
+      registry: registry.quobyte
+      volume: volume.quobyte
+      readOnly: true
+      user: quobyte.user
+      group: quobyte.group      

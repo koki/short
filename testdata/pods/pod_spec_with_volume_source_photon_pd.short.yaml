@@ -1,0 +1,15 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+  - fs_type: xfs
+    name: test_volume
+    pd_id: pdname123
+    type: photon-persistent-disk
+
