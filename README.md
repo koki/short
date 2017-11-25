@@ -1,49 +1,103 @@
 # Koki Short
-API friendly Kubernetes resources to user-friendly syntax
+
+Manageable Kubernetes manifests through composable, reusable syntax
 
 ## Motivation
-The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. It has anecdotally been 
- - Time consuming to use it to create Kubernetes resources
- - Error prone to get it right the first time
- - Requires constant referral to documentation
- - Difficult to maintain, read or reuse.  
+The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. Anecdotally, it has been:
 
-For eg. denoting that a pod runs on host with label `k8s.io/failure-domain=us-east-1`, here is the current syntax:
+ - Time consuming to write
+ - Error-prone, hard to get right without referring to documentation
+ - Difficult to maintain, read, and reuse
 
-```yaml
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-     - matchExpressions:
-        - key: k8s.io/failure-domain
-          operator: In
-          value: us-east1
-```
-The Short format is designed to be user friendly, intuitive, reusable and maintainable. The same affinity syntax in Short looks like
+e.g. In order to create a simple nginx pod that runs on any host in region `us-east1` or `us-east2`, here is the Kubernetes native syntax:
 
 ```yaml
-affinity:
- - node: k8s.io/failure-domain=us-east1
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx_container
+    image: nginx:latest
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      	nodeSelectorTerms:
+        - matchExpressions:
+          - key: k8s.io/failure-domain
+            operator: In
+            values: 
+            - us-east1
+        - matchExpressions:
+          - key: k8s.io/failure-domain
+            operator: In
+            value:
+            - us-east2
 ```
-The approach we have followed behind this opinionated syntax is to reframe the Kubernetes syntax to one that is operator friendly without losing any information. 
 
-Since we do not throw away any information during the transformations, users can freely round trip back and forth between Short syntax and Kubernetes syntax.
+The Short format is designed to be user friendly, intuitive, reusable, and maintainable. The same pod in Short syntax looks like
 
-For more information on Koki Short transformations, please refer to [docs](http://docs.koki.io/short)
+```yaml
+pod:
+  name: nginx
+  labels:
+    app: nginx
+  containers:
+  - name: nginx
+    image: nginx:latest
+  affinity:
+  - node: k8s.io/failure-domain=us-east1,us-east2
+```
+
+Our approach is to reframe Kubernetes manifests in an operator-friendly syntax without sacrificing expressiveness.
+
+Koki Short can transform Kubernetes syntax into Short and Short syntax back into Kubernetes. No information is lost in either direction.
+
+For more information on Koki Short transformations, please refer to [Resources.](https://docs.koki.io/short/resources)
 
 ## Modular and Reusable
 
-Koki Short introduces the concept of modules, which are reusable collections of Short resources. Any resource can be reused multiple times in other resources and linked resources can be managed as one unit on the Koki platform. 
+Koki Short introduces the concept of modules, which are reusable collections of Short resources. Any resource can be reused multiple times in other resources and linked resources can be managed as a single unit on the Koki platform. 
 
-More on this will be available as soon as it is implemented. This is in the roadmap right now. 
+Any valid koki resource object can be reused. This includes subtypes of top-level resource types. For example, here's module called `pod-affinity-us-east-1.yaml`:
+
+```yaml
+exports:
+- default: node affinity for us-east-1
+  value:
+  - node: k8s.io/failure-domain=us-east-1
+```
+
+This affinity value can be reused in any pod spec:
+
+```yaml
+imports:
+- affinity: pod-affinity-us-east-1.yaml
+exports:
+- default: an nginx pod
+  value:
+    pod:
+      name: nginx
+      labels:
+        app: nginx
+      containers:
+      - name: nginx
+        image: nginx-latest
+      affinity: ${affinity}  # re-use the affinity resource here
+```
+
+For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/modules)
 
 ## Getting started
 
-In order to start using Short, simply download the binary from the [releases page](https://github.com/koki/short/releases), and then you can start using it.
+In order to start using Short, simply download the binary from the [releases page](https://github.com/koki/short/releases).
 
 ```sh
 
-#start with an existing Kubernetes manifest file
+#start with any existing Kubernetes manifest file
 $$ cat kube_manifest.yaml
 apiVersion: v1
 kind: Pod
@@ -80,7 +134,7 @@ spec:
           memory: 512m
 
      
-#convert an existing Kubernetes manifest into a Short syntax representation, just run
+#convert Kubernetes manifest into a Short syntax representation
 $$ short -f kube_manifest.yaml
 pod:
   name: podName
@@ -102,7 +156,7 @@ pod:
         name: service
 
 
-#specify json input, or multi document yaml 
+#input can be json or yaml
 $$ short -f kube_manifest.json -f kube_manifest2.yaml -f kube_multi_manifest.yaml
 
 #stream input
@@ -113,10 +167,9 @@ $$ short -k -f koki_spec.yaml
 
 #-k flag denotes that it should output Kubernetes manifest
 
-#find out how koki transforms a particular resource type
-short man v1/pod
-
 ```
+
+For more information, refer to our [getting started guide.](https://docs.koki.io/user-guide#getting-started)
 
 ## Contribute
 Koki is completely open source community driven, including the roadmaps, planning, and implementation. We encourage everyone to help us make Kubernetes manifests more manageable. We welcome Issues, Pull Requests and participation in our [weekly meetings]().
@@ -126,9 +179,9 @@ If you'd like to get started with contributing to Koki Short, read our [Roadmap]
 ## Important Links
 
 - [Releases](https://github.com/koki/short/releases) 
-- [Docs]()
+- [Docs](https://docs.koki.io/short)
 - [Roadmap](https://github.com/koki/short/projects)
 - [Issues](https://github.com/koki/short/issues)
 
 ## LICENSE
-[Apache v2.0](LICENSE)
+[Apache v2.0](https://github.com/koki/short/blob/master/LICENSE)

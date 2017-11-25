@@ -21,32 +21,32 @@ spec:
     targetPort: 9376
 ```
 
-The following sections contain detailed information about the process of converting each of the fields within the Kubernetes Service definition to Short spec and back.
+The following sections contain detailed information about each field in Short syntax, including how the field translates to and from Kubernetes syntax.
 
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
 |:-----:|:----:|:-------:|:----------------------:|
 |version| `string` | `apiVersion` | The version of the resource object | 
-|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
-|name | `string` | `metadata.name`| The name of the Pod | 
-|namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
-|labels | `string` | `metadata.labels`| Metadata that could be identifying information about the Pod | 
-|annotations| `string` | `metadata.annotations`| Non identifying information about the Pod| 
+|cluster| `string` | `metadata.` `clusterName` | The name of the cluster on which this Service is running |
+|name | `string` | `metadata.name`| The name of the Service | 
+|namespace | `string` | `metadata.` `namespace` | The K8s namespace this Service will be a member of | 
+|labels | `string` | `metadata.labels`| Metadata about the Service, including identifying information | 
+|annotations| `string` | `metadata.` `annotations`| Non-identifying information about the Service | 
 |cname | `string` | `externalName` | This service will return a CNAME that is set by this field. No proxying will be performed|
-|type | `string` | `type` | The type of the service. Can be "cluster-ip", "node-port" or "load-balancer"|
-|selector| `map[string]string` | `selector` | A set of key value pairs that match the pods' labels that should be proxied to|
+|type | `string` | `type` | The type of the service. Can be omitted (for `cname` services) or set to "cluster-ip", "node-port" or "load-balancer"|
+|selector| `map[string]` `string` | `selector` | A set of key-value pairs that match the labels of pods that should be proxied to|
 |external_ips| `[]string` | `externalIPs` | A set of ip addresses for which nodes in the cluster will accept traffic|
-|port | `string` | `ports` | Unnamed port mapping of format `$PROTOCOL://$SERVICE_PORT:$CONTAINER_PORT`. More details below|
-|node_port| `int32` | `ports` | Request node port for a node-port service | 
-|ports | `[]NamedPort`| `ports` | A list of named ports to expose. More information available in [Named Port Overview](#named-port-overview)|
-|cluster_ip| `string` | `clusterIP`| Request cluster ip for the service|
-|unready_endpoints| `bool` | `publishNotReadyAddresses` | Publish addresses before backends are ready|
-|route_policy| `string` | `externalTrafficPolicy` | Policy for routing external traffic. Can be "node-local" or "cluster-wide" |
-|stickiness | `int` or `bool` | `sessionAffinity` and `sessionAffinityConfig` | Stickiness Policy for the service. More information below |
-|lb_ip | `string` | loadBalancerIP | Request IP address of the created LB service|
-|lb_client_ips | `[]string` | `loadBalancerSourceRanges` | IP addresses to allow traffic from. Can specify CIDR here |
-|healthecheck_port | `int32` | `healthCheckNodePort`  | Port for healthcheck|
+|port | `string` | `ports` | Unnamed port mapping of format `$PROTOCOL://$SVC_PORT:$CONTAINER_PORT`. More details below|
+|node_port| `int32` | `ports` | Request specific node port for a node-port service | 
+|ports | `[]NamedPort`| `ports` | A list of named ports to expose. See [Named Port Overview](#named-port-overview)|
+|cluster_ip| `string` | `clusterIP`| Request specific cluster ip for the service|
+|unready_ endpoints| `bool` | `publishNot` `ReadyAddresses` | Publish addresses before backends are ready|
+|route_policy| `string` | `externalTraffic` `Policy` | Policy for routing external traffic. Can be "node-local" or "cluster-wide" |
+|stickiness | `int` or `bool` | `sessionAffinity` and `sessionAffinity` `Config` | Stickiness Policy for the service. More information below |
+|lb_ip | `string` | `loadBalancerIP` | Request specific IP address for the created LB service|
+|lb_client_ips | `[]string` | `loadBalancer` `SourceRanges` | (for LB service) IP addresses to allow traffic from. Can specify CIDR here |
+|healthcheck_ port | `int32` | `healthCheck` `NodePort`  | Port for health check|
 
 The following fields are status fields, and cannot be set
 
@@ -58,16 +58,16 @@ The `port` and `node_port` keys are used to specify the unnamed port for the Ser
 
 `$PROTOCOL://$SERVICE_PORT:$CONTAINER_PORT`
 
-The `$PROTOCOL` is defaulted to TCP if not specified. 
+The `$PROTOCOL` is defaulted to `tcp` if not specified. 
 
-If only one port value is specified, then both the `$SERVICE_PORT` and `CONTAINER_PORT` are considered to be the same value.
+If only one port value is specified, then `$SERVICE_PORT` and `$CONTAINER_PORT` are considered to be the same value.
 
 The following are valid values for port
 
 ```yaml
-port: TCP://8080:80 # Protocol: TCP ServicePort: 8080 ContainerPort: 80
+port: tcp://8080:80 # Protocol: TCP ServicePort: 8080 ContainerPort: 80
 port: 8080:80 # Protocol: TCP ServicePort: 8080 ContainerPort: 80
-port: UDP://8080 # Protocol: UDP ServicePort: 8080 ContainerPort: 8080
+port: udp://8080 # Protocol: UDP ServicePort: 8080 ContainerPort: 8080
 ```
 The stickiness values can be set to `true` or a valid integer value. If set to `true`, it configures the session affinity of the service based on client ip addresses.
 
@@ -77,8 +77,8 @@ If set to a number value, then, along with configuring the session affinity, it 
 
 Named ports contain a struct that contains two keys
 
- - node_port - and `int32` type field that denotes the named node_port of the service
- - $name - a `string` type field of the format `$PROTOCOL://$SERVICE_PORT:$CONTAINER_PORT`
+ - `node_port` - an `int32` type field that denotes a named node_port of the service
+ - `$name` - a `string` type field of the format `$PROTOCOL://$SERVICE_PORT:$CONTAINER_PORT`
 
 The `$name` key is prefixed with a `$` to denote that it can be any valid Kubernetes name, and that will be set as the name of the port. The semantics of the value follow the same behavior as the `port` field in Service (explained above). 
 
@@ -86,8 +86,8 @@ Here are valid named port examples
 ```yaml
 ports:
 - web: 8080:80  # port named "web" with service-port: 8080 and container-port: 80
-- db: 5432      # port named "db" with node-port set to 5432
-  node_port: 8080  
+- db: 8080      # port named "db" with node-port set to 5432
+  node_port: 5432  
 - dns: udp://53:53
   node_port: 53
 ```

@@ -385,7 +385,7 @@ replication_controller:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  init_containers: 
@@ -525,7 +525,7 @@ replication_controller:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  dns_policy: ""

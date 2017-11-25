@@ -1,7 +1,7 @@
 # Modules
 
-Modules facilitate the reuse and composition of Koki resources. 
+Modules facilitate the reuse and composition of Koki resources.
 
-This feature is still in the works, and the documentation will be updated once the design and feature are implemented. 
+This feature is still in the works. Documentation will be updated once it's implemented.
 
 

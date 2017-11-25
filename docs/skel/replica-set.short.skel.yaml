@@ -387,7 +387,7 @@ replica_set:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  init_containers: 
@@ -527,7 +527,7 @@ replica_set:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  dns_policy: ""
