@@ -1,0 +1,16 @@
+replica_set:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  containers:
+  - image: redis
+    name: redis
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  replicas: 1
+  selector:
+    app: redis
+  version: apps/v1beta2
+
