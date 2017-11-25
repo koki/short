@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: meta_test
+  labels:
+    app: meta_test
+  annotations:
+    meta: _test 
+  namespace: test
+  clusterName: test_cluster
+spec:
+  volumes:
+  - name: test_volume
+    configMap: 
+     name: config_map_name
+     items:
+     - key: root
+       path: path.to.key
+       mode: 0644
+     defaultMode: 0644
+     optional: true    

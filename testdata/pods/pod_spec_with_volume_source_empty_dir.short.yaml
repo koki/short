@@ -1,0 +1,15 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+  - medium: HugePages
+    name: test_volume
+    size_limit: 500G
+    type: empty-dir
+

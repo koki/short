@@ -1,0 +1,24 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+  - name: host_path_test_volume
+    path: /path/to/host/vol
+    type: host-path.directory
+  - medium: Memory
+    name: empty_dir_test_volume
+    size_limit: 100m
+    type: empty-dir
+  - fs_type: ext4
+    name: gce_pd_test_volume
+    partition: 1
+    pd_name: gce_pd_test_volume
+    read_only: true
+    type: gce-persistent-disk
+
