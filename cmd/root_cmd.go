@@ -34,8 +34,6 @@ Full documentation available at https://docs.koki.io/short
 		},
 		SilenceUsage: true,
 		Example: `
-  # Find the shorthand representation of kubernetes objects
-  short man pod
 
   # Convert existing kubernetes manifestes to shorthand format
   short -f pod.yaml
@@ -96,7 +94,6 @@ func init() {
 	flag.CommandLine.Parse([]string{})
 
 	RootCmd.AddCommand(versionCmd)
-	RootCmd.AddCommand(manCommand)
 }
 
 func short(c *cobra.Command, args []string) error {
