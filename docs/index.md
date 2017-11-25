@@ -3,14 +3,13 @@
 Manageable Kubernetes manifests through composable, reusable syntax
 
 ## Motivation
-The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. It has anecdotally been 
+The description format for Kubernetes manifests, as it stands today, is verbose and unintuitive. Anecdotally, it has been 
 
- - Time consuming to use it to create Kubernetes resources
- - Error prone to get it right the first time
- - Requires constant referral to documentation
- - Difficult to maintain, read or reuse  
+ - Time consuming to write
+ - Error-prone, hard to get right without referring to documentation
+ - Difficult to maintain, read, and reuse
 
-For eg. In order to create a simple nginx pod that runs on any host in region `us-east1` or `us-east2`, here is the Kubernetes native syntax:
+e.g. In order to create a simple nginx pod that runs on any host in region `us-east1` or `us-east2`, here is the Kubernetes native syntax:
 
 ```yaml
 apiVersion: v1
@@ -39,7 +38,7 @@ spec:
             - us-east2
 ```
 
-The Short format is designed to be user friendly, intuitive, reusable and maintainable. The same pod denoted in Short syntax looks like
+The Short format is designed to be user friendly, intuitive, reusable, and maintainable. The same pod denoted in Short syntax looks like
 
 ```yaml
 pod:
@@ -53,43 +52,48 @@ pod:
   - node: k8s.io/failure-domain=us-east1,us-east2
 ```
 
-The approach we have followed behind this opinionated syntax is to reframe the Kubernetes syntax to one that is operator friendly without losing any information.  
+Our approach is to reframe Kubernetes manifests in an operator-friendly syntax without sacrificing expressiveness.
 
-Since we do not throw away any information during the transformations, users can freely round trip back and forth between Short syntax and Kubernetes syntax.
+Koki Short can transform Kubernetes syntax into Short and Short syntax back into Kubernetes. No information is lost in either direction.
 
 For more information on Koki Short transformations, please refer to [Resources.](resources)
 
 ## Modular and Reusable
 
-Koki Short introduces the concept of modules, which are reusable collections of Short resources. Any resource can be reused multiple times in other resources and linked resources can be managed as one unit on the Koki platform. 
+Koki Short introduces the concept of modules, which are reusable collections of Short resources. Any resource can be reused multiple times in other resources and linked resources can be managed as a single unit on the Koki platform. 
 
-Any valid koki resource object can be reused. These include valid subtypes of top level types as well. For eg. users can create a file called `pod-affinity-us-east-1.yaml` with the following contents
+Any valid koki resource object can be reused. This includes subtypes of top-level resource types. For example, here's module called `pod-affinity-us-east-1.yaml`:
 
 ```yaml
-affinity:
-- node: k8s.io/failure-domain=us-east1
+exports:
+- default: node affinity for us-east-1
+  value:
+  - node: k8s.io/failure-domain=us-east-1
 ```
 
-This affinity value can be reused in any pod spec. For eg.
+This affinity value can be reused in any pod spec:
 
 ```yaml
 imports:
-  affinity: pod-affinity-us-east-1.yaml
-pod:
-  name: nginx
-  labels:
-    app: nginx
-  containers:
-  - name: nginx
-    image: nginx-latest
-  affinity: ${affinity}  # re-use the affinity resource here
+- affinity: pod-affinity-us-east-1.yaml
+exports:
+- default: an nginx pod
+  value:
+    pod:
+      name: nginx
+      labels:
+        app: nginx
+      containers:
+      - name: nginx
+        image: nginx-latest
+      affinity: ${affinity}  # re-use the affinity resource here
 ```
 
-For more information on Koki Modules. please refer to [Modules.](modules)
+For more information on Koki Modules, please refer to [Modules.](modules)
 
 ## Getting started
 
-In order to start using Short, simply download the binary from the [releases page](https://github.com/koki/short/releases), and then you can start using it.
+In order to start using Short, simply download the binary from the [releases page](https://github.com/koki/short/releases).
 
 ```sh
 

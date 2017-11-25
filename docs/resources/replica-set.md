@@ -43,49 +43,49 @@ spec:
         - containerPort: 80
 ```
 
-The following sections contain detailed information about the process of converting each of the fields within the Kubernetes ReplicaSet definition to Short spec and back.
+The following sections contain detailed information about each field in Short syntax, including how the field translates to and from Kubernetes syntax.
 
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
 |:-----:|:----:|:-------:|:----------------------:|
 |version| `string` | `apiVersion` | The version of the resource object | 
-|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
-|name | `string` | `metadata.name`| The name of the Pod | 
-|namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
-|labels | `string` | `metadata.labels`| Metadata that could be identifying information about the Pod | 
-|annotations| `string` | `metadata.annotations`| Non identifying information about the Pod| 
+|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this ReplicaSet is running |
+|name | `string` | `metadata.name`| The name of the ReplicaSet | 
+|namespace | `string` | `metadata.namespace` | The K8s namespace this ReplicaSet will be a member of | 
+|labels | `string` | `metadata.labels`| Metadata about the ReplicaSet, including identifying information | 
+|annotations| `string` | `metadata.annotations`| Non-identifying information about the ReplicaSet | 
 |replicas| `int32` | `replicas`| The number of replicas of the selected pod|
 |min_ready | `int32` | `minReadySeconds` | Minimum number of seconds that your pod should be ready before it is considered available |
-|selector | `map[string]string` or `string` | `selector` | An expression (string) or a set of key, value pairs (map) that is used to select a set of pods to manage using the replica set controller. More information available in [Selector Overview](./deployment.md#selector-overview) |
-|pod_meta | `TemplateMetadata` | `template` | Metadata of the pod that is selected by this replica set. More details in [Template Metadata](#template-metadata)|
-|volumes | [`Volume`](./pod.md#volume-overview) | `spec.volumes` | Denotes the volumes that are a part of the Pod. More information is available in [Volume Overview](./pod.md#volume-overview) |
-| affinity | [`[]Affinity`](#affinity-overview) | `spec.affinity` and `spec.NodeSelector` | (Anti-) Affinity of the Pod to nodes or other Pods. More information is available in [Affinity Overview](./pod.md#affinity-overview) |
-| containers |[`Container`](../skel/container.short.skel.yaml) | `spec.containers` and `status`| Containers that run as a part of the Pod. More information is available in [Container Overview](./pod.md#container-overview) |
-| init_containers | [`Container`](../skel/container.short.skel.yaml) | `spec.initContainers` and `status` | Containers that run as a part of the initialization process of the Pod. More information is available in [Container Overview](./pod.md#container-overview) | 
-| dns_policy | [`DNSPolicy`](./pod.md#dns-policy-overview) | `spec.dnsPolicy` | The DNS Policy of the Pod. The conversion function is explained in [DNS Policy Overview](./pod.md#dns-policy-overview) |
-| host_aliases | `[]string` | `spec.aliases` | Set of additional records to be placed in `/etc/hosts` file inside the Pod. More information is available in [Host Aliases Overview](./pod.md#host-aliases-overview) |
-| host_mode | `[]string` | `spec.hostPID`, `spec.hostNetwork` and `spec.hostIPC`| The access the Pod has to host resources. The conversion function is explained in [Host Mode Conversion](./pod.md#host-mode-conversion) |
+|selector | `map[string]string` or `string` | `selector` | An expression (string) or a set of key, value pairs (map) that is used to select a set of pods to manage using the replica set controller. See [Selector Overview](./deployment.md#selector-overview) |
+|pod_meta | `TemplateMetadata` | `template` | Metadata of the pod that is selected by this replica set. See [Template Metadata](#template-metadata)|
+|volumes | [`Volume`](./pod.md#volume-overview) | `spec.volumes` | Denotes the volumes that are a part of the Pod. See [Volume Overview](./pod.md#volume-overview) |
+| affinity | [`[]Affinity`](./pod.md#affinity-overview) | `spec.affinity` and `spec.NodeSelector` | The Pod's scheduling rules, expressed as (anti-)affinities for nodes or other Pods. See [Affinity Overview](./pod.md#affinity-overview) |
+| node | `string` | `spec.nodeName` | Request that the Pod be scheduled on a specific node. | 
+| containers |[`Container`](../skel/container.short.skel.yaml) | `spec.containers` and `status`| Containers that run as a part of the Pod. See [Container Overview](./pod.md#container-overview) |
+| init_containers | [`Container`](../skel/container.short.skel.yaml) | `spec.initContainers` and `status` | Containers that run as a part of the initialization process of the Pod. See [Container Overview](./pod.md#container-overview) | 
+| dns_policy | [`DNSPolicy`](./pod.md#dns-policy-overview) | `spec.dnsPolicy` | The DNS Policy of the Pod. See [DNS Policy Overview](./pod.md#dns-policy-overview) |
+| host_aliases | `[]string` | `spec.aliases` | Set of additional records to be placed in `/etc/hosts` file inside the Pod. See [Host Aliases Overview](./pod.md#host-aliases-overview) |
+| host_mode | `[]string` | `spec.hostPID`, `spec.hostNetwork` and `spec.hostIPC`| The Pod's access to host resources. See [Host Mode Conversion](./pod.md#host-mode-conversion) |
 | hostname | `string` | `spec.hostname` and `spec.subDomain` | The fully qualified domain name of the pod|
 | registry_secrets | `[]string` |`spec.ImagePullSecrets` | A list of k8s secret resource names that contain credentials to required to access private registries. |
-| restart_policy | [`RestartPolicy`](./pod.md#restart-policy) | `spec.restartPolicy` | Behavior of a Pod when it dies. Can be "Always", "OnFailure" or "Never" |
-| scheduler_name | `string` | The value from `spec.schedulerName` is stored here | The value from `spec.schedulerName` is stored here |
-| account | `string` | `spec.serviceAccountName` and `spec.automountServiceAccountToken` | The access the Pod gets to the K8s API. More information is available in [Account Conversion](./pod.md#account-conversion) | 
-| tolerations | [`[]Toleration`](../skel/toleration.short.skel.yaml) | `spec.tolerations` | Set of tainted hosts to tolerate on scheduling the Pod. The conversion function is explained in [Toleration Conversion](./pod.md#toleration-conversion) |
+| restart_policy | [`RestartPolicy`](./pod.md#restart-policy) | `spec.restartPolicy` | Behavior of a Pod when it dies. Can be "always", "on-failure" or "never" |
+| scheduler_name | `string` | `spec.schedulerName` | The value from `spec.schedulerName` is stored here |
+| account | `string` | `spec.serviceAccountName` and `spec.automountServiceAccountToken` | The Pod's access to the K8s API. See [Account Conversion](./pod.md#account-conversion) | 
+| tolerations | [`[]Toleration`](../skel/toleration.short.skel.yaml) | `spec.tolerations` | Set of host taints this Pod tolerates. See [Toleration Conversion](./pod.md#toleration-conversion) |
 | termination_grace_period | `int64`  | `spec.terminationGracePeriodSeconds` | Number of seconds to wait before forcefully killing the Pod. |
 | active_deadline | `int64` | `spec.activeDeadlineSeconds`| Number of seconds the Pod is allowed to be active  |  
-| node | `string` | `spec.nodeName` | Request Pod to be scheduled on node with the name specified in this field| 
-| priority | `Priority` | `spec.priorityClassName` and `spec.priority` | Specifies the Pod's Priority. More information in [Priority](./pod.md#priority) |
-| condition | `[]Pod Condition` | `status.conditions` | The list of current and previous conditions of the Pod. More information in [Pod Condition](./pod.md#pod-condition) |
-| node_ip | `string` | `status.hostIP` | The IP address of the host on which the Pod is running | 
+| priority | `Priority` | `spec.priorityClassName` and `spec.priority` | Specifies the Pod's Priority. See [Priority](./pod.md#priority) |
+| condition | `[]Pod Condition` | `status.conditions` | The list of current and previous conditions of the Pod. See [Pod Condition](./pod.md#pod-condition) |
+| node_ip | `string` | `status.hostIP` | The IP address of the Pod's host | 
 | ip | `string` | `status.podIP` | The IP address of the Pod | 
-| start_time | `time` | `status.startTime` | The time at which the Pod started running | 
+| start_time | `time` | `status.startTime` | When the Pod started running | 
 | msg | `string` | `status.message` | A human readable message explaining Pod's current condition |  
 | phase | `string` | `status.phase` | The current phase of the Pod |
 | reason | `string` | `status.reason` | Reason indicating the cause for the current state of the Pod |
 | qos | `string` | `status.qosClass` | The QOS class assigned to the Pod based on resource requirements |
-| fs_gid | `int64` | `spec.securityContext.fsGroup` | Special supplemental group that apply to all the Containers in the Pod |
-| gids | `[]int64` | `spec.securityContext.supplementalGroups` | A list of groups applied to the first process in each of the containers of the Pod |
+| fs_gid | `int64` | `spec.securityContext.fsGroup` | Special supplemental group that applies to all the Containers in the Pod |
+| gids | `[]int64` | `spec.securityContext.supplementalGroups` | A list of groups applied to the first process in each of the Containers in the Pod |
 
 # Examples 
 

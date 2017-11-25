@@ -402,7 +402,7 @@ deployment:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  init_containers: 
@@ -542,7 +542,7 @@ deployment:
    volume: 
     - 
    mount: ""
-     propogation: ""
+     propagation: ""
      store: ""
    restarts: 0
  dns_policy: ""

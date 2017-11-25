@@ -1,28 +1,28 @@
 # Introduction
 
-Short defines ops-friendly resource types that correspond to the Kubernetes types. 
+Short defines ops-friendly syntax for Kubernetes manifests. 
 
 This section includes information about
 
- - Each of the supported types in Short
- - Type conversion from Short to Kubernetes
- - Type conversion from Kubernetes to Short
- - Skeleton for each of the types
- - Examples for each of the types
+ - Each of the supported resource types in Short
+ - Converting from Short syntax to Kubernetes
+ - Converting from Kubernetes syntax to Short
+ - Skeleton for each of the resource types
+ - Examples for each of the resource types
 
 # Short approach
 
 Short follows the same basic principles for Short'ing all Kubernetes types. 
 
- - Remove the need to specify boiler plate (`apiVersion`, `Kind`, `metadata`, `spec`, `status`... keys)
+ - Reduce boilerplate (`apiVersion`, `Kind`, `metadata`, `spec`, `status`... keys)
  - Simplify expressions and consolidate relevant information
- - Intuitive and obvious names instead of long winded code style Key names (eg. `soft` affinity instead of `preferredDuringSchedulingIgnoredDuringExecution`)
- - Group Information that are related to one another
+ - Intuitive and obvious naming instead of long, programming-style keys (eg. `soft` affinity instead of `preferredDuringSchedulingIgnoredDuringExecution`)
+ - Group related information
  - **DO NOT LOSE ANY INFORMATION**
 
-We look at each resource and define the short syntax for it based on the above principles.
+We look at each resource and define Short syntax for it based on the principles above.
 
-All Kubernetes resource have the `TypeMeta` and `ObjectMeta` structures embedded in them. The Short syntax pulls the contents of these structures to the top level Key. 
+All Kubernetes resources have the `TypeMeta` and `ObjectMeta` structures embedded in them. The Short syntax pulls the contents of these structures to the top-level Key. 
 
 ### Type Meta
 
@@ -43,7 +43,7 @@ pod:
 
 ### Object Meta
 
-`ObjectMeta` in each of the Kubernetes resources is used to define metadata about the object such as `name`, `labels`, `namespace` and `annotations`. These fields are pulled up to the top level key in Short.
+`ObjectMeta` in each of the Kubernetes resources is used to define metadata about the object such as `name`, `labels`, `namespace` and `annotations`. These fields are pulled up to the top-level key in Short.
 
 A Kubernetes structure with ObjectMeta looks like this
 ```yaml
