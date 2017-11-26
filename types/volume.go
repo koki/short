@@ -15,23 +15,29 @@ type VolumeWrapper struct {
 }
 
 type Volume struct {
-	HostPath  *HostPathVolume
-	EmptyDir  *EmptyDirVolume
-	GcePD     *GcePDVolume
-	AwsEBS    *AwsEBSVolume
-	AzureDisk *AzureDiskVolume
-	AzureFile *AzureFileVolume
-	CephFS    *CephFSVolume
+	HostPath     *HostPathVolume
+	EmptyDir     *EmptyDirVolume
+	GcePD        *GcePDVolume
+	AwsEBS       *AwsEBSVolume
+	AzureDisk    *AzureDiskVolume
+	AzureFile    *AzureFileVolume
+	CephFS       *CephFSVolume
+	Cinder       *CinderVolume
+	FibreChannel *FibreChannelVolume
+	Flex         *FlexVolume
 }
 
 const (
-	VolumeTypeHostPath  = "host_path"
-	VolumeTypeEmptyDir  = "empty_dir"
-	VolumeTypeGcePD     = "gce_pd"
-	VolumeTypeAwsEBS    = "aws_ebs"
-	VolumeTypeAzureDisk = "azure_disk"
-	VolumeTypeAzureFile = "azure_file"
-	VolumeTypeCephFS    = "cephfs"
+	VolumeTypeHostPath     = "host_path"
+	VolumeTypeEmptyDir     = "empty_dir"
+	VolumeTypeGcePD        = "gce_pd"
+	VolumeTypeAwsEBS       = "aws_ebs"
+	VolumeTypeAzureDisk    = "azure_disk"
+	VolumeTypeAzureFile    = "azure_file"
+	VolumeTypeCephFS       = "cephfs"
+	VolumeTypeCinder       = "cinder"
+	VolumeTypeFibreChannel = "fc"
+	VolumeTypeFlex         = "flex"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -91,6 +97,19 @@ type AzureDiskVolume struct {
 	Kind        *AzureDataDiskKind        `json:"kind,omitempty"`
 }
 
+type AzureDataDiskCachingMode string
+type AzureDataDiskKind string
+
+const (
+	AzureDataDiskCachingNone      AzureDataDiskCachingMode = "none"
+	AzureDataDiskCachingReadOnly  AzureDataDiskCachingMode = "ro"
+	AzureDataDiskCachingReadWrite AzureDataDiskCachingMode = "rw"
+
+	AzureSharedBlobDisk    AzureDataDiskKind = "shared"
+	AzureDedicatedBlobDisk AzureDataDiskKind = "dedicated"
+	AzureManagedDisk       AzureDataDiskKind = "managed"
+)
+
 type AzureFileVolume struct {
 	SecretName string `json:"-"`
 	ShareName  string `json:"-"`
@@ -110,18 +129,27 @@ type CephFSSecretFileOrRef struct {
 	Ref  string `json:"-"`
 }
 
-type AzureDataDiskCachingMode string
-type AzureDataDiskKind string
+type CinderVolume struct {
+	VolumeID string `json:"-"`
+	FSType   string `json:"fs,omitempty"`
+	ReadOnly bool   `json:"ro,omitempty"`
+}
 
-const (
-	AzureDataDiskCachingNone      AzureDataDiskCachingMode = "none"
-	AzureDataDiskCachingReadOnly  AzureDataDiskCachingMode = "ro"
-	AzureDataDiskCachingReadWrite AzureDataDiskCachingMode = "rw"
+type FibreChannelVolume struct {
+	TargetWWNs []string `json:"wwn,omitempty"`
+	Lun        *int32   `json:"lun,omitempty"`
+	FSType     string   `json:"fs,omitempty"`
+	ReadOnly   bool     `json:"ro,omitempty"`
+	WWIDs      []string `json:"wwid,omitempty"`
+}
 
-	AzureSharedBlobDisk    AzureDataDiskKind = "shared"
-	AzureDedicatedBlobDisk AzureDataDiskKind = "dedicated"
-	AzureManagedDisk       AzureDataDiskKind = "managed"
-)
+type FlexVolume struct {
+	Driver    string            `json:"-"`
+	FSType    string            `json:"fs,omitempty"`
+	SecretRef string            `json:"secret,omitempty"`
+	ReadOnly  bool              `json:"ro,omitempty"`
+	Options   map[string]string `json:"options,omitempty"`
+}
 
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
@@ -171,6 +199,12 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalAzureFileVolume(selector)
 	case VolumeTypeCephFS:
 		return v.UnmarshalCephFSVolume(obj, selector)
+	case VolumeTypeCinder:
+		return v.UnmarshalCinderVolume(obj, selector)
+	case VolumeTypeFibreChannel:
+		return v.UnmarshalFibreChannelVolume(obj, selector)
+	case VolumeTypeFlex:
+		return v.UnmarshalFlexVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -188,29 +222,32 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	if v.HostPath != nil {
 		marshalledVolume, err = v.HostPath.Marshal()
 	}
-
 	if v.EmptyDir != nil {
 		marshalledVolume, err = v.EmptyDir.Marshal()
 	}
-
 	if v.GcePD != nil {
 		marshalledVolume, err = v.GcePD.Marshal()
 	}
-
 	if v.AwsEBS != nil {
 		marshalledVolume, err = v.AwsEBS.Marshal()
 	}
-
 	if v.AzureDisk != nil {
 		marshalledVolume, err = v.AzureDisk.Marshal()
 	}
-
 	if v.AzureFile != nil {
 		marshalledVolume, err = v.AzureFile.Marshal()
 	}
-
 	if v.CephFS != nil {
 		marshalledVolume, err = v.CephFS.Marshal()
+	}
+	if v.Cinder != nil {
+		marshalledVolume, err = v.Cinder.Marshal()
+	}
+	if v.FibreChannel != nil {
+		marshalledVolume, err = v.FibreChannel.Marshal()
+	}
+	if v.Flex != nil {
+		marshalledVolume, err = v.Flex.Marshal()
 	}
 
 	if err != nil {
@@ -496,4 +533,90 @@ func (s CephFSSecretFileOrRef) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(fmt.Sprintf("file:%s", s.File))
+}
+
+func (v *Volume) UnmarshalCinderVolume(obj map[string]interface{}, selector []string) error {
+	source := CinderVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 (volume ID) selector segment for %s", VolumeTypeCinder)
+	}
+
+	source.VolumeID = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeCinder)
+	}
+
+	v.Cinder = &source
+	return nil
+}
+
+func (s CinderVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeCinder)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeCinder,
+		Selector:    []string{s.VolumeID},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalFibreChannelVolume(obj map[string]interface{}, selector []string) error {
+	source := FibreChannelVolume{}
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeFibreChannel)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeFibreChannel)
+	}
+
+	v.FibreChannel = &source
+	return nil
+}
+
+func (s FibreChannelVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeFibreChannel)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeFibreChannel,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalFlexVolume(obj map[string]interface{}, selector []string) error {
+	source := FlexVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (driver) for %s", VolumeTypeFlex)
+	}
+	source.Driver = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeFlex)
+	}
+
+	v.Flex = &source
+	return nil
+}
+
+func (s FlexVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeFlex)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeFlex,
+		Selector:    []string{s.Driver},
+		ExtraFields: obj,
+	}, nil
 }

@@ -250,6 +250,14 @@ func convertCephFSSecretFileOrRef(kubeFile string, kubeRef *v1.LocalObjectRefere
 	return nil
 }
 
+func convertLocalObjectRef(kubeRef *v1.LocalObjectReference) string {
+	if kubeRef == nil {
+		return ""
+	}
+
+	return kubeRef.Name
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.VolumeSource.EmptyDir != nil {
@@ -341,6 +349,39 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				User:            source.User,
 				SecretFileOrRef: secretFileOrRef,
 				ReadOnly:        source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.Cinder != nil {
+		source := kubeVolume.VolumeSource.Cinder
+		return name, &types.Volume{
+			Cinder: &types.CinderVolume{
+				VolumeID: source.VolumeID,
+				FSType:   source.FSType,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.FC != nil {
+		source := kubeVolume.VolumeSource.FC
+		return name, &types.Volume{
+			FibreChannel: &types.FibreChannelVolume{
+				TargetWWNs: source.TargetWWNs,
+				Lun:        source.Lun,
+				ReadOnly:   source.ReadOnly,
+				WWIDs:      source.WWIDs,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.FlexVolume != nil {
+		source := kubeVolume.VolumeSource.FlexVolume
+		return name, &types.Volume{
+			Flex: &types.FlexVolume{
+				Driver:    source.Driver,
+				FSType:    source.FSType,
+				SecretRef: convertLocalObjectRef(source.SecretRef),
+				ReadOnly:  source.ReadOnly,
+				Options:   source.Options,
 			},
 		}, nil
 	}

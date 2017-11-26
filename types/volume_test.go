@@ -8,6 +8,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/util"
 )
 
 var kokiHostPath0 = Volume{
@@ -112,6 +114,54 @@ var kokiCephFS1 = Volume{
 	},
 }
 
+var kokiCinder0 = Volume{
+	Cinder: &CinderVolume{
+		VolumeID: "bd82f7e2-wece-4c01-a505-4acf60b07f4a",
+		FSType:   "ext4",
+		ReadOnly: true,
+	},
+}
+var kokiCinder1 = Volume{
+	Cinder: &CinderVolume{
+		VolumeID: "bd82f7e2-wece-4c01-a505-4acf60b07f4a",
+	},
+}
+
+var kokiFibreChannel0 = Volume{
+	FibreChannel: &FibreChannelVolume{
+		TargetWWNs: []string{
+			"500a0982991b8dc5",
+			"500a0982891b8dc5",
+		},
+		Lun:      util.Int32Ptr(2),
+		FSType:   "ext4",
+		ReadOnly: true,
+		WWIDs: []string{
+			"actually, WWIDs should not be specified here",
+			"either wwids or (targetwwns + lun), not both",
+		},
+	},
+}
+
+var kokiFlexVolume0 = Volume{
+	Flex: &FlexVolume{
+		Driver:    "kubernetes.io/lvm",
+		FSType:    "ext4",
+		SecretRef: "secret-name",
+		ReadOnly:  true,
+		Options: map[string]string{
+			"volumeID":    "vol1",
+			"size":        "1000m",
+			"volumegroup": "kube_vg",
+		},
+	},
+}
+var kokiFlexVolume1 = Volume{
+	Flex: &FlexVolume{
+		Driver: "kubernetes.io/lvm",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -125,6 +175,11 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiAzureFile1, t, true)
 	testVolumeSource(kokiCephFS0, t, false)
 	testVolumeSource(kokiCephFS1, t, false)
+	testVolumeSource(kokiCinder0, t, false)
+	testVolumeSource(kokiCinder1, t, true)
+	testVolumeSource(kokiFibreChannel0, t, false)
+	testVolumeSource(kokiFlexVolume0, t, false)
+	testVolumeSource(kokiFlexVolume1, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {

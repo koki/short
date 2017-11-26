@@ -284,6 +284,15 @@ func revertCephFSSecretFileOrRef(kokiSecret *types.CephFSSecretFileOrRef) (strin
 	}
 }
 
+func revertLocalObjectRef(kokiRef string) *v1.LocalObjectReference {
+	if len(kokiRef) == 0 {
+		return nil
+	}
+	return &v1.LocalObjectReference{
+		Name: kokiRef,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -393,6 +402,49 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					SecretFile: secretFile,
 					SecretRef:  secretRef,
 					ReadOnly:   source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.Cinder != nil {
+		source := kokiVolume.Cinder
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Cinder: &v1.CinderVolumeSource{
+					VolumeID: source.VolumeID,
+					FSType:   source.FSType,
+					ReadOnly: source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.FibreChannel != nil {
+		source := kokiVolume.FibreChannel
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				FC: &v1.FCVolumeSource{
+					TargetWWNs: source.TargetWWNs,
+					Lun:        source.Lun,
+					FSType:     source.FSType,
+					ReadOnly:   source.ReadOnly,
+					WWIDs:      source.WWIDs,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.Flex != nil {
+		source := kokiVolume.Flex
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				FlexVolume: &v1.FlexVolumeSource{
+					Driver:    source.Driver,
+					FSType:    source.FSType,
+					SecretRef: revertLocalObjectRef(source.SecretRef),
+					ReadOnly:  source.ReadOnly,
+					Options:   source.Options,
 				},
 			},
 		}, nil

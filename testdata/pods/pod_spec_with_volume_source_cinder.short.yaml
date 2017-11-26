@@ -8,9 +8,9 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: test_volume
-    read_only: true
-    type: cinder
-    volume_id: cinderID
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_name: cinderID
+      vol_type: cinder
 
