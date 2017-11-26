@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/koki/short/util"
@@ -19,6 +21,7 @@ type Volume struct {
 	AwsEBS    *AwsEBSVolume
 	AzureDisk *AzureDiskVolume
 	AzureFile *AzureFileVolume
+	CephFS    *CephFSVolume
 }
 
 const (
@@ -28,6 +31,7 @@ const (
 	VolumeTypeAwsEBS    = "aws_ebs"
 	VolumeTypeAzureDisk = "azure_disk"
 	VolumeTypeAzureFile = "azure_file"
+	VolumeTypeCephFS    = "cephfs"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -93,6 +97,19 @@ type AzureFileVolume struct {
 	ReadOnly   bool   `json:"-"`
 }
 
+type CephFSVolume struct {
+	Monitors        []string               `json:"monitors"`
+	Path            string                 `json:"path, omitempty"`
+	User            string                 `json:"user,omitempty"`
+	SecretFileOrRef *CephFSSecretFileOrRef `json:"secret,omitempty"`
+	ReadOnly        bool                   `json:"ro,omitempty"`
+}
+
+type CephFSSecretFileOrRef struct {
+	File string `json:"-"`
+	Ref  string `json:"-"`
+}
+
 type AzureDataDiskCachingMode string
 type AzureDataDiskKind string
 
@@ -152,6 +169,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalAzureDiskVolume(obj, selector)
 	case VolumeTypeAzureFile:
 		return v.UnmarshalAzureFileVolume(selector)
+	case VolumeTypeCephFS:
+		return v.UnmarshalCephFSVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -188,6 +207,10 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 
 	if v.AzureFile != nil {
 		marshalledVolume, err = v.AzureFile.Marshal()
+	}
+
+	if v.CephFS != nil {
+		marshalledVolume, err = v.CephFS.Marshal()
 	}
 
 	if err != nil {
@@ -415,4 +438,62 @@ func (s AzureFileVolume) Marshal() (*MarshalledVolume, error) {
 		Type:     VolumeTypeAzureFile,
 		Selector: selector,
 	}, nil
+}
+
+func (v *Volume) UnmarshalCephFSVolume(obj map[string]interface{}, selector []string) error {
+	source := CephFSVolume{}
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeCephFS)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeCephFS)
+	}
+
+	v.CephFS = &source
+	return nil
+}
+
+func (s CephFSVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeCephFS)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeCephFS,
+		ExtraFields: obj,
+	}, nil
+}
+
+var fileOrRefRegexp = regexp.MustCompile(`^(file|ref):(.*)$`)
+
+func (s *CephFSSecretFileOrRef) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "cephfs secret should be a string")
+	}
+
+	matches := fileOrRefRegexp.FindStringSubmatch(str)
+	if len(matches) > 0 {
+		if matches[1] == "file" {
+			s.File = matches[2]
+		} else {
+			s.Ref = matches[2]
+		}
+	} else {
+		return util.InvalidValueErrorf(string(data), "unrecognized format for cephfs secret")
+	}
+
+	return nil
+}
+
+func (s CephFSSecretFileOrRef) MarshalJSON() ([]byte, error) {
+	if len(s.Ref) > 0 {
+		return json.Marshal(fmt.Sprintf("ref:%s", s.Ref))
+	}
+
+	return json.Marshal(fmt.Sprintf("file:%s", s.File))
 }

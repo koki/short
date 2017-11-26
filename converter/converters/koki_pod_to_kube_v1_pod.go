@@ -270,6 +270,20 @@ func revertAzureDiskCachingMode(kokiMode *types.AzureDataDiskCachingMode) (*v1.A
 	return &mode, nil
 }
 
+func revertCephFSSecretFileOrRef(kokiSecret *types.CephFSSecretFileOrRef) (string, *v1.LocalObjectReference) {
+	if kokiSecret == nil {
+		return "", nil
+	}
+
+	if len(kokiSecret.File) > 0 {
+		return kokiSecret.File, nil
+	}
+
+	return "", &v1.LocalObjectReference{
+		Name: kokiSecret.Ref,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -361,6 +375,23 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 				AzureFile: &v1.AzureFileVolumeSource{
 					SecretName: source.SecretName,
 					ShareName:  source.ShareName,
+					ReadOnly:   source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.CephFS != nil {
+		source := kokiVolume.CephFS
+		secretFile, secretRef := revertCephFSSecretFileOrRef(source.SecretFileOrRef)
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				CephFS: &v1.CephFSVolumeSource{
+					Monitors:   source.Monitors,
+					Path:       source.Path,
+					User:       source.User,
+					SecretFile: secretFile,
+					SecretRef:  secretRef,
 					ReadOnly:   source.ReadOnly,
 				},
 			},

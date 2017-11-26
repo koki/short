@@ -234,6 +234,22 @@ func convertAzureDiskCachingMode(kubeMode *v1.AzureDataDiskCachingMode) (*types.
 	return &mode, nil
 }
 
+func convertCephFSSecretFileOrRef(kubeFile string, kubeRef *v1.LocalObjectReference) *types.CephFSSecretFileOrRef {
+	if len(kubeFile) > 0 {
+		return &types.CephFSSecretFileOrRef{
+			File: kubeFile,
+		}
+	}
+
+	if kubeRef != nil {
+		return &types.CephFSSecretFileOrRef{
+			Ref: kubeRef.Name,
+		}
+	}
+
+	return nil
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.VolumeSource.EmptyDir != nil {
@@ -312,6 +328,19 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				SecretName: source.SecretName,
 				ShareName:  source.ShareName,
 				ReadOnly:   source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.CephFS != nil {
+		source := kubeVolume.VolumeSource.CephFS
+		secretFileOrRef := convertCephFSSecretFileOrRef(source.SecretFile, source.SecretRef)
+		return name, &types.Volume{
+			CephFS: &types.CephFSVolume{
+				Monitors:        source.Monitors,
+				Path:            source.Path,
+				User:            source.User,
+				SecretFileOrRef: secretFileOrRef,
+				ReadOnly:        source.ReadOnly,
 			},
 		}, nil
 	}

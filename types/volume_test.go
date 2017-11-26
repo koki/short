@@ -83,6 +83,35 @@ var kokiAzureFile1 = Volume{
 	},
 }
 
+var kokiCephFS0 = Volume{
+	CephFS: &CephFSVolume{
+		Monitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		Path: "/path",
+		User: "admin",
+		SecretFileOrRef: &CephFSSecretFileOrRef{
+			File: "/etc/ceph/admin.secret",
+		},
+		ReadOnly: true,
+	},
+}
+var kokiCephFS1 = Volume{
+	CephFS: &CephFSVolume{
+		Monitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		Path: "/path",
+		User: "admin",
+		SecretFileOrRef: &CephFSSecretFileOrRef{
+			Ref: "secret-name",
+		},
+		ReadOnly: true,
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -94,7 +123,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiAzureDisk0, t, false)
 	testVolumeSource(kokiAzureFile0, t, true)
 	testVolumeSource(kokiAzureFile1, t, true)
-
+	testVolumeSource(kokiCephFS0, t, false)
+	testVolumeSource(kokiCephFS1, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {
