@@ -16,7 +16,15 @@ type Volume struct {
 	HostPath *HostPathVolume
 	EmptyDir *EmptyDirVolume
 	GcePD    *GcePDVolume
+	AwsEBS   *AwsEBSVolume
 }
+
+const (
+	VolumeTypeHostPath = "host_path"
+	VolumeTypeEmptyDir = "empty_dir"
+	VolumeTypeGcePD    = "gce_pd"
+	VolumeTypeAwsEBS   = "aws_ebs"
+)
 
 type HostPathVolume struct {
 	Path string       `json:"-"`
@@ -43,6 +51,13 @@ type EmptyDirVolume struct {
 
 type GcePDVolume struct {
 	PDName    string `json:"-"`
+	FSType    string `json:"fs,omitempty"`
+	Partition int32  `json:"partition,omitempty"`
+	ReadOnly  bool   `json:"ro,omitempty"`
+}
+
+type AwsEBSVolume struct {
+	VolumeID  string `json:"-"`
 	FSType    string `json:"fs,omitempty"`
 	Partition int32  `json:"partition,omitempty"`
 	ReadOnly  bool   `json:"ro,omitempty"`
@@ -88,12 +103,6 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	return v.Unmarshal(obj, volType, selector)
 }
 
-const (
-	VolumeTypeHostPath = "host_path"
-	VolumeTypeEmptyDir = "empty_dir"
-	VolumeTypeGcePD    = "gce_pd"
-)
-
 func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector []string) error {
 	switch volType {
 	case VolumeTypeHostPath:
@@ -102,6 +111,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalEmptyDirVolume(obj, selector)
 	case VolumeTypeGcePD:
 		return v.UnmarshalGcePDVolume(obj, selector)
+	case VolumeTypeAwsEBS:
+		return v.UnmarshalAwsEBSVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -126,6 +137,10 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 
 	if v.GcePD != nil {
 		marshalledVolume, err = v.GcePD.Marshal()
+	}
+
+	if v.AwsEBS != nil {
+		marshalledVolume, err = v.AwsEBS.Marshal()
 	}
 
 	if err != nil {
@@ -250,6 +265,39 @@ func (s GcePDVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeGcePD,
 		Selector:    []string{s.PDName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalAwsEBSVolume(obj map[string]interface{}, selector []string) error {
+	source := AwsEBSVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (ebs uuid) for %s", VolumeTypeAwsEBS)
+	}
+	source.VolumeID = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeAwsEBS)
+	}
+
+	v.AwsEBS = &source
+	return nil
+}
+
+func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeAwsEBS)
+	}
+
+	if len(s.VolumeID) == 0 {
+		return nil, util.InvalidInstanceErrorf(&s, "selector must contain ebs uuid")
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeAwsEBS,
+		Selector:    []string{s.VolumeID},
 		ExtraFields: obj,
 	}, nil
 }

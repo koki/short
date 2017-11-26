@@ -42,12 +42,29 @@ var kokiGcePD1 = Volume{
 	},
 }
 
+var kokiAwsEBS0 = Volume{
+	AwsEBS: &AwsEBSVolume{
+		VolumeID:  "ebs_uuid",
+		FSType:    "xfs",
+		Partition: 1,
+		ReadOnly:  true,
+	},
+}
+var kokiAwsEBS1 = Volume{
+	AwsEBS: &AwsEBSVolume{
+		VolumeID: "ebs_uuid",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
 	testVolumeSource(kokiEmptyDir1, t, true)
 	testVolumeSource(kokiGcePD0, t, false)
 	testVolumeSource(kokiGcePD1, t, true)
+	testVolumeSource(kokiAwsEBS0, t, false)
+	testVolumeSource(kokiAwsEBS1, t, true)
+
 }
 
 func isString(data []byte, t *testing.T) bool {

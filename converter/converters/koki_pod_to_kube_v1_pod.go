@@ -262,14 +262,29 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.GcePD != nil {
+		source := kokiVolume.GcePD
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
 				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-					PDName:    kokiVolume.GcePD.PDName,
-					FSType:    kokiVolume.GcePD.FSType,
-					Partition: kokiVolume.GcePD.Partition,
-					ReadOnly:  kokiVolume.GcePD.ReadOnly,
+					PDName:    source.PDName,
+					FSType:    source.FSType,
+					Partition: source.Partition,
+					ReadOnly:  source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.AwsEBS != nil {
+		source := kokiVolume.AwsEBS
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				AWSElasticBlockStore: &v1.AWSElasticBlockStoreVolumeSource{
+					VolumeID:  source.VolumeID,
+					FSType:    source.FSType,
+					Partition: source.Partition,
+					ReadOnly:  source.ReadOnly,
 				},
 			},
 		}, nil

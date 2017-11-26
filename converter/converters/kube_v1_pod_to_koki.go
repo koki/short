@@ -221,12 +221,24 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.VolumeSource.GCEPersistentDisk != nil {
+		source := kubeVolume.VolumeSource.GCEPersistentDisk
 		return name, &types.Volume{
 			GcePD: &types.GcePDVolume{
-				PDName:    kubeVolume.VolumeSource.GCEPersistentDisk.PDName,
-				FSType:    kubeVolume.VolumeSource.GCEPersistentDisk.FSType,
-				Partition: kubeVolume.VolumeSource.GCEPersistentDisk.Partition,
-				ReadOnly:  kubeVolume.VolumeSource.GCEPersistentDisk.ReadOnly,
+				PDName:    source.PDName,
+				FSType:    source.FSType,
+				Partition: source.Partition,
+				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.AWSElasticBlockStore != nil {
+		source := kubeVolume.VolumeSource.AWSElasticBlockStore
+		return name, &types.Volume{
+			AwsEBS: &types.AwsEBSVolume{
+				VolumeID:  source.VolumeID,
+				FSType:    source.FSType,
+				Partition: source.Partition,
+				ReadOnly:  source.ReadOnly,
 			},
 		}, nil
 	}
