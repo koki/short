@@ -8,8 +8,8 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - medium: HugePages
-    name: test_volume
-    size_limit: 500G
-    type: empty-dir
+    test_volume:
+      max_size: 500G
+      medium: huge-pages
+      vol_type: empty_dir
 

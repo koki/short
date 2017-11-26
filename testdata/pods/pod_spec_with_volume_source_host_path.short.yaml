@@ -8,7 +8,5 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - name: test_volume
-    path: /path/to/dir
-    type: host-path.block-device
+    test_volume: host_path:/path/to/dir:block-dev
 

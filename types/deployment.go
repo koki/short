@@ -37,7 +37,7 @@ type Deployment struct {
 
 	// Template fields
 	TemplateMetadata       *RSTemplateMetadata `json:"pod_meta,omitempty"`
-	Volumes                []Volume            `json:"volumes,omitempty"`
+	Volumes                map[string]Volume   `json:"volumes,omitempty"`
 	Affinity               []Affinity          `json:"affinity,omitempty"`
 	Containers             []Container         `json:"containers,omitempty"`
 	InitContainers         []Container         `json:"init_containers,omitempty"`
