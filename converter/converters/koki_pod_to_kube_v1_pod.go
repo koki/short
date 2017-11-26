@@ -179,11 +179,9 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 
 func revertVolumes(kokiVolumes []types.Volume) []v1.Volume {
 	kubeVolumes := make([]v1.Volume, len(kokiVolumes))
-	for i, kokiVolume := range kokiVolumes {
-		kubeVolumes[i] = v1.Volume{
-			Name:         kokiVolume.Name,
-			VolumeSource: kokiVolume.VolumeSource.VolumeSource,
-		}
+	for i, _ := range kokiVolumes {
+		// TODO
+		kubeVolumes[i] = v1.Volume{}
 	}
 
 	return kubeVolumes

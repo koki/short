@@ -27,7 +27,8 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 
 	kubeSpec := &kubePV.Spec
 	kubeSpec.Capacity = revertCapacity(kokiPV.Storage)
-	kubeSpec.PersistentVolumeSource = kokiPV.PersistentVolumeSource.VolumeSource
+	// TODO
+	//kubeSpec.PersistentVolumeSource = kokiPV.PersistentVolumeSource.VolumeSource
 	if kokiPV.AccessModes != nil {
 		kubeSpec.AccessModes = kokiPV.AccessModes.Modes
 	}

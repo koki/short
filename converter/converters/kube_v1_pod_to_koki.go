@@ -139,15 +139,9 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 
 func convertVolumes(kubeVolumes []v1.Volume) []types.Volume {
 	kokiVolumes := make([]types.Volume, len(kubeVolumes))
-	for i, kubeVolume := range kubeVolumes {
-		kokiVolumes[i] = types.Volume{
-			VolumeMeta: types.VolumeMeta{
-				Name: kubeVolume.Name,
-			},
-			VolumeSource: types.VolumeSource{
-				VolumeSource: kubeVolume.VolumeSource,
-			},
-		}
+	for i, _ := range kubeVolumes {
+		// TODO
+		kokiVolumes[i] = types.Volume{}
 	}
 
 	return kokiVolumes
