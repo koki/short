@@ -146,7 +146,7 @@ func convertVolumes(kubeVolumes []v1.Volume) (map[string]types.Volume, error) {
 	for _, kubeVolume := range kubeVolumes {
 		name, kokiVolume, err := convertVolume(kubeVolume)
 		if err != nil {
-			return nil, err
+			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		kokiVolumes[name] = *kokiVolume
 	}
@@ -194,12 +194,52 @@ func convertHostPathType(kubeType *v1.HostPathType) (types.HostPathType, error) 
 	}
 }
 
+func convertAzureDiskKind(kubeKind *v1.AzureDataDiskKind) (*types.AzureDataDiskKind, error) {
+	if kubeKind == nil {
+		return nil, nil
+	}
+
+	var kind types.AzureDataDiskKind
+	switch *kubeKind {
+	case v1.AzureDedicatedBlobDisk:
+		kind = types.AzureDedicatedBlobDisk
+	case v1.AzureSharedBlobDisk:
+		kind = types.AzureSharedBlobDisk
+	case v1.AzureManagedDisk:
+		kind = types.AzureManagedDisk
+	default:
+		return nil, util.InvalidValueErrorf(kubeKind, "unrecognized kind")
+	}
+
+	return &kind, nil
+}
+
+func convertAzureDiskCachingMode(kubeMode *v1.AzureDataDiskCachingMode) (*types.AzureDataDiskCachingMode, error) {
+	if kubeMode == nil {
+		return nil, nil
+	}
+
+	var mode types.AzureDataDiskCachingMode
+	switch *kubeMode {
+	case v1.AzureDataDiskCachingNone:
+		mode = types.AzureDataDiskCachingNone
+	case v1.AzureDataDiskCachingReadOnly:
+		mode = types.AzureDataDiskCachingReadOnly
+	case v1.AzureDataDiskCachingReadWrite:
+		mode = types.AzureDataDiskCachingReadWrite
+	default:
+		return nil, util.InvalidValueErrorf(kubeMode, "unrecognized cache")
+	}
+
+	return &mode, nil
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.VolumeSource.EmptyDir != nil {
 		medium, err := convertStorageMedium(kubeVolume.VolumeSource.EmptyDir.Medium)
 		if err != nil {
-			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return name, nil, err
 		}
 		return name, &types.Volume{
 			EmptyDir: &types.EmptyDirVolume{
@@ -239,6 +279,39 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				FSType:    source.FSType,
 				Partition: source.Partition,
 				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.AzureDisk != nil {
+		source := kubeVolume.VolumeSource.AzureDisk
+		fstype := util.FromStringPtr(source.FSType)
+		readOnly := util.FromBoolPtr(source.ReadOnly)
+		kind, err := convertAzureDiskKind(source.Kind)
+		if err != nil {
+			return name, nil, err
+		}
+		cachingMode, err := convertAzureDiskCachingMode(source.CachingMode)
+		if err != nil {
+			return name, nil, err
+		}
+		return name, &types.Volume{
+			AzureDisk: &types.AzureDiskVolume{
+				DiskName:    source.DiskName,
+				DataDiskURI: source.DataDiskURI,
+				FSType:      fstype,
+				ReadOnly:    readOnly,
+				Kind:        kind,
+				CachingMode: cachingMode,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.AzureFile != nil {
+		source := kubeVolume.VolumeSource.AzureFile
+		return name, &types.Volume{
+			AzureFile: &types.AzureFileVolume{
+				SecretName: source.SecretName,
+				ShareName:  source.ShareName,
+				ReadOnly:   source.ReadOnly,
 			},
 		}, nil
 	}

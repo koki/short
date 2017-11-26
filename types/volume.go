@@ -13,17 +13,23 @@ type VolumeWrapper struct {
 }
 
 type Volume struct {
-	HostPath *HostPathVolume
-	EmptyDir *EmptyDirVolume
-	GcePD    *GcePDVolume
-	AwsEBS   *AwsEBSVolume
+	HostPath  *HostPathVolume
+	EmptyDir  *EmptyDirVolume
+	GcePD     *GcePDVolume
+	AwsEBS    *AwsEBSVolume
+	AzureDisk *AzureDiskVolume
+	AzureFile *AzureFileVolume
 }
 
 const (
-	VolumeTypeHostPath = "host_path"
-	VolumeTypeEmptyDir = "empty_dir"
-	VolumeTypeGcePD    = "gce_pd"
-	VolumeTypeAwsEBS   = "aws_ebs"
+	VolumeTypeHostPath  = "host_path"
+	VolumeTypeEmptyDir  = "empty_dir"
+	VolumeTypeGcePD     = "gce_pd"
+	VolumeTypeAwsEBS    = "aws_ebs"
+	VolumeTypeAzureDisk = "azure_disk"
+	VolumeTypeAzureFile = "azure_file"
+
+	SelectorSegmentReadOnly = "ro"
 )
 
 type HostPathVolume struct {
@@ -49,6 +55,14 @@ type EmptyDirVolume struct {
 	SizeLimit *resource.Quantity `json:"max_size,omitempty"`
 }
 
+type StorageMedium string
+
+const (
+	StorageMediumDefault   StorageMedium = ""           // use whatever the default is for the node
+	StorageMediumMemory    StorageMedium = "memory"     // use memory (tmpfs)
+	StorageMediumHugepages StorageMedium = "huge-pages" // use hugepages
+)
+
 type GcePDVolume struct {
 	PDName    string `json:"-"`
 	FSType    string `json:"fs,omitempty"`
@@ -63,12 +77,33 @@ type AwsEBSVolume struct {
 	ReadOnly  bool   `json:"ro,omitempty"`
 }
 
-type StorageMedium string
+type AzureDiskVolume struct {
+	DiskName string `json:"-"`
+	// DataDiskURI is required
+	DataDiskURI string                    `json:"disk_uri"`
+	CachingMode *AzureDataDiskCachingMode `json:"cache,omitempty"`
+	FSType      string                    `json:"fs,omitempty"`
+	ReadOnly    bool                      `json:"ro,omitempty"`
+	Kind        *AzureDataDiskKind        `json:"kind,omitempty"`
+}
+
+type AzureFileVolume struct {
+	SecretName string `json:"-"`
+	ShareName  string `json:"-"`
+	ReadOnly   bool   `json:"-"`
+}
+
+type AzureDataDiskCachingMode string
+type AzureDataDiskKind string
 
 const (
-	StorageMediumDefault   StorageMedium = ""           // use whatever the default is for the node
-	StorageMediumMemory    StorageMedium = "memory"     // use memory (tmpfs)
-	StorageMediumHugepages StorageMedium = "huge-pages" // use hugepages
+	AzureDataDiskCachingNone      AzureDataDiskCachingMode = "none"
+	AzureDataDiskCachingReadOnly  AzureDataDiskCachingMode = "ro"
+	AzureDataDiskCachingReadWrite AzureDataDiskCachingMode = "rw"
+
+	AzureSharedBlobDisk    AzureDataDiskKind = "shared"
+	AzureDedicatedBlobDisk AzureDataDiskKind = "dedicated"
+	AzureManagedDisk       AzureDataDiskKind = "managed"
 )
 
 func (v *Volume) UnmarshalJSON(data []byte) error {
@@ -113,6 +148,10 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalGcePDVolume(obj, selector)
 	case VolumeTypeAwsEBS:
 		return v.UnmarshalAwsEBSVolume(obj, selector)
+	case VolumeTypeAzureDisk:
+		return v.UnmarshalAzureDiskVolume(obj, selector)
+	case VolumeTypeAzureFile:
+		return v.UnmarshalAzureFileVolume(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -141,6 +180,14 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 
 	if v.AwsEBS != nil {
 		marshalledVolume, err = v.AwsEBS.Marshal()
+	}
+
+	if v.AzureDisk != nil {
+		marshalledVolume, err = v.AzureDisk.Marshal()
+	}
+
+	if v.AzureFile != nil {
+		marshalledVolume, err = v.AzureFile.Marshal()
 	}
 
 	if err != nil {
@@ -299,5 +346,73 @@ func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
 		Type:        VolumeTypeAwsEBS,
 		Selector:    []string{s.VolumeID},
 		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalAzureDiskVolume(obj map[string]interface{}, selector []string) error {
+	source := AzureDiskVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeAzureDisk)
+	}
+	source.DiskName = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeAzureDisk)
+	}
+
+	v.AzureDisk = &source
+	return nil
+}
+
+func (s AzureDiskVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeAzureDisk)
+	}
+
+	if len(s.DiskName) == 0 {
+		return nil, util.InvalidInstanceErrorf(&s, "selector must contain disk name")
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeAzureDisk,
+		Selector:    []string{s.DiskName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalAzureFileVolume(selector []string) error {
+	source := AzureFileVolume{}
+	if len(selector) > 3 || len(selector) < 2 {
+		return util.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeAzureFile)
+	}
+
+	source.SecretName = selector[0]
+	source.ShareName = selector[1]
+
+	if len(selector) > 2 {
+		switch selector[2] {
+		case SelectorSegmentReadOnly:
+			source.ReadOnly = true
+		default:
+			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeAzureFile)
+		}
+	}
+
+	v.AzureFile = &source
+	return nil
+}
+
+func (s AzureFileVolume) Marshal() (*MarshalledVolume, error) {
+	var selector []string
+	if s.ReadOnly {
+		selector = []string{s.SecretName, s.ShareName, SelectorSegmentReadOnly}
+	} else {
+		selector = []string{s.SecretName, s.ShareName}
+	}
+	return &MarshalledVolume{
+		Type:     VolumeTypeAzureFile,
+		Selector: selector,
 	}, nil
 }

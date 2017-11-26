@@ -44,15 +44,42 @@ var kokiGcePD1 = Volume{
 
 var kokiAwsEBS0 = Volume{
 	AwsEBS: &AwsEBSVolume{
-		VolumeID:  "ebs_uuid",
-		FSType:    "xfs",
+		VolumeID:  "volume-id",
+		FSType:    "ext4",
 		Partition: 1,
 		ReadOnly:  true,
 	},
 }
 var kokiAwsEBS1 = Volume{
 	AwsEBS: &AwsEBSVolume{
-		VolumeID: "ebs_uuid",
+		VolumeID: "volume-id",
+	},
+}
+
+var azureDiskCachingMode0 = AzureDataDiskCachingReadWrite
+var azureDiskKind0 = AzureSharedBlobDisk
+var kokiAzureDisk0 = Volume{
+	AzureDisk: &AzureDiskVolume{
+		DiskName:    "test.vhd",
+		DataDiskURI: "https://someaccount.blob.microsoft.net/vhds/test.vhd",
+		CachingMode: &azureDiskCachingMode0,
+		FSType:      "ext4",
+		ReadOnly:    true,
+		Kind:        &azureDiskKind0,
+	},
+}
+
+var kokiAzureFile0 = Volume{
+	AzureFile: &AzureFileVolume{
+		SecretName: "azure-secret",
+		ShareName:  "k8stest",
+		ReadOnly:   true,
+	},
+}
+var kokiAzureFile1 = Volume{
+	AzureFile: &AzureFileVolume{
+		SecretName: "azure-secret",
+		ShareName:  "k8stest",
 	},
 }
 
@@ -64,6 +91,9 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiGcePD1, t, true)
 	testVolumeSource(kokiAwsEBS0, t, false)
 	testVolumeSource(kokiAwsEBS1, t, true)
+	testVolumeSource(kokiAzureDisk0, t, false)
+	testVolumeSource(kokiAzureFile0, t, true)
+	testVolumeSource(kokiAzureFile1, t, true)
 
 }
 

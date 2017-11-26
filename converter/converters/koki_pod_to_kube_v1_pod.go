@@ -230,6 +230,46 @@ func revertHostPathType(kokiType types.HostPathType) (v1.HostPathType, error) {
 	}
 }
 
+func revertAzureDiskKind(kokiKind *types.AzureDataDiskKind) (*v1.AzureDataDiskKind, error) {
+	if kokiKind == nil {
+		return nil, nil
+	}
+
+	var kind v1.AzureDataDiskKind
+	switch *kokiKind {
+	case types.AzureDedicatedBlobDisk:
+		kind = v1.AzureDedicatedBlobDisk
+	case types.AzureSharedBlobDisk:
+		kind = v1.AzureSharedBlobDisk
+	case types.AzureManagedDisk:
+		kind = v1.AzureManagedDisk
+	default:
+		return nil, util.InvalidValueErrorf(kokiKind, "unrecognized kind")
+	}
+
+	return &kind, nil
+}
+
+func revertAzureDiskCachingMode(kokiMode *types.AzureDataDiskCachingMode) (*v1.AzureDataDiskCachingMode, error) {
+	if kokiMode == nil {
+		return nil, nil
+	}
+
+	var mode v1.AzureDataDiskCachingMode
+	switch *kokiMode {
+	case types.AzureDataDiskCachingNone:
+		mode = v1.AzureDataDiskCachingNone
+	case types.AzureDataDiskCachingReadOnly:
+		mode = v1.AzureDataDiskCachingReadOnly
+	case types.AzureDataDiskCachingReadWrite:
+		mode = v1.AzureDataDiskCachingReadWrite
+	default:
+		return nil, util.InvalidValueErrorf(kokiMode, "unrecognized cache")
+	}
+
+	return &mode, nil
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -285,6 +325,43 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					FSType:    source.FSType,
 					Partition: source.Partition,
 					ReadOnly:  source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.AzureDisk != nil {
+		source := kokiVolume.AzureDisk
+		kind, err := revertAzureDiskKind(source.Kind)
+		if err != nil {
+			return nil, err
+		}
+		cachingMode, err := revertAzureDiskCachingMode(source.CachingMode)
+		if err != nil {
+			return nil, err
+		}
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				AzureDisk: &v1.AzureDiskVolumeSource{
+					DiskName:    source.DiskName,
+					DataDiskURI: source.DataDiskURI,
+					FSType:      util.StringPtrOrNil(source.FSType),
+					ReadOnly:    util.BoolPtrOrNil(source.ReadOnly),
+					Kind:        kind,
+					CachingMode: cachingMode,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.AzureFile != nil {
+		source := kokiVolume.AzureFile
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				AzureFile: &v1.AzureFileVolumeSource{
+					SecretName: source.SecretName,
+					ShareName:  source.ShareName,
+					ReadOnly:   source.ReadOnly,
 				},
 			},
 		}, nil
