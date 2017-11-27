@@ -12,5 +12,4 @@ spec:
   volumes:
   - name: test_volume
     flocker:
-      dataSetName: name
-      dataSetUUID: uuid      
+      datasetUUID: uuid      

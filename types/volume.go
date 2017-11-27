@@ -25,6 +25,7 @@ type Volume struct {
 	Cinder       *CinderVolume
 	FibreChannel *FibreChannelVolume
 	Flex         *FlexVolume
+	Flocker      *FlockerVolume
 }
 
 const (
@@ -38,6 +39,7 @@ const (
 	VolumeTypeCinder       = "cinder"
 	VolumeTypeFibreChannel = "fc"
 	VolumeTypeFlex         = "flex"
+	VolumeTypeFlocker      = "flocker"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -151,6 +153,10 @@ type FlexVolume struct {
 	Options   map[string]string `json:"options,omitempty"`
 }
 
+type FlockerVolume struct {
+	DatasetUUID string `json:"-"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -205,6 +211,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalFibreChannelVolume(obj, selector)
 	case VolumeTypeFlex:
 		return v.UnmarshalFlexVolume(obj, selector)
+	case VolumeTypeFlocker:
+		return v.UnmarshalFlockerVolume(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -248,6 +256,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Flex != nil {
 		marshalledVolume, err = v.Flex.Marshal()
+	}
+	if v.Flocker != nil {
+		marshalledVolume, err = v.Flocker.Marshal()
 	}
 
 	if err != nil {
@@ -618,5 +629,24 @@ func (s FlexVolume) Marshal() (*MarshalledVolume, error) {
 		Type:        VolumeTypeFlex,
 		Selector:    []string{s.Driver},
 		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalFlockerVolume(selector []string) error {
+	source := FlockerVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected exactly one selector segment (dataset UUID) for %s", VolumeTypeFlocker)
+	}
+
+	source.DatasetUUID = selector[0]
+
+	v.Flocker = &source
+	return nil
+}
+
+func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
+	return &MarshalledVolume{
+		Type:     VolumeTypeFlocker,
+		Selector: []string{s.DatasetUUID},
 	}, nil
 }

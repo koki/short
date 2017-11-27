@@ -449,6 +449,17 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.Flocker != nil {
+		source := kokiVolume.Flocker
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Flocker: &v1.FlockerVolumeSource{
+					DatasetUUID: source.DatasetUUID,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

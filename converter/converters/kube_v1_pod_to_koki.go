@@ -385,6 +385,20 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.VolumeSource.Flocker != nil {
+		source := kubeVolume.VolumeSource.Flocker
+		var dataset string
+		if len(source.DatasetUUID) > 0 {
+			dataset = source.DatasetUUID
+		} else {
+			dataset = source.DatasetName
+		}
+		return name, &types.Volume{
+			Flocker: &types.FlockerVolume{
+				DatasetUUID: dataset,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

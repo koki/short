@@ -162,6 +162,12 @@ var kokiFlexVolume1 = Volume{
 	},
 }
 
+var kokiFlockerVolume0 = Volume{
+	Flocker: &FlockerVolume{
+		DatasetUUID: "flocker_uuid",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -180,6 +186,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiFibreChannel0, t, false)
 	testVolumeSource(kokiFlexVolume0, t, false)
 	testVolumeSource(kokiFlexVolume1, t, true)
+	testVolumeSource(kokiFlockerVolume0, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {
