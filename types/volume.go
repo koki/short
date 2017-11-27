@@ -26,6 +26,7 @@ type Volume struct {
 	FibreChannel *FibreChannelVolume
 	Flex         *FlexVolume
 	Flocker      *FlockerVolume
+	Glusterfs    *GlusterfsVolume
 }
 
 const (
@@ -40,6 +41,7 @@ const (
 	VolumeTypeFibreChannel = "fc"
 	VolumeTypeFlex         = "flex"
 	VolumeTypeFlocker      = "flocker"
+	VolumeTypeGlusterfs    = "glusterfs"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -157,6 +159,12 @@ type FlockerVolume struct {
 	DatasetUUID string `json:"-"`
 }
 
+type GlusterfsVolume struct {
+	EndpointsName string `json:"-"`
+	Path          string `json:"path"`
+	ReadOnly      bool   `json:"ro,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -213,6 +221,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalFlexVolume(obj, selector)
 	case VolumeTypeFlocker:
 		return v.UnmarshalFlockerVolume(selector)
+	case VolumeTypeGlusterfs:
+		return v.UnmarshalGlusterfsVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -259,6 +269,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Flocker != nil {
 		marshalledVolume, err = v.Flocker.Marshal()
+	}
+	if v.Glusterfs != nil {
+		marshalledVolume, err = v.Glusterfs.Marshal()
 	}
 
 	if err != nil {
@@ -648,5 +661,34 @@ func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:     VolumeTypeFlocker,
 		Selector: []string{s.DatasetUUID},
+	}, nil
+}
+
+func (v *Volume) UnmarshalGlusterfsVolume(obj map[string]interface{}, selector []string) error {
+	source := GlusterfsVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (endpoints name) for %s", VolumeTypeGlusterfs)
+	}
+	source.EndpointsName = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeGlusterfs)
+	}
+
+	v.Glusterfs = &source
+	return nil
+}
+
+func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeGlusterfs)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeGlusterfs,
+		Selector:    []string{s.EndpointsName},
+		ExtraFields: obj,
 	}, nil
 }

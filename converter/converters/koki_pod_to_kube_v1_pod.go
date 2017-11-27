@@ -460,6 +460,19 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.Glusterfs != nil {
+		source := kokiVolume.Glusterfs
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Glusterfs: &v1.GlusterfsVolumeSource{
+					EndpointsName: source.EndpointsName,
+					Path:          source.Path,
+					ReadOnly:      source.ReadOnly,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

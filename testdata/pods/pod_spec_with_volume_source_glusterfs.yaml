@@ -13,5 +13,5 @@ spec:
   - name: test_volume
     glusterfs:
       path: /path/to/vol
-      endpointsName: endpointsName
+      endpoints: endpointsName
       readOnly: true      

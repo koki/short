@@ -168,6 +168,14 @@ var kokiFlockerVolume0 = Volume{
 	},
 }
 
+var kokiGlusterfsVolume0 = Volume{
+	Glusterfs: &GlusterfsVolume{
+		EndpointsName: "glusterfs-cluster",
+		Path:          "kube_vol",
+		ReadOnly:      true,
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -187,6 +195,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiFlexVolume0, t, false)
 	testVolumeSource(kokiFlexVolume1, t, true)
 	testVolumeSource(kokiFlockerVolume0, t, true)
+	testVolumeSource(kokiGlusterfsVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

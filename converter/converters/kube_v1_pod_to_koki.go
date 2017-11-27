@@ -399,6 +399,16 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.VolumeSource.Glusterfs != nil {
+		source := kubeVolume.VolumeSource.Glusterfs
+		return name, &types.Volume{
+			Glusterfs: &types.GlusterfsVolume{
+				EndpointsName: source.EndpointsName,
+				Path:          source.Path,
+				ReadOnly:      source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
