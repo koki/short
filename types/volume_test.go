@@ -234,6 +234,18 @@ var kokiPortworxVolume1 = Volume{
 	},
 }
 
+var kokiPVCVolume0 = Volume{
+	PVC: &PVCVolume{
+		ClaimName: "claim-0",
+		ReadOnly:  true,
+	},
+}
+var kokiPVCVolume1 = Volume{
+	PVC: &PVCVolume{
+		ClaimName: "claim-0",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -261,6 +273,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiPhotonPDVolume1, t, true)
 	testVolumeSource(kokiPortworxVolume0, t, false)
 	testVolumeSource(kokiPortworxVolume1, t, true)
+	testVolumeSource(kokiPVCVolume0, t, true)
+	testVolumeSource(kokiPVCVolume1, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {

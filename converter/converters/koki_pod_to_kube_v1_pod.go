@@ -533,6 +533,18 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 
 	}
+	if kokiVolume.PVC != nil {
+		source := kokiVolume.PVC
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+					ClaimName: source.ClaimName,
+					ReadOnly:  source.ReadOnly,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

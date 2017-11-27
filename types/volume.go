@@ -31,6 +31,7 @@ type Volume struct {
 	NFS          *NFSVolume
 	PhotonPD     *PhotonPDVolume
 	Portworx     *PortworxVolume
+	PVC          *PVCVolume
 }
 
 const (
@@ -50,6 +51,7 @@ const (
 	VolumeTypeNFS          = "nfs"
 	VolumeTypePhotonPD     = "photon"
 	VolumeTypePortworx     = "portworx"
+	VolumeTypePVC          = "pvc"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -206,6 +208,11 @@ type PortworxVolume struct {
 	ReadOnly bool   `json:"ro,omitempty"`
 }
 
+type PVCVolume struct {
+	ClaimName string `json:"-"`
+	ReadOnly  bool   `json:"-"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -272,6 +279,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalPhotonPDVolume(selector)
 	case VolumeTypePortworx:
 		return v.UnmarshalPortworxVolume(obj, selector)
+	case VolumeTypePVC:
+		return v.UnmarshalPVCVolume(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -333,6 +342,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Portworx != nil {
 		marshalledVolume, err = v.Portworx.Marshal()
+	}
+	if v.PVC != nil {
+		marshalledVolume, err = v.PVC.Marshal()
 	}
 
 	if err != nil {
@@ -871,5 +883,39 @@ func (s PortworxVolume) Marshal() (*MarshalledVolume, error) {
 		Type:        VolumeTypePortworx,
 		Selector:    []string{s.VolumeID},
 		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalPVCVolume(selector []string) error {
+	source := PVCVolume{}
+	if len(selector) > 2 || len(selector) < 1 {
+		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePVC)
+	}
+
+	source.ClaimName = selector[0]
+
+	if len(selector) > 1 {
+		switch selector[1] {
+		case SelectorSegmentReadOnly:
+			source.ReadOnly = true
+		default:
+			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypePVC)
+		}
+	}
+
+	v.PVC = &source
+	return nil
+}
+
+func (s PVCVolume) Marshal() (*MarshalledVolume, error) {
+	var selector []string
+	if s.ReadOnly {
+		selector = []string{s.ClaimName, SelectorSegmentReadOnly}
+	} else {
+		selector = []string{s.ClaimName}
+	}
+	return &MarshalledVolume{
+		Type:     VolumeTypePVC,
+		Selector: selector,
 	}, nil
 }

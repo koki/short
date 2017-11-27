@@ -260,32 +260,32 @@ func convertLocalObjectRef(kubeRef *v1.LocalObjectReference) string {
 
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
-	if kubeVolume.VolumeSource.EmptyDir != nil {
-		medium, err := convertStorageMedium(kubeVolume.VolumeSource.EmptyDir.Medium)
+	if kubeVolume.EmptyDir != nil {
+		medium, err := convertStorageMedium(kubeVolume.EmptyDir.Medium)
 		if err != nil {
 			return name, nil, err
 		}
 		return name, &types.Volume{
 			EmptyDir: &types.EmptyDirVolume{
 				Medium:    medium,
-				SizeLimit: kubeVolume.VolumeSource.EmptyDir.SizeLimit,
+				SizeLimit: kubeVolume.EmptyDir.SizeLimit,
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.HostPath != nil {
-		kokiType, err := convertHostPathType(kubeVolume.VolumeSource.HostPath.Type)
+	if kubeVolume.HostPath != nil {
+		kokiType, err := convertHostPathType(kubeVolume.HostPath.Type)
 		if err != nil {
 			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return name, &types.Volume{
 			HostPath: &types.HostPathVolume{
-				Path: kubeVolume.VolumeSource.HostPath.Path,
+				Path: kubeVolume.HostPath.Path,
 				Type: kokiType,
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.GCEPersistentDisk != nil {
-		source := kubeVolume.VolumeSource.GCEPersistentDisk
+	if kubeVolume.GCEPersistentDisk != nil {
+		source := kubeVolume.GCEPersistentDisk
 		return name, &types.Volume{
 			GcePD: &types.GcePDVolume{
 				PDName:    source.PDName,
@@ -295,8 +295,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.AWSElasticBlockStore != nil {
-		source := kubeVolume.VolumeSource.AWSElasticBlockStore
+	if kubeVolume.AWSElasticBlockStore != nil {
+		source := kubeVolume.AWSElasticBlockStore
 		return name, &types.Volume{
 			AwsEBS: &types.AwsEBSVolume{
 				VolumeID:  source.VolumeID,
@@ -306,8 +306,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.AzureDisk != nil {
-		source := kubeVolume.VolumeSource.AzureDisk
+	if kubeVolume.AzureDisk != nil {
+		source := kubeVolume.AzureDisk
 		fstype := util.FromStringPtr(source.FSType)
 		readOnly := util.FromBoolPtr(source.ReadOnly)
 		kind, err := convertAzureDiskKind(source.Kind)
@@ -329,8 +329,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.AzureFile != nil {
-		source := kubeVolume.VolumeSource.AzureFile
+	if kubeVolume.AzureFile != nil {
+		source := kubeVolume.AzureFile
 		return name, &types.Volume{
 			AzureFile: &types.AzureFileVolume{
 				SecretName: source.SecretName,
@@ -339,8 +339,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.CephFS != nil {
-		source := kubeVolume.VolumeSource.CephFS
+	if kubeVolume.CephFS != nil {
+		source := kubeVolume.CephFS
 		secretFileOrRef := convertCephFSSecretFileOrRef(source.SecretFile, source.SecretRef)
 		return name, &types.Volume{
 			CephFS: &types.CephFSVolume{
@@ -352,8 +352,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.Cinder != nil {
-		source := kubeVolume.VolumeSource.Cinder
+	if kubeVolume.Cinder != nil {
+		source := kubeVolume.Cinder
 		return name, &types.Volume{
 			Cinder: &types.CinderVolume{
 				VolumeID: source.VolumeID,
@@ -362,8 +362,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.FC != nil {
-		source := kubeVolume.VolumeSource.FC
+	if kubeVolume.FC != nil {
+		source := kubeVolume.FC
 		return name, &types.Volume{
 			FibreChannel: &types.FibreChannelVolume{
 				TargetWWNs: source.TargetWWNs,
@@ -373,8 +373,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.FlexVolume != nil {
-		source := kubeVolume.VolumeSource.FlexVolume
+	if kubeVolume.FlexVolume != nil {
+		source := kubeVolume.FlexVolume
 		return name, &types.Volume{
 			Flex: &types.FlexVolume{
 				Driver:    source.Driver,
@@ -385,8 +385,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.Flocker != nil {
-		source := kubeVolume.VolumeSource.Flocker
+	if kubeVolume.Flocker != nil {
+		source := kubeVolume.Flocker
 		var dataset string
 		if len(source.DatasetUUID) > 0 {
 			dataset = source.DatasetUUID
@@ -399,8 +399,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.Glusterfs != nil {
-		source := kubeVolume.VolumeSource.Glusterfs
+	if kubeVolume.Glusterfs != nil {
+		source := kubeVolume.Glusterfs
 		return name, &types.Volume{
 			Glusterfs: &types.GlusterfsVolume{
 				EndpointsName: source.EndpointsName,
@@ -409,8 +409,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.ISCSI != nil {
-		source := kubeVolume.VolumeSource.ISCSI
+	if kubeVolume.ISCSI != nil {
+		source := kubeVolume.ISCSI
 		return name, &types.Volume{
 			ISCSI: &types.ISCSIVolume{
 				TargetPortal:      source.TargetPortal,
@@ -428,7 +428,7 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.NFS != nil {
-		source := kubeVolume.VolumeSource.NFS
+		source := kubeVolume.NFS
 		return name, &types.Volume{
 			NFS: &types.NFSVolume{
 				Server:   source.Server,
@@ -438,7 +438,7 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.PhotonPersistentDisk != nil {
-		source := kubeVolume.VolumeSource.PhotonPersistentDisk
+		source := kubeVolume.PhotonPersistentDisk
 		return name, &types.Volume{
 			PhotonPD: &types.PhotonPDVolume{
 				PdID:   source.PdID,
@@ -447,12 +447,21 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.PortworxVolume != nil {
-		source := kubeVolume.VolumeSource.PortworxVolume
+		source := kubeVolume.PortworxVolume
 		return name, &types.Volume{
 			Portworx: &types.PortworxVolume{
 				VolumeID: source.VolumeID,
 				FSType:   source.FSType,
 				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.PersistentVolumeClaim != nil {
+		source := kubeVolume.PersistentVolumeClaim
+		return name, &types.Volume{
+			PVC: &types.PVCVolume{
+				ClaimName: source.ClaimName,
+				ReadOnly:  source.ReadOnly,
 			},
 		}, nil
 	}
