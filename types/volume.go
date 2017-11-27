@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -41,6 +42,7 @@ type Volume struct {
 	Vsphere      *VsphereVolume
 	ConfigMap    *ConfigMapVolume
 	Secret       *SecretVolume
+	DownwardAPI  *DownwardAPIVolume
 }
 
 const (
@@ -66,6 +68,7 @@ const (
 	VolumeTypeVsphere      = "vsphere"
 	VolumeTypeConfigMap    = "config-map"
 	VolumeTypeSecret       = "secret"
+	VolumeTypeDownwardAPI  = "downward-api"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -288,6 +291,36 @@ type SecretVolume struct {
 // The json library doesn't allow serializing numbers as octal, so FileMode always marshals to a string.
 type FileMode int32
 
+type DownwardAPIVolume struct {
+	Items       map[string]DownwardAPIVolumeFile `json:"items,omitempty"`
+	DefaultMode *FileMode                        `json:"mode,omitempty"`
+}
+
+type DownwardAPIVolumeFile struct {
+	FieldRef         *ObjectFieldSelector         `json:"field,omitempty"`
+	ResourceFieldRef *VolumeResourceFieldSelector `json:"resource,omitempty"`
+	Mode             *FileMode                    `json:"mode,omitempty"`
+}
+
+type ObjectFieldSelector struct {
+	// required
+	FieldPath string `json:"-"`
+
+	// optional
+	APIVersion string `json:"-"`
+}
+
+type VolumeResourceFieldSelector struct {
+	// required
+	ContainerName string `json:"-"`
+
+	// required
+	Resource string `json:"-"`
+
+	// optional
+	Divisor resource.Quantity `json:"-"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -366,6 +399,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalConfigMapVolume(obj, selector)
 	case VolumeTypeSecret:
 		return v.UnmarshalSecretVolume(obj, selector)
+	case VolumeTypeDownwardAPI:
+		return v.UnmarshalDownwardAPIVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -445,6 +480,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Secret != nil {
 		marshalledVolume, err = v.Secret.Marshal()
+	}
+	if v.DownwardAPI != nil {
+		marshalledVolume, err = v.DownwardAPI.Marshal()
 	}
 
 	if err != nil {
@@ -1224,6 +1262,114 @@ func (s SecretVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeSecret,
 		Selector:    []string{s.SecretName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *ObjectFieldSelector) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "field selector should be written as a string")
+	}
+
+	segments := strings.Split(str, ":")
+	if len(segments) > 2 {
+		return util.InvalidValueErrorf(str, "field selector should contain one or two segments")
+	}
+
+	s.FieldPath = segments[0]
+	if len(segments) > 1 {
+		s.APIVersion = segments[1]
+	}
+
+	return nil
+}
+
+func (s ObjectFieldSelector) MarshalJSON() ([]byte, error) {
+	if len(s.APIVersion) == 0 {
+		b, err := json.Marshal(s.FieldPath)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "field selector path")
+		}
+
+		return b, nil
+	}
+
+	b, err := json.Marshal(fmt.Sprintf("%s:%s", s.FieldPath, s.APIVersion))
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "field selector")
+	}
+
+	return b, nil
+}
+
+func (s *VolumeResourceFieldSelector) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "resource selector should be written as a string")
+	}
+
+	segments := strings.Split(str, ":")
+	if len(segments) > 3 || len(segments) < 2 {
+		return util.InvalidValueErrorf(str, "resource selector should contain two or three segments")
+	}
+
+	s.ContainerName = segments[0]
+	s.Resource = segments[1]
+	if len(segments) > 2 {
+		divisor, err := resource.ParseQuantity(segments[2])
+		if err != nil {
+			return util.ContextualizeErrorf(err, "resource selector divisor")
+		}
+		s.Divisor = divisor
+	}
+
+	return nil
+}
+
+func (s VolumeResourceFieldSelector) MarshalJSON() ([]byte, error) {
+	if reflect.DeepEqual(s.Divisor, resource.Quantity{}) {
+		b, err := json.Marshal(fmt.Sprintf("%s:%s", s.ContainerName, s.Resource))
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "resource selector")
+		}
+
+		return b, nil
+	}
+
+	b, err := json.Marshal(fmt.Sprintf("%s:%s:%s", s.ContainerName, s.Resource, s.Divisor.String()))
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "resource selector")
+	}
+
+	return b, nil
+}
+
+func (v *Volume) UnmarshalDownwardAPIVolume(obj map[string]interface{}, selector []string) error {
+	source := DownwardAPIVolume{}
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeDownwardAPI)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
+	}
+
+	v.DownwardAPI = &source
+	return nil
+}
+
+func (s DownwardAPIVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeDownwardAPI,
 		ExtraFields: obj,
 	}, nil
 }

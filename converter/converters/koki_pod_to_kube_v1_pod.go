@@ -334,6 +334,47 @@ func revertRequiredToOptional(required *bool) *bool {
 	return util.BoolPtr(!*required)
 }
 
+func revertDownwardAPIVolumeFiles(kokiItems map[string]types.DownwardAPIVolumeFile) []v1.DownwardAPIVolumeFile {
+	if len(kokiItems) == 0 {
+		return nil
+	}
+
+	items := []v1.DownwardAPIVolumeFile{}
+	for path, kokiItem := range kokiItems {
+		items = append(items, v1.DownwardAPIVolumeFile{
+			Path:             path,
+			FieldRef:         revertObjectFieldRef(kokiItem.FieldRef),
+			ResourceFieldRef: revertVolumeResourceFieldRef(kokiItem.ResourceFieldRef),
+			Mode:             revertFileMode(kokiItem.Mode),
+		})
+	}
+
+	return items
+}
+
+func revertObjectFieldRef(kokiRef *types.ObjectFieldSelector) *v1.ObjectFieldSelector {
+	if kokiRef == nil {
+		return nil
+	}
+
+	return &v1.ObjectFieldSelector{
+		FieldPath:  kokiRef.FieldPath,
+		APIVersion: kokiRef.APIVersion,
+	}
+}
+
+func revertVolumeResourceFieldRef(kokiRef *types.VolumeResourceFieldSelector) *v1.ResourceFieldSelector {
+	if kokiRef == nil {
+		return nil
+	}
+
+	return &v1.ResourceFieldSelector{
+		ContainerName: kokiRef.ContainerName,
+		Resource:      kokiRef.Resource,
+		Divisor:       kokiRef.Divisor,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -665,6 +706,18 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					Items:       revertKeyToPathItems(source.Items),
 					DefaultMode: revertFileMode(source.DefaultMode),
 					Optional:    revertRequiredToOptional(source.Required),
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.DownwardAPI != nil {
+		source := kokiVolume.DownwardAPI
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				DownwardAPI: &v1.DownwardAPIVolumeSource{
+					Items:       revertDownwardAPIVolumeFiles(source.Items),
+					DefaultMode: revertFileMode(source.DefaultMode),
 				},
 			},
 		}, nil

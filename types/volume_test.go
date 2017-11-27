@@ -330,6 +330,46 @@ var kokiSecretVolume1 = Volume{
 	},
 }
 
+var kokiDownwardAPIVolume0 = Volume{
+	DownwardAPI: &DownwardAPIVolume{
+		Items: map[string]DownwardAPIVolumeFile{
+			"labels": DownwardAPIVolumeFile{
+				FieldRef: &ObjectFieldSelector{
+					FieldPath:  "metadata.labels",
+					APIVersion: "v1",
+				},
+				Mode: FileModePtr(0644),
+			},
+			"cpu_limit": DownwardAPIVolumeFile{
+				ResourceFieldRef: &VolumeResourceFieldSelector{
+					ContainerName: "client-container",
+					Resource:      "limits.cpu",
+					Divisor:       resource.MustParse("1m"),
+				},
+				Mode: FileModePtr(0644),
+			},
+		},
+		DefaultMode: FileModePtr(0644),
+	},
+}
+var kokiDownwardAPIVolume1 = Volume{
+	DownwardAPI: &DownwardAPIVolume{
+		Items: map[string]DownwardAPIVolumeFile{
+			"labels": DownwardAPIVolumeFile{
+				FieldRef: &ObjectFieldSelector{
+					FieldPath: "metadata.labels",
+				},
+			},
+			"cpu_limit": DownwardAPIVolumeFile{
+				ResourceFieldRef: &VolumeResourceFieldSelector{
+					ContainerName: "client-container",
+					Resource:      "limits.cpu",
+				},
+			},
+		},
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -366,6 +406,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiConfigMapVolume1, t, false)
 	testVolumeSource(kokiSecretVolume0, t, false)
 	testVolumeSource(kokiSecretVolume1, t, false)
+	testVolumeSource(kokiDownwardAPIVolume0, t, false)
+	testVolumeSource(kokiDownwardAPIVolume1, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

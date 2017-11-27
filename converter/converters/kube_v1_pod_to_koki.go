@@ -301,6 +301,46 @@ func convertOptionalToRequired(optional *bool) *bool {
 	return util.BoolPtr(!*optional)
 }
 
+func convertDownwardAPIVolumeFiles(kubeItems []v1.DownwardAPIVolumeFile) map[string]types.DownwardAPIVolumeFile {
+	if len(kubeItems) == 0 {
+		return nil
+	}
+
+	items := map[string]types.DownwardAPIVolumeFile{}
+	for _, kubeItem := range kubeItems {
+		items[kubeItem.Path] = types.DownwardAPIVolumeFile{
+			FieldRef:         convertObjectFieldRef(kubeItem.FieldRef),
+			ResourceFieldRef: convertVolumeResourceFieldRef(kubeItem.ResourceFieldRef),
+			Mode:             convertFileMode(kubeItem.Mode),
+		}
+	}
+
+	return items
+}
+
+func convertObjectFieldRef(kubeRef *v1.ObjectFieldSelector) *types.ObjectFieldSelector {
+	if kubeRef == nil {
+		return nil
+	}
+
+	return &types.ObjectFieldSelector{
+		FieldPath:  kubeRef.FieldPath,
+		APIVersion: kubeRef.APIVersion,
+	}
+}
+
+func convertVolumeResourceFieldRef(kubeRef *v1.ResourceFieldSelector) *types.VolumeResourceFieldSelector {
+	if kubeRef == nil {
+		return nil
+	}
+
+	return &types.VolumeResourceFieldSelector{
+		ContainerName: kubeRef.ContainerName,
+		Resource:      kubeRef.Resource,
+		Divisor:       kubeRef.Divisor,
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -566,6 +606,15 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				Items:       convertKeyToPathItems(source.Items),
 				DefaultMode: convertFileMode(source.DefaultMode),
 				Required:    convertOptionalToRequired(source.Optional),
+			},
+		}, nil
+	}
+	if kubeVolume.DownwardAPI != nil {
+		source := kubeVolume.DownwardAPI
+		return name, &types.Volume{
+			DownwardAPI: &types.DownwardAPIVolume{
+				Items:       convertDownwardAPIVolumeFiles(source.Items),
+				DefaultMode: convertFileMode(source.DefaultMode),
 			},
 		}, nil
 	}
