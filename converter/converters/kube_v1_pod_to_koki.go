@@ -258,6 +258,17 @@ func convertLocalObjectRef(kubeRef *v1.LocalObjectReference) string {
 	return kubeRef.Name
 }
 
+func convertVsphereStoragePolicy(kubeName, kubeID string) *types.VsphereStoragePolicy {
+	if len(kubeName) > 0 {
+		return &types.VsphereStoragePolicy{
+			Name: kubeName,
+			ID:   kubeID,
+		}
+	}
+
+	return nil
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -491,6 +502,16 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				VolumeName:       source.VolumeName,
 				FSType:           source.FSType,
 				ReadOnly:         source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VsphereVolume != nil {
+		source := kubeVolume.VsphereVolume
+		return name, &types.Volume{
+			Vsphere: &types.VsphereVolume{
+				VolumePath:    source.VolumePath,
+				FSType:        source.FSType,
+				StoragePolicy: convertVsphereStoragePolicy(source.StoragePolicyName, source.StoragePolicyID),
 			},
 		}, nil
 	}

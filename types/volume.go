@@ -34,6 +34,7 @@ type Volume struct {
 	PVC          *PVCVolume
 	Quobyte      *QuobyteVolume
 	ScaleIO      *ScaleIOVolume
+	Vsphere      *VsphereVolume
 }
 
 const (
@@ -56,6 +57,7 @@ const (
 	VolumeTypePVC          = "pvc"
 	VolumeTypeQuobyte      = "quobyte"
 	VolumeTypeScaleIO      = "scaleio"
+	VolumeTypeVsphere      = "vsphere"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -238,6 +240,17 @@ type ScaleIOVolume struct {
 	ReadOnly         bool   `json:"ro,omitempty"`
 }
 
+type VsphereVolume struct {
+	VolumePath    string                `json:"-"`
+	FSType        string                `json:"fs,omitempty"`
+	StoragePolicy *VsphereStoragePolicy `json:"policy,omitempty"`
+}
+
+type VsphereStoragePolicy struct {
+	Name string `json:"name,omitempty"`
+	ID   string `json:"id,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -310,6 +323,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalQuobyteVolume(obj, selector)
 	case VolumeTypeScaleIO:
 		return v.UnmarshalScaleIOVolume(obj, selector)
+	case VolumeTypeVsphere:
+		return v.UnmarshalVsphereVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -380,6 +395,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.ScaleIO != nil {
 		marshalledVolume, err = v.ScaleIO.Marshal()
+	}
+	if v.Vsphere != nil {
+		marshalledVolume, err = v.Vsphere.Marshal()
 	}
 
 	if err != nil {
@@ -1009,6 +1027,35 @@ func (s ScaleIOVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeScaleIO,
 		Selector:    []string{s.VolumeName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalVsphereVolume(obj map[string]interface{}, selector []string) error {
+	source := VsphereVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume path) for %s", VolumeTypeVsphere)
+	}
+	source.VolumePath = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeVsphere)
+	}
+
+	v.Vsphere = &source
+	return nil
+}
+
+func (s VsphereVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeVsphere)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeVsphere,
+		Selector:    []string{s.VolumePath},
 		ExtraFields: obj,
 	}, nil
 }

@@ -271,6 +271,17 @@ var kokiScaleIOVolume0 = Volume{
 	},
 }
 
+var kokiVsphereVolume0 = Volume{
+	Vsphere: &VsphereVolume{
+		VolumePath: "[datastore1] volumes/myDisk",
+		FSType:     "ext4",
+		StoragePolicy: &VsphereStoragePolicy{
+			Name: "policy-name",
+			ID:   "policy-id",
+		},
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -302,6 +313,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiPVCVolume1, t, true)
 	testVolumeSource(kokiQuobyteVolume0, t, false)
 	testVolumeSource(kokiScaleIOVolume0, t, false)
+	testVolumeSource(kokiVsphereVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

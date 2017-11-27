@@ -8,10 +8,11 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: test_volume
-    storage_policy_id: id
-    storage_policy_name: policy
-    type: vsphere-volume
-    volume_path: /path/to/vsphere/volume
+    test_volume:
+      fs: xfs
+      policy:
+        id: id
+        name: policy
+      vol_name: /path/to/vsphere/volume
+      vol_type: vsphere
 

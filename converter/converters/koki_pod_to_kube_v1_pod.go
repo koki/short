@@ -293,6 +293,14 @@ func revertLocalObjectRef(kokiRef string) *v1.LocalObjectReference {
 	}
 }
 
+func revertVsphereStoragePolicy(kokiPolicy *types.VsphereStoragePolicy) (name, ID string) {
+	if kokiPolicy == nil {
+		return "", ""
+	}
+
+	return kokiPolicy.Name, kokiPolicy.ID
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -576,6 +584,21 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					VolumeName:       source.VolumeName,
 					FSType:           source.FSType,
 					ReadOnly:         source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.Vsphere != nil {
+		source := kokiVolume.Vsphere
+		storagePolicyName, storagePolicyID := revertVsphereStoragePolicy(source.StoragePolicy)
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				VsphereVolume: &v1.VsphereVirtualDiskVolumeSource{
+					VolumePath:        source.VolumePath,
+					FSType:            source.FSType,
+					StoragePolicyName: storagePolicyName,
+					StoragePolicyID:   storagePolicyID,
 				},
 			},
 		}, nil
