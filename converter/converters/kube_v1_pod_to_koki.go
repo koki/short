@@ -477,6 +477,23 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.ScaleIO != nil {
+		source := kubeVolume.ScaleIO
+		return name, &types.Volume{
+			ScaleIO: &types.ScaleIOVolume{
+				Gateway:          source.Gateway,
+				System:           source.System,
+				SecretRef:        convertLocalObjectRef(source.SecretRef),
+				SSLEnabled:       source.SSLEnabled,
+				ProtectionDomain: source.ProtectionDomain,
+				StoragePool:      source.StoragePool,
+				StorageMode:      source.StorageMode,
+				VolumeName:       source.VolumeName,
+				FSType:           source.FSType,
+				ReadOnly:         source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

@@ -256,6 +256,21 @@ var kokiQuobyteVolume0 = Volume{
 	},
 }
 
+var kokiScaleIOVolume0 = Volume{
+	ScaleIO: &ScaleIOVolume{
+		Gateway:          "https://localhost:443/api",
+		System:           "scaleio",
+		SecretRef:        "secret-name",
+		SSLEnabled:       true,
+		ProtectionDomain: "pd01",
+		StoragePool:      "sp01",
+		StorageMode:      "ThickProvisioned",
+		VolumeName:       "vol-0",
+		FSType:           "xfs",
+		ReadOnly:         true,
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -286,6 +301,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiPVCVolume0, t, true)
 	testVolumeSource(kokiPVCVolume1, t, true)
 	testVolumeSource(kokiQuobyteVolume0, t, false)
+	testVolumeSource(kokiScaleIOVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

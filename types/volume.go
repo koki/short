@@ -33,6 +33,7 @@ type Volume struct {
 	Portworx     *PortworxVolume
 	PVC          *PVCVolume
 	Quobyte      *QuobyteVolume
+	ScaleIO      *ScaleIOVolume
 }
 
 const (
@@ -54,6 +55,7 @@ const (
 	VolumeTypePortworx     = "portworx"
 	VolumeTypePVC          = "pvc"
 	VolumeTypeQuobyte      = "quobyte"
+	VolumeTypeScaleIO      = "scaleio"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -223,6 +225,19 @@ type QuobyteVolume struct {
 	Group    string `json:"group,omitempty"`
 }
 
+type ScaleIOVolume struct {
+	Gateway          string `json:"gateway"`
+	System           string `json:"system"`
+	SecretRef        string `json:"secret"`
+	SSLEnabled       bool   `json:"ssl,omitempty"`
+	ProtectionDomain string `json:"protection_domain,omitempty"`
+	StoragePool      string `json:"storage_pool,omitempty"`
+	StorageMode      string `json:"storage_mode,omitempty"`
+	VolumeName       string `json:"-"`
+	FSType           string `json:"fs,omitempty"`
+	ReadOnly         bool   `json:"ro,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -293,6 +308,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalPVCVolume(selector)
 	case VolumeTypeQuobyte:
 		return v.UnmarshalQuobyteVolume(obj, selector)
+	case VolumeTypeScaleIO:
+		return v.UnmarshalScaleIOVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -360,6 +377,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Quobyte != nil {
 		marshalledVolume, err = v.Quobyte.Marshal()
+	}
+	if v.ScaleIO != nil {
+		marshalledVolume, err = v.ScaleIO.Marshal()
 	}
 
 	if err != nil {
@@ -960,6 +980,35 @@ func (s QuobyteVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeQuobyte,
 		Selector:    []string{s.Volume},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalScaleIOVolume(obj map[string]interface{}, selector []string) error {
+	source := ScaleIOVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeScaleIO)
+	}
+	source.VolumeName = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+	}
+
+	v.ScaleIO = &source
+	return nil
+}
+
+func (s ScaleIOVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeScaleIO,
+		Selector:    []string{s.VolumeName},
 		ExtraFields: obj,
 	}, nil
 }

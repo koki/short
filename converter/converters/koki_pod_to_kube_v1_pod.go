@@ -560,6 +560,26 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.ScaleIO != nil {
+		source := kokiVolume.ScaleIO
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				ScaleIO: &v1.ScaleIOVolumeSource{
+					Gateway:          source.Gateway,
+					System:           source.System,
+					SecretRef:        revertLocalObjectRef(source.SecretRef),
+					SSLEnabled:       source.SSLEnabled,
+					ProtectionDomain: source.ProtectionDomain,
+					StoragePool:      source.StoragePool,
+					StorageMode:      source.StorageMode,
+					VolumeName:       source.VolumeName,
+					FSType:           source.FSType,
+					ReadOnly:         source.ReadOnly,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }
