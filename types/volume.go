@@ -2,12 +2,10 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
-	"k8s.io/api/core/v1"
-
 	"github.com/koki/short/util"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type VolumeWrapper struct {
@@ -15,231 +13,243 @@ type VolumeWrapper struct {
 }
 
 type Volume struct {
-	VolumeMeta
-	VolumeSource
+	HostPath *HostPathVolume
+	EmptyDir *EmptyDirVolume
+	GcePD    *GcePDVolume
 }
 
-type VolumeMeta struct {
-	Name string `json:"name"`
+type HostPathVolume struct {
+	Path string       `json:"-"`
+	Type HostPathType `json:"-"`
 }
 
-type VolumeSource struct {
-	VolumeSource v1.VolumeSource
+type HostPathType string
+
+const (
+	HostPathUnset             HostPathType = ""
+	HostPathDirectoryOrCreate HostPathType = "dir-or-create"
+	HostPathDirectory         HostPathType = "dir"
+	HostPathFileOrCreate      HostPathType = "file-or-create"
+	HostPathFile              HostPathType = "file"
+	HostPathSocket            HostPathType = "socket"
+	HostPathCharDev           HostPathType = "char-dev"
+	HostPathBlockDev          HostPathType = "block-dev"
+)
+
+type EmptyDirVolume struct {
+	Medium    StorageMedium      `json:"medium,omitempty"`
+	SizeLimit *resource.Quantity `json:"max_size,omitempty"`
 }
 
-var volumeSourceLookup = map[string]string{
-	"scale_io":          "scaleIO",
-	"volume_id":         "volumeID",
-	"storage_policy_id": "storagePolicyID",
-	"pd_id":             "pdID",
-	"disk_uri":          "diskURI",
-	"downward_api":      "downwardAPI",
+type GcePDVolume struct {
+	PDName    string `json:"-"`
+	FSType    string `json:"fs,omitempty"`
+	Partition int32  `json:"partition,omitempty"`
+	ReadOnly  bool   `json:"ro,omitempty"`
 }
+
+type StorageMedium string
+
+const (
+	StorageMediumDefault   StorageMedium = ""           // use whatever the default is for the node
+	StorageMediumMemory    StorageMedium = "memory"     // use memory (tmpfs)
+	StorageMediumHugepages StorageMedium = "huge-pages" // use hugepages
+)
 
 func (v *Volume) UnmarshalJSON(data []byte) error {
-	err := json.Unmarshal(data, &v.VolumeSource)
-	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal volume source from JSON: %s", err.Error())
+	var err error
+	str := ""
+	err = json.Unmarshal(data, &str)
+	if err == nil {
+		segments := strings.Split(str, ":")
+		return v.Unmarshal(nil, segments[0], segments[1:])
 	}
 
-	err = json.Unmarshal(data, &v.VolumeMeta)
-	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal metatdata from JSON: %s", err.Error())
-	}
-
-	return nil
-}
-
-func (v Volume) MarshalJSON() ([]byte, error) {
-	b, err := json.Marshal(v.VolumeMeta)
-	if err != nil {
-		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal metadata to JSON", err.Error())
-	}
-
-	bb, err := v.VolumeSource.MarshalJSON()
-	if err != nil {
-		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal volume source to JSON", err.Error())
-	}
-
-	metaObj := map[string]interface{}{}
-	err = json.Unmarshal(b, &metaObj)
-	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(b), v.VolumeMeta, "couldn't convert metadata to dictionary: %s", err.Error())
-	}
-
-	sourceObj := map[string]interface{}{}
-	err = json.Unmarshal(bb, &sourceObj)
-	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(b), v.VolumeSource, "couldn't convert volume source to dictionary: %s", err.Error())
-	}
-
-	// Merge metadata with volume-source
-	for key, val := range metaObj {
-		sourceObj[key] = val
-	}
-
-	result, err := json.Marshal(sourceObj)
-	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(sourceObj, v, "couldn't marshal merged metadata+volume-source dictionary to JSON: %s", err.Error())
-	}
-	return result, nil
-}
-
-func PreprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
 	obj := map[string]interface{}{}
-	err := json.Unmarshal(data, &obj)
+	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(data), v, "couldn't deserialize: %s", err.Error())
+		return util.InvalidValueErrorf(string(data), "expected either string or dictionary")
 	}
 
-	if len(obj) < 2 {
-		return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected at least two fields: name, type")
-	}
-
-	var volumeType string
-	if vType, ok := obj["type"]; ok {
-		switch vType := vType.(type) {
-		case string:
-			volumeType = vType
-			delete(obj, "type")
-		default:
-			return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected 'type' field to be a string")
+	selector := []string{}
+	if val, ok := obj["vol_name"]; ok {
+		if volName, ok := val.(string); ok {
+			selector = append(selector, volName)
+		} else {
+			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_name\"")
 		}
-	} else {
-		return nil, util.InvalidValueForTypeErrorf(string(data), v, "no 'type' field")
 	}
 
-	// EXTENSION POINT: Choose to do type-specific deserialization based on volumeType.
-	volumeType, err = untweakVolumeSourceFields(volumeType, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Generic deserialization:
-	volumeSourceContentsObj := util.ConvertMapKeysToCamelCase(volumeSourceLookup, obj)
-	volumeType = util.HyphenToCamelCase(volumeSourceLookup, volumeType)
-	volumeSourceObj := map[string]interface{}{
-		volumeType: volumeSourceContentsObj,
-	}
-
-	b, err := json.Marshal(volumeSourceObj)
-	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(volumeSourceObj, v, "couldn't reserialize VolumeSource obj")
-	}
-
-	return b, nil
-}
-
-func (v *VolumeSource) UnmarshalJSON(data []byte) error {
-	b, err := PreprocessVolumeSourceJSON(v, data)
+	volType, err := util.GetStringEntry(obj, "vol_type")
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(b, &v.VolumeSource)
-	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(b), v, "couldn't deserialize")
-	}
-
-	return nil
+	return v.Unmarshal(obj, volType, selector)
 }
 
-func PostprocessVolumeSourceJSON(v interface{}, data []byte) ([]byte, error) {
+const (
+	VolumeTypeHostPath = "host_path"
+	VolumeTypeEmptyDir = "empty_dir"
+	VolumeTypeGcePD    = "gce_pd"
+)
+
+func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector []string) error {
+	switch volType {
+	case VolumeTypeHostPath:
+		return v.UnmarshalHostPathVolume(selector)
+	case VolumeTypeEmptyDir:
+		return v.UnmarshalEmptyDirVolume(obj, selector)
+	case VolumeTypeGcePD:
+		return v.UnmarshalGcePDVolume(obj, selector)
+	default:
+		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
+	}
+}
+
+type MarshalledVolume struct {
+	Type        string
+	Selector    []string
+	ExtraFields map[string]interface{}
+}
+
+func (v Volume) MarshalJSON() ([]byte, error) {
+	var marshalledVolume *MarshalledVolume
 	var err error
-	obj := map[string]interface{}{}
-	err = json.Unmarshal(data, &obj)
-	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(data), v, "expected to unmarshal dictionary from JSON: %s", err.Error())
+	if v.HostPath != nil {
+		marshalledVolume, err = v.HostPath.Marshal()
 	}
 
-	if len(obj) != 1 {
-		return nil, util.InvalidValueForTypeErrorf(obj, v, "should have one field: volume-source")
+	if v.EmptyDir != nil {
+		marshalledVolume, err = v.EmptyDir.Marshal()
 	}
 
-	var kokiType string
-	var volumeSource map[string]interface{}
-	for key, val := range obj {
-		kokiType = util.CamelToHyphenCase(key)
-		switch val := val.(type) {
-		case map[string]interface{}:
-			volumeSource = val
-		default:
-			return nil, util.InvalidValueForTypeErrorf(val, v, "VolumeSource wasn't reserialized as a dictionary")
-		}
+	if v.GcePD != nil {
+		marshalledVolume, err = v.GcePD.Marshal()
 	}
 
-	snakeObj := util.ConvertMapKeysToSnakeCase(volumeSource)
-	kokiType, err = tweakVolumeSourceFields(kokiType, snakeObj)
 	if err != nil {
 		return nil, err
 	}
-	snakeObj["type"] = kokiType
 
-	result, err := json.Marshal(snakeObj)
+	if marshalledVolume == nil {
+		return nil, util.InvalidInstanceErrorf(v, "empty volume definition")
+	}
+
+	if len(marshalledVolume.ExtraFields) == 0 {
+		segments := []string{marshalledVolume.Type}
+		segments = append(segments, marshalledVolume.Selector...)
+		return json.Marshal(strings.Join(segments, ":"))
+	}
+
+	obj := marshalledVolume.ExtraFields
+	obj["vol_type"] = marshalledVolume.Type
+	if len(marshalledVolume.Selector) > 0 {
+		obj["vol_name"] = strings.Join(marshalledVolume.Selector, ":")
+	}
+
+	return json.Marshal(obj)
+}
+
+func (v *Volume) UnmarshalHostPathVolume(selector []string) error {
+	source := HostPathVolume{}
+	if len(selector) > 2 || len(selector) == 0 {
+		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypeHostPath)
+	}
+
+	source.Path = selector[0]
+
+	if len(selector) > 1 {
+		hostPathType := HostPathType(selector[1])
+		switch hostPathType {
+		case HostPathUnset:
+		case HostPathDirectoryOrCreate:
+		case HostPathDirectory:
+		case HostPathFileOrCreate:
+		case HostPathFile:
+		case HostPathSocket:
+		case HostPathCharDev:
+		case HostPathBlockDev:
+		default:
+			return util.InvalidValueErrorf(hostPathType, "invalid 'vol_type' selector for %s", VolumeTypeHostPath)
+		}
+
+		source.Type = hostPathType
+	}
+
+	v.HostPath = &source
+	return nil
+}
+
+func (s HostPathVolume) Marshal() (*MarshalledVolume, error) {
+	var selector []string
+	if len(s.Type) > 0 {
+		selector = []string{s.Path, string(s.Type)}
+	} else {
+		selector = []string{s.Path}
+	}
+	return &MarshalledVolume{
+		Type:     VolumeTypeHostPath,
+		Selector: selector,
+	}, nil
+}
+
+func (v *Volume) UnmarshalEmptyDirVolume(obj map[string]interface{}, selector []string) error {
+	source := EmptyDirVolume{}
+	if len(selector) > 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeEmptyDir)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(snakeObj, v, "couldn't marshal dictionary representation to JSON", err.Error())
+		return util.ContextualizeErrorf(err, VolumeTypeEmptyDir)
 	}
-	return result, nil
+
+	v.EmptyDir = &source
+	return nil
 }
 
-func (v VolumeSource) MarshalJSON() ([]byte, error) {
-	var err error
-	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
-
-	b, err := json.Marshal(v.VolumeSource)
+func (s EmptyDirVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal to JSON: %s", err.Error())
+		return nil, util.ContextualizeErrorf(err, VolumeTypeEmptyDir)
 	}
 
-	return PostprocessVolumeSourceJSON(v, b)
+	return &MarshalledVolume{
+		Type:        VolumeTypeEmptyDir,
+		ExtraFields: obj,
+	}, nil
 }
 
-func tweakVolumeSourceFields(kokiType string, obj map[string]interface{}) (string, error) {
-	// Do type-specific tweaks here.
-	switch kokiType {
-	case "host-path":
-		if val, ok := obj["type"]; ok {
-			if str, ok := obj["type"].(string); ok {
-				return fmt.Sprintf("%s.%s", kokiType, util.CamelToHyphenCase(str)), nil
-			}
-			return "", util.InvalidValueErrorf(val, "HostPath 'type' field should be a string")
-		}
-	case "config-map":
-		if val, ok := obj["name"]; ok {
-			if str, ok := obj["name"].(string); ok {
-				obj["cm-name"] = str
-				return kokiType, nil
-			}
-			return "", util.InvalidValueErrorf(val, "ConfigMap 'name' field should be a string")
-		}
+func (v *Volume) UnmarshalGcePDVolume(obj map[string]interface{}, selector []string) error {
+	source := GcePDVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeGcePD)
+	}
+	source.PDName = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeGcePD)
 	}
 
-	// Check for unhandled collisions.
-	if _, ok := obj["name"]; ok {
-		return "", util.InvalidValueErrorf(obj, "VolumeSource contains a 'name' field, which collides with the Volume 'name' field")
-	}
-	if _, ok := obj["type"]; ok {
-		return "", util.InvalidValueErrorf(obj, "VolumeSource contains a 'type' field, which collides with the Volume 'type' field")
-	}
-
-	return kokiType, nil
+	v.GcePD = &source
+	return nil
 }
 
-func untweakVolumeSourceFields(kokiType string, obj map[string]interface{}) (string, error) {
-	// Do type-specific untweaks here.
-	if strings.HasPrefix(kokiType, "host-path.") {
-		str := util.HyphenToCamelCase(volumeSourceLookup, kokiType[len("host-path."):])
-		obj["type"] = strings.Title(str)
-		return "host-path", nil
+func (s GcePDVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeGcePD)
 	}
 
-	if kokiType == "config-map" {
-		if name, ok := obj["cm-name"]; ok {
-			obj["name"] = name
-			delete(obj, "cm-name")
-		}
-		return kokiType, nil
+	if len(s.PDName) == 0 {
+		return nil, util.InvalidInstanceErrorf(&s, "selector must contain disk name")
 	}
 
-	return kokiType, nil
+	return &MarshalledVolume{
+		Type:        VolumeTypeGcePD,
+		Selector:    []string{s.PDName},
+		ExtraFields: obj,
+	}, nil
 }

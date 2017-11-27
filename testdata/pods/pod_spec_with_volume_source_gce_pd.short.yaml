@@ -8,10 +8,10 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: test_volume
-    partition: 1
-    pd_name: name_of_pd
-    read_only: true
-    type: gce-persistent-disk
+    test_volume:
+      fs: xfs
+      partition: 1
+      ro: true
+      vol_name: name_of_pd
+      vol_type: gce_pd
 

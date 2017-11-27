@@ -15,6 +15,7 @@ import (
 )
 
 func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
+	var err error
 	kubePod := &v1.Pod{}
 	kokiPod := pod.Pod
 
@@ -32,7 +33,10 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 
 	kubePod.Spec = v1.PodSpec{}
 
-	kubePod.Spec.Volumes = revertVolumes(kokiPod.Volumes)
+	kubePod.Spec.Volumes, err = revertVolumes(kokiPod.Volumes)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "pod volumes")
+	}
 	fields := strings.SplitN(kokiPod.Hostname, ".", 2)
 	if len(fields) == 1 {
 		kubePod.Spec.Hostname = kokiPod.Hostname
@@ -177,16 +181,101 @@ func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
 	return kubePod, nil
 }
 
-func revertVolumes(kokiVolumes []types.Volume) []v1.Volume {
-	kubeVolumes := make([]v1.Volume, len(kokiVolumes))
-	for i, kokiVolume := range kokiVolumes {
-		kubeVolumes[i] = v1.Volume{
-			Name:         kokiVolume.Name,
-			VolumeSource: kokiVolume.VolumeSource.VolumeSource,
+func revertVolumes(kokiVolumes map[string]types.Volume) ([]v1.Volume, error) {
+	kubeVolumes := []v1.Volume{}
+	for name, kokiVolume := range kokiVolumes {
+		kubeVolume, err := revertVolume(name, kokiVolume)
+		if err != nil {
+			return nil, err
 		}
+		kubeVolumes = append(kubeVolumes, *kubeVolume)
 	}
 
-	return kubeVolumes
+	return kubeVolumes, nil
+}
+
+func revertStorageMedium(kokiMedium types.StorageMedium) (v1.StorageMedium, error) {
+	switch kokiMedium {
+	case types.StorageMediumDefault:
+		return v1.StorageMediumDefault, nil
+	case types.StorageMediumMemory:
+		return v1.StorageMediumMemory, nil
+	case types.StorageMediumHugepages:
+		return v1.StorageMediumHugepages, nil
+	default:
+		return v1.StorageMediumDefault, util.InvalidValueErrorf(kokiMedium, "unrecognized storage medium")
+	}
+}
+
+func revertHostPathType(kokiType types.HostPathType) (v1.HostPathType, error) {
+	switch kokiType {
+	case types.HostPathUnset:
+		return v1.HostPathUnset, nil
+	case types.HostPathDirectoryOrCreate:
+		return v1.HostPathDirectoryOrCreate, nil
+	case types.HostPathDirectory:
+		return v1.HostPathDirectory, nil
+	case types.HostPathFileOrCreate:
+		return v1.HostPathFileOrCreate, nil
+	case types.HostPathFile:
+		return v1.HostPathFile, nil
+	case types.HostPathSocket:
+		return v1.HostPathSocket, nil
+	case types.HostPathCharDev:
+		return v1.HostPathCharDev, nil
+	case types.HostPathBlockDev:
+		return v1.HostPathBlockDev, nil
+	default:
+		return v1.HostPathUnset, util.InvalidValueErrorf(kokiType, "unrecognized host_path type")
+	}
+}
+
+func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
+	if kokiVolume.EmptyDir != nil {
+		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+		}
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{
+					Medium:    medium,
+					SizeLimit: kokiVolume.EmptyDir.SizeLimit,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.HostPath != nil {
+		kubeType, err := revertHostPathType(kokiVolume.HostPath.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+		}
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				HostPath: &v1.HostPathVolumeSource{
+					Path: kokiVolume.HostPath.Path,
+					Type: &kubeType,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.GcePD != nil {
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
+					PDName:    kokiVolume.GcePD.PDName,
+					FSType:    kokiVolume.GcePD.FSType,
+					Partition: kokiVolume.GcePD.Partition,
+					ReadOnly:  kokiVolume.GcePD.ReadOnly,
+				},
+			},
+		}, nil
+	}
+
+	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }
 
 func revertContainerStatus(container types.Container) (v1.ContainerStatus, error) {

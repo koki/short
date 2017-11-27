@@ -15,6 +15,7 @@ import (
 )
 
 func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
+	var err error
 	kokiPod := &types.Pod{}
 
 	kokiPod.Name = pod.Name
@@ -24,7 +25,10 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	kokiPod.Labels = pod.Labels
 	kokiPod.Annotations = pod.Annotations
 
-	kokiPod.Volumes = convertVolumes(pod.Spec.Volumes)
+	kokiPod.Volumes, err = convertVolumes(pod.Spec.Volumes)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "pod volumes")
+	}
 	affinity, err := convertAffinity(pod.Spec)
 	if err != nil {
 		return nil, err
@@ -137,20 +141,97 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	return &types.PodWrapper{Pod: *kokiPod}, nil
 }
 
-func convertVolumes(kubeVolumes []v1.Volume) []types.Volume {
-	kokiVolumes := make([]types.Volume, len(kubeVolumes))
-	for i, kubeVolume := range kubeVolumes {
-		kokiVolumes[i] = types.Volume{
-			VolumeMeta: types.VolumeMeta{
-				Name: kubeVolume.Name,
-			},
-			VolumeSource: types.VolumeSource{
-				VolumeSource: kubeVolume.VolumeSource,
-			},
+func convertVolumes(kubeVolumes []v1.Volume) (map[string]types.Volume, error) {
+	kokiVolumes := map[string]types.Volume{}
+	for _, kubeVolume := range kubeVolumes {
+		name, kokiVolume, err := convertVolume(kubeVolume)
+		if err != nil {
+			return nil, err
 		}
+		kokiVolumes[name] = *kokiVolume
 	}
 
-	return kokiVolumes
+	return kokiVolumes, nil
+}
+
+func convertStorageMedium(kubeMedium v1.StorageMedium) (types.StorageMedium, error) {
+	switch kubeMedium {
+	case v1.StorageMediumDefault:
+		return types.StorageMediumDefault, nil
+	case v1.StorageMediumMemory:
+		return types.StorageMediumMemory, nil
+	case v1.StorageMediumHugepages:
+		return types.StorageMediumHugepages, nil
+	default:
+		return types.StorageMediumDefault, util.InvalidValueErrorf(kubeMedium, "unrecognized storage medium")
+	}
+}
+
+func convertHostPathType(kubeType *v1.HostPathType) (types.HostPathType, error) {
+	if kubeType == nil {
+		return types.HostPathUnset, nil
+	}
+
+	switch *kubeType {
+	case v1.HostPathUnset:
+		return types.HostPathUnset, nil
+	case v1.HostPathDirectoryOrCreate:
+		return types.HostPathDirectoryOrCreate, nil
+	case v1.HostPathDirectory:
+		return types.HostPathDirectory, nil
+	case v1.HostPathFileOrCreate:
+		return types.HostPathFileOrCreate, nil
+	case v1.HostPathFile:
+		return types.HostPathFile, nil
+	case v1.HostPathSocket:
+		return types.HostPathSocket, nil
+	case v1.HostPathCharDev:
+		return types.HostPathCharDev, nil
+	case v1.HostPathBlockDev:
+		return types.HostPathBlockDev, nil
+	default:
+		return types.HostPathUnset, util.InvalidValueErrorf(kubeType, "unrecognized host_path type")
+	}
+}
+
+func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
+	name := kubeVolume.Name
+	if kubeVolume.VolumeSource.EmptyDir != nil {
+		medium, err := convertStorageMedium(kubeVolume.VolumeSource.EmptyDir.Medium)
+		if err != nil {
+			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+		}
+		return name, &types.Volume{
+			EmptyDir: &types.EmptyDirVolume{
+				Medium:    medium,
+				SizeLimit: kubeVolume.VolumeSource.EmptyDir.SizeLimit,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.HostPath != nil {
+		kokiType, err := convertHostPathType(kubeVolume.VolumeSource.HostPath.Type)
+		if err != nil {
+			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+		}
+		return name, &types.Volume{
+			HostPath: &types.HostPathVolume{
+				Path: kubeVolume.VolumeSource.HostPath.Path,
+				Type: kokiType,
+			},
+		}, nil
+	}
+	if kubeVolume.VolumeSource.GCEPersistentDisk != nil {
+		return name, &types.Volume{
+			GcePD: &types.GcePDVolume{
+				PDName:    kubeVolume.VolumeSource.GCEPersistentDisk.PDName,
+				FSType:    kubeVolume.VolumeSource.GCEPersistentDisk.FSType,
+				Partition: kubeVolume.VolumeSource.GCEPersistentDisk.Partition,
+				ReadOnly:  kubeVolume.VolumeSource.GCEPersistentDisk.ReadOnly,
+			},
+		}, nil
+	}
+
+	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
 
 func convertContainer(container *v1.Container) (*types.Container, error) {

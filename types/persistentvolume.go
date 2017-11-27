@@ -48,7 +48,6 @@ const (
 )
 
 type PersistentVolumeSource struct {
-	VolumeSource v1.PersistentVolumeSource
 }
 
 // comma-separated list of modes
@@ -150,7 +149,7 @@ func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal metadata to JSON: %s", err.Error())
 	}
 
-	bb, err := v.PersistentVolumeSource.MarshalJSON()
+	bb, err := json.Marshal(v.PersistentVolumeSource)
 	if err != nil {
 		return nil, err
 	}
@@ -178,30 +177,4 @@ func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 	}
 
 	return result, nil
-}
-
-func (v *PersistentVolumeSource) UnmarshalJSON(data []byte) error {
-	b, err := PreprocessVolumeSourceJSON(v, data)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(b, &v.VolumeSource)
-	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(b), v, "couldn't deserialize")
-	}
-
-	return nil
-}
-
-func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
-	var err error
-	// EXTENSION POINT: Choose to do type-specific serialization based on the volume type.
-
-	b, err := json.Marshal(v.VolumeSource)
-	if err != nil {
-		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal to JSON: %s", err.Error())
-	}
-
-	return PostprocessVolumeSourceJSON(v, b)
 }

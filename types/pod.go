@@ -15,7 +15,7 @@ type Pod struct {
 	Namespace              string            `json:"namespace,omitempty"`
 	Labels                 map[string]string `json:"labels,omitempty"`
 	Annotations            map[string]string `json:"annotations,omitempty"`
-	Volumes                []Volume          `json:"volumes,omitempty"`
+	Volumes                map[string]Volume `json:"volumes,omitempty"`
 	Affinity               []Affinity        `json:"affinity,omitempty"`
 	Containers             []Container       `json:"containers,omitempty"`
 	InitContainers         []Container       `json:"init_containers,omitempty"`
