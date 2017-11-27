@@ -30,6 +30,7 @@ type Volume struct {
 	ISCSI        *ISCSIVolume
 	NFS          *NFSVolume
 	PhotonPD     *PhotonPDVolume
+	Portworx     *PortworxVolume
 }
 
 const (
@@ -48,6 +49,7 @@ const (
 	VolumeTypeISCSI        = "iscsi"
 	VolumeTypeNFS          = "nfs"
 	VolumeTypePhotonPD     = "photon"
+	VolumeTypePortworx     = "portworx"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -198,6 +200,12 @@ type PhotonPDVolume struct {
 	FSType string `json:"-"`
 }
 
+type PortworxVolume struct {
+	VolumeID string `json:"-"`
+	FSType   string `json:"fs,omitempty"`
+	ReadOnly bool   `json:"ro,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -262,6 +270,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalNFSVolume(selector)
 	case VolumeTypePhotonPD:
 		return v.UnmarshalPhotonPDVolume(selector)
+	case VolumeTypePortworx:
+		return v.UnmarshalPortworxVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -320,6 +330,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.PhotonPD != nil {
 		marshalledVolume, err = v.PhotonPD.Marshal()
+	}
+	if v.Portworx != nil {
+		marshalledVolume, err = v.Portworx.Marshal()
 	}
 
 	if err != nil {
@@ -829,5 +842,34 @@ func (s PhotonPDVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:     VolumeTypePhotonPD,
 		Selector: selector,
+	}, nil
+}
+
+func (v *Volume) UnmarshalPortworxVolume(obj map[string]interface{}, selector []string) error {
+	source := PortworxVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypePortworx)
+	}
+	source.VolumeID = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypePortworx)
+	}
+
+	v.Portworx = &source
+	return nil
+}
+
+func (s PortworxVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypePortworx)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypePortworx,
+		Selector:    []string{s.VolumeID},
+		ExtraFields: obj,
 	}, nil
 }

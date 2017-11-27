@@ -519,6 +519,20 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.Portworx != nil {
+		source := kokiVolume.Portworx
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				PortworxVolume: &v1.PortworxVolumeSource{
+					VolumeID: source.VolumeID,
+					FSType:   source.FSType,
+					ReadOnly: source.ReadOnly,
+				},
+			},
+		}, nil
+
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

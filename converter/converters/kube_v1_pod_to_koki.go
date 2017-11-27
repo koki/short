@@ -446,6 +446,16 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.PortworxVolume != nil {
+		source := kubeVolume.VolumeSource.PortworxVolume
+		return name, &types.Volume{
+			Portworx: &types.PortworxVolume{
+				VolumeID: source.VolumeID,
+				FSType:   source.FSType,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
