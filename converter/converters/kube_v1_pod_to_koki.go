@@ -437,6 +437,15 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.PhotonPersistentDisk != nil {
+		source := kubeVolume.VolumeSource.PhotonPersistentDisk
+		return name, &types.Volume{
+			PhotonPD: &types.PhotonPDVolume{
+				PdID:   source.PdID,
+				FSType: source.FSType,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

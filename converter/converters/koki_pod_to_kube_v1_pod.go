@@ -507,6 +507,18 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.PhotonPD != nil {
+		source := kokiVolume.PhotonPD
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				PhotonPersistentDisk: &v1.PhotonPersistentDiskVolumeSource{
+					PdID:   source.PdID,
+					FSType: source.FSType,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

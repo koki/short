@@ -29,6 +29,7 @@ type Volume struct {
 	Glusterfs    *GlusterfsVolume
 	ISCSI        *ISCSIVolume
 	NFS          *NFSVolume
+	PhotonPD     *PhotonPDVolume
 }
 
 const (
@@ -46,6 +47,7 @@ const (
 	VolumeTypeGlusterfs    = "glusterfs"
 	VolumeTypeISCSI        = "iscsi"
 	VolumeTypeNFS          = "nfs"
+	VolumeTypePhotonPD     = "photon"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -191,6 +193,11 @@ type NFSVolume struct {
 	ReadOnly bool   `json:"-"`
 }
 
+type PhotonPDVolume struct {
+	PdID   string `json:"-"`
+	FSType string `json:"-"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -253,6 +260,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalISCSIVolume(obj, selector)
 	case VolumeTypeNFS:
 		return v.UnmarshalNFSVolume(selector)
+	case VolumeTypePhotonPD:
+		return v.UnmarshalPhotonPDVolume(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -308,6 +317,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.NFS != nil {
 		marshalledVolume, err = v.NFS.Marshal()
+	}
+	if v.PhotonPD != nil {
+		marshalledVolume, err = v.PhotonPD.Marshal()
 	}
 
 	if err != nil {
@@ -787,6 +799,35 @@ func (s NFSVolume) Marshal() (*MarshalledVolume, error) {
 	}
 	return &MarshalledVolume{
 		Type:     VolumeTypeNFS,
+		Selector: selector,
+	}, nil
+}
+
+func (v *Volume) UnmarshalPhotonPDVolume(selector []string) error {
+	source := PhotonPDVolume{}
+	if len(selector) > 2 || len(selector) < 1 {
+		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePhotonPD)
+	}
+
+	source.PdID = selector[0]
+
+	if len(selector) > 1 {
+		source.FSType = selector[1]
+	}
+
+	v.PhotonPD = &source
+	return nil
+}
+
+func (s PhotonPDVolume) Marshal() (*MarshalledVolume, error) {
+	var selector []string
+	if len(s.FSType) > 0 {
+		selector = []string{s.PdID, s.FSType}
+	} else {
+		selector = []string{s.PdID}
+	}
+	return &MarshalledVolume{
+		Type:     VolumeTypePhotonPD,
 		Selector: selector,
 	}, nil
 }

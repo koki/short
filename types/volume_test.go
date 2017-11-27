@@ -209,6 +209,18 @@ var kokiNFSVolume1 = Volume{
 	},
 }
 
+var kokiPhotonPDVolume0 = Volume{
+	PhotonPD: &PhotonPDVolume{
+		PdID:   "some-pdid",
+		FSType: "ext4",
+	},
+}
+var kokiPhotonPDVolume1 = Volume{
+	PhotonPD: &PhotonPDVolume{
+		PdID: "some-pdid",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -232,6 +244,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiISCSIVolume0, t, false)
 	testVolumeSource(kokiNFSVolume0, t, true)
 	testVolumeSource(kokiNFSVolume1, t, true)
+	testVolumeSource(kokiPhotonPDVolume0, t, true)
+	testVolumeSource(kokiPhotonPDVolume1, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {
