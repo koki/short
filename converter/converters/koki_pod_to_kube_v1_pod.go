@@ -301,6 +301,39 @@ func revertVsphereStoragePolicy(kokiPolicy *types.VsphereStoragePolicy) (name, I
 	return kokiPolicy.Name, kokiPolicy.ID
 }
 
+func revertFileMode(kokiMode *types.FileMode) *int32 {
+	if kokiMode == nil {
+		return nil
+	}
+
+	return util.Int32Ptr(int32(*kokiMode))
+}
+
+func revertKeyToPathItems(kokiItems map[string]types.KeyAndMode) []v1.KeyToPath {
+	if len(kokiItems) == 0 {
+		return nil
+	}
+
+	kubeItems := []v1.KeyToPath{}
+	for path, item := range kokiItems {
+		kubeItems = append(kubeItems, v1.KeyToPath{
+			Path: path,
+			Key:  item.Key,
+			Mode: revertFileMode(item.Mode),
+		})
+	}
+
+	return kubeItems
+}
+
+func revertRequiredToOptional(required *bool) *bool {
+	if required == nil {
+		return nil
+	}
+
+	return util.BoolPtr(!*required)
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -599,6 +632,39 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					FSType:            source.FSType,
 					StoragePolicyName: storagePolicyName,
 					StoragePolicyID:   storagePolicyID,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.ConfigMap != nil {
+		source := kokiVolume.ConfigMap
+		ref := revertLocalObjectRef(source.Name)
+		if ref == nil {
+			return nil, util.InvalidInstanceErrorf(source, "config name is required")
+		}
+
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: &v1.ConfigMapVolumeSource{
+					LocalObjectReference: *ref,
+					Items:                revertKeyToPathItems(source.Items),
+					DefaultMode:          revertFileMode(source.DefaultMode),
+					Optional:             revertRequiredToOptional(source.Required),
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.Secret != nil {
+		source := kokiVolume.Secret
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Secret: &v1.SecretVolumeSource{
+					SecretName:  source.SecretName,
+					Items:       revertKeyToPathItems(source.Items),
+					DefaultMode: revertFileMode(source.DefaultMode),
+					Optional:    revertRequiredToOptional(source.Required),
 				},
 			},
 		}, nil

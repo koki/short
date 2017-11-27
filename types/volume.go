@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/koki/short/util"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/golang/glog"
+
+	"github.com/koki/short/util"
 )
 
 type VolumeWrapper struct {
@@ -35,6 +39,8 @@ type Volume struct {
 	Quobyte      *QuobyteVolume
 	ScaleIO      *ScaleIOVolume
 	Vsphere      *VsphereVolume
+	ConfigMap    *ConfigMapVolume
+	Secret       *SecretVolume
 }
 
 const (
@@ -58,6 +64,8 @@ const (
 	VolumeTypeQuobyte      = "quobyte"
 	VolumeTypeScaleIO      = "scaleio"
 	VolumeTypeVsphere      = "vsphere"
+	VolumeTypeConfigMap    = "config-map"
+	VolumeTypeSecret       = "secret"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -251,6 +259,35 @@ type VsphereStoragePolicy struct {
 	ID   string `json:"id,omitempty"`
 }
 
+type ConfigMapVolume struct {
+	Name string `json:"-"`
+
+	Items       map[string]KeyAndMode `json:"items,omitempty"`
+	DefaultMode *FileMode             `json:"mode,omitempty"`
+
+	// NOTE: opposite of Optional
+	Required *bool `json:"required,omitempty"`
+}
+
+type KeyAndMode struct {
+	Key  string    `json:"-"`
+	Mode *FileMode `json:"-"`
+}
+
+type SecretVolume struct {
+	SecretName string `json:"-"`
+
+	Items       map[string]KeyAndMode `json:"items,omitempty"`
+	DefaultMode *FileMode             `json:"mode,omitempty"`
+
+	// NOTE: opposite of Optional
+	Required *bool `json:"required,omitempty"`
+}
+
+// FileMode can be unmarshalled from either a number (octal is supported) or a string.
+// The json library doesn't allow serializing numbers as octal, so FileMode always marshals to a string.
+type FileMode int32
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -325,6 +362,10 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalScaleIOVolume(obj, selector)
 	case VolumeTypeVsphere:
 		return v.UnmarshalVsphereVolume(obj, selector)
+	case VolumeTypeConfigMap:
+		return v.UnmarshalConfigMapVolume(obj, selector)
+	case VolumeTypeSecret:
+		return v.UnmarshalSecretVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -398,6 +439,12 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Vsphere != nil {
 		marshalledVolume, err = v.Vsphere.Marshal()
+	}
+	if v.ConfigMap != nil {
+		marshalledVolume, err = v.ConfigMap.Marshal()
+	}
+	if v.Secret != nil {
+		marshalledVolume, err = v.Secret.Marshal()
 	}
 
 	if err != nil {
@@ -1056,6 +1103,127 @@ func (s VsphereVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeVsphere,
 		Selector:    []string{s.VolumePath},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (m *FileMode) UnmarshalJSON(data []byte) error {
+	var i int32
+	err := json.Unmarshal(data, &i)
+	if err == nil {
+		*m = FileMode(i)
+		return nil
+	}
+
+	var str string
+	err = json.Unmarshal(data, &str)
+	mode, err := strconv.ParseInt(str, 8, 32)
+	if err != nil {
+		return util.InvalidValueErrorf(str, "file mode should be an octal integer, written either as string or number")
+	}
+
+	*m = FileMode(int32(mode))
+	return nil
+}
+
+func (m FileMode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprintf("0%o", m))
+}
+
+func FileModePtr(m FileMode) *FileMode {
+	return &m
+}
+
+var keyAndModeRegexp = regexp.MustCompile(`^(.*):(0[0-7][0-7][0-7])$`)
+
+func (k *KeyAndMode) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.InvalidValueErrorf(string(data), "expected string for key:mode")
+	}
+
+	matches := keyAndModeRegexp.FindStringSubmatch(str)
+	if len(matches) == 0 {
+		k.Key = str
+		return nil
+	}
+
+	k.Key = matches[1]
+
+	// The regexp should ensure that this always succeeds.
+	i, err := strconv.ParseInt(matches[2], 8, 32)
+	if err != nil {
+		glog.V(0).Info("KeyAndMode regexp is matching non-integer file modes.")
+		return util.InvalidValueErrorf(str, "expected integer for file mode in key:mode")
+	}
+	mode := FileMode(int32(i))
+	k.Mode = &mode
+	return nil
+}
+
+func (k KeyAndMode) MarshalJSON() ([]byte, error) {
+	if k.Mode != nil {
+		return json.Marshal(fmt.Sprintf("%s:0%o", k.Key, *k.Mode))
+	}
+
+	return json.Marshal(k.Key)
+}
+
+func (v *Volume) UnmarshalConfigMapVolume(obj map[string]interface{}, selector []string) error {
+	source := ConfigMapVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (config name) for %s", VolumeTypeConfigMap)
+	}
+	source.Name = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeConfigMap)
+	}
+
+	v.ConfigMap = &source
+	return nil
+}
+
+func (s ConfigMapVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeConfigMap)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeConfigMap,
+		Selector:    []string{s.Name},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalSecretVolume(obj map[string]interface{}, selector []string) error {
+	source := SecretVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (secret name) for %s", VolumeTypeSecret)
+	}
+	source.SecretName = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeSecret)
+	}
+
+	v.Secret = &source
+	return nil
+}
+
+func (s SecretVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeSecret)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeSecret,
+		Selector:    []string{s.SecretName},
 		ExtraFields: obj,
 	}, nil
 }

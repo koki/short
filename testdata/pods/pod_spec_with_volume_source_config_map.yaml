@@ -15,7 +15,7 @@ spec:
      name: config_map_name
      items:
      - key: root
-       path: path.to.key
+       path: path/to/file
        mode: 0644
      defaultMode: 0644
      optional: true    

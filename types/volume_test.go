@@ -282,6 +282,54 @@ var kokiVsphereVolume0 = Volume{
 	},
 }
 
+var kokiConfigMapVolume0 = Volume{
+	ConfigMap: &ConfigMapVolume{
+		Name: "cm-name",
+		Items: map[string]KeyAndMode{
+			"my-group/my-config": KeyAndMode{
+				Key:  "config",
+				Mode: FileModePtr(0644),
+			},
+		},
+		DefaultMode: FileModePtr(0777),
+		Required:    util.BoolPtr(true),
+	},
+}
+var kokiConfigMapVolume1 = Volume{
+	ConfigMap: &ConfigMapVolume{
+		Name: "cm-name",
+		Items: map[string]KeyAndMode{
+			"my-group/my-config": KeyAndMode{
+				Key: "config",
+			},
+		},
+	},
+}
+
+var kokiSecretVolume0 = Volume{
+	Secret: &SecretVolume{
+		SecretName: "secret-name",
+		Items: map[string]KeyAndMode{
+			"my-group/my-user": KeyAndMode{
+				Key:  "username",
+				Mode: FileModePtr(0644),
+			},
+		},
+		DefaultMode: FileModePtr(0644),
+		Required:    util.BoolPtr(true),
+	},
+}
+var kokiSecretVolume1 = Volume{
+	Secret: &SecretVolume{
+		SecretName: "secret-name",
+		Items: map[string]KeyAndMode{
+			"my-group/my-user": KeyAndMode{
+				Key: "username",
+			},
+		},
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -314,6 +362,10 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiQuobyteVolume0, t, false)
 	testVolumeSource(kokiScaleIOVolume0, t, false)
 	testVolumeSource(kokiVsphereVolume0, t, false)
+	testVolumeSource(kokiConfigMapVolume0, t, false)
+	testVolumeSource(kokiConfigMapVolume1, t, false)
+	testVolumeSource(kokiSecretVolume0, t, false)
+	testVolumeSource(kokiSecretVolume1, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {
