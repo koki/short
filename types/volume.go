@@ -28,6 +28,7 @@ type Volume struct {
 	Flocker      *FlockerVolume
 	Glusterfs    *GlusterfsVolume
 	ISCSI        *ISCSIVolume
+	NFS          *NFSVolume
 }
 
 const (
@@ -44,6 +45,7 @@ const (
 	VolumeTypeFlocker      = "flocker"
 	VolumeTypeGlusterfs    = "glusterfs"
 	VolumeTypeISCSI        = "iscsi"
+	VolumeTypeNFS          = "nfs"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -183,6 +185,12 @@ type ISCSIVolume struct {
 	InitiatorName string `json:"initiator,omitempty"`
 }
 
+type NFSVolume struct {
+	Server   string `json:"-"`
+	Path     string `json:"-"`
+	ReadOnly bool   `json:"-"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -243,6 +251,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalGlusterfsVolume(obj, selector)
 	case VolumeTypeISCSI:
 		return v.UnmarshalISCSIVolume(obj, selector)
+	case VolumeTypeNFS:
+		return v.UnmarshalNFSVolume(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -295,6 +305,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.ISCSI != nil {
 		marshalledVolume, err = v.ISCSI.Marshal()
+	}
+	if v.NFS != nil {
+		marshalledVolume, err = v.NFS.Marshal()
 	}
 
 	if err != nil {
@@ -740,5 +753,40 @@ func (s ISCSIVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeISCSI,
 		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalNFSVolume(selector []string) error {
+	source := NFSVolume{}
+	if len(selector) > 3 || len(selector) < 2 {
+		return util.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeNFS)
+	}
+
+	source.Server = selector[0]
+	source.Path = selector[1]
+
+	if len(selector) > 2 {
+		switch selector[2] {
+		case SelectorSegmentReadOnly:
+			source.ReadOnly = true
+		default:
+			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeNFS)
+		}
+	}
+
+	v.NFS = &source
+	return nil
+}
+
+func (s NFSVolume) Marshal() (*MarshalledVolume, error) {
+	var selector []string
+	if s.ReadOnly {
+		selector = []string{s.Server, s.Path, SelectorSegmentReadOnly}
+	} else {
+		selector = []string{s.Server, s.Path}
+	}
+	return &MarshalledVolume{
+		Type:     VolumeTypeNFS,
+		Selector: selector,
 	}, nil
 }

@@ -195,6 +195,20 @@ var kokiISCSIVolume0 = Volume{
 	},
 }
 
+var kokiNFSVolume0 = Volume{
+	NFS: &NFSVolume{
+		Server:   "hostname",
+		Path:     "/path",
+		ReadOnly: true,
+	},
+}
+var kokiNFSVolume1 = Volume{
+	NFS: &NFSVolume{
+		Server: "1.2.3.4",
+		Path:   "/path",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -216,6 +230,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiFlockerVolume0, t, true)
 	testVolumeSource(kokiGlusterfsVolume0, t, false)
 	testVolumeSource(kokiISCSIVolume0, t, false)
+	testVolumeSource(kokiNFSVolume0, t, true)
+	testVolumeSource(kokiNFSVolume1, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {

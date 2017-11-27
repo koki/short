@@ -427,6 +427,16 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.NFS != nil {
+		source := kubeVolume.VolumeSource.NFS
+		return name, &types.Volume{
+			NFS: &types.NFSVolume{
+				Server:   source.Server,
+				Path:     source.Path,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
