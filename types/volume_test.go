@@ -176,6 +176,25 @@ var kokiGlusterfsVolume0 = Volume{
 	},
 }
 
+var kokiISCSIVolume0 = Volume{
+	ISCSI: &ISCSIVolume{
+		TargetPortal:   "1.2.3.4:3260",
+		IQN:            "iqn.2015-02.example.com:test",
+		Lun:            0,
+		ISCSIInterface: "default",
+		FSType:         "ext4",
+		ReadOnly:       true,
+		Portals: []string{
+			"1.2.3.5:3260",
+			"1.2.3.6:3260",
+		},
+		DiscoveryCHAPAuth: true,
+		SessionCHAPAuth:   true,
+		SecretRef:         "secret-name",
+		InitiatorName:     "iqn.1996-04.de.suse:linux-host1",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -196,6 +215,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiFlexVolume1, t, true)
 	testVolumeSource(kokiFlockerVolume0, t, true)
 	testVolumeSource(kokiGlusterfsVolume0, t, false)
+	testVolumeSource(kokiISCSIVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

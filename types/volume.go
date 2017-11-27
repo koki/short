@@ -27,6 +27,7 @@ type Volume struct {
 	Flex         *FlexVolume
 	Flocker      *FlockerVolume
 	Glusterfs    *GlusterfsVolume
+	ISCSI        *ISCSIVolume
 }
 
 const (
@@ -42,6 +43,7 @@ const (
 	VolumeTypeFlex         = "flex"
 	VolumeTypeFlocker      = "flocker"
 	VolumeTypeGlusterfs    = "glusterfs"
+	VolumeTypeISCSI        = "iscsi"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -165,6 +167,22 @@ type GlusterfsVolume struct {
 	ReadOnly      bool   `json:"ro,omitempty"`
 }
 
+type ISCSIVolume struct {
+	TargetPortal   string   `json:"target_portal"`
+	IQN            string   `json:"iqn"`
+	Lun            int32    `json:"lun"`
+	ISCSIInterface string   `json:"iscsi_interface,omitempty"`
+	FSType         string   `json:"fs,omitempty"`
+	ReadOnly       bool     `json:"ro,omitempty"`
+	Portals        []string `json:"portals,omitempty"`
+	// TODO: should this actually be "chap_auth"?
+	DiscoveryCHAPAuth bool   `json:"chap_discovery,omitempty"`
+	SessionCHAPAuth   bool   `json:"chap_session,omitempty"`
+	SecretRef         string `json:"secret,omitempty"`
+	// NOTE: InitiatorName is a pointer in k8s
+	InitiatorName string `json:"initiator,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -223,6 +241,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalFlockerVolume(selector)
 	case VolumeTypeGlusterfs:
 		return v.UnmarshalGlusterfsVolume(obj, selector)
+	case VolumeTypeISCSI:
+		return v.UnmarshalISCSIVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -272,6 +292,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Glusterfs != nil {
 		marshalledVolume, err = v.Glusterfs.Marshal()
+	}
+	if v.ISCSI != nil {
+		marshalledVolume, err = v.ISCSI.Marshal()
 	}
 
 	if err != nil {
@@ -689,6 +712,33 @@ func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeGlusterfs,
 		Selector:    []string{s.EndpointsName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (v *Volume) UnmarshalISCSIVolume(obj map[string]interface{}, selector []string) error {
+	source := ISCSIVolume{}
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeISCSI)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeISCSI)
+	}
+
+	v.ISCSI = &source
+	return nil
+}
+
+func (s ISCSIVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeISCSI)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeISCSI,
 		ExtraFields: obj,
 	}, nil
 }

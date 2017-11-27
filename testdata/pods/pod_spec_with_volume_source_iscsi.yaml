@@ -17,7 +17,7 @@ spec:
       lun: 45
       iscsiInterface: default
       fsType: xfs
-      ro: true
+      readOnly: true
       portals: 
       - portal1
       - portal2

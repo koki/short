@@ -473,6 +473,27 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.ISCSI != nil {
+		source := kokiVolume.ISCSI
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				ISCSI: &v1.ISCSIVolumeSource{
+					TargetPortal:      source.TargetPortal,
+					IQN:               source.IQN,
+					Lun:               source.Lun,
+					ISCSIInterface:    source.ISCSIInterface,
+					FSType:            source.FSType,
+					ReadOnly:          source.ReadOnly,
+					Portals:           source.Portals,
+					DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+					SessionCHAPAuth:   source.SessionCHAPAuth,
+					SecretRef:         revertLocalObjectRef(source.SecretRef),
+					InitiatorName:     util.StringPtrOrNil(source.InitiatorName),
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

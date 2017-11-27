@@ -409,6 +409,24 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.VolumeSource.ISCSI != nil {
+		source := kubeVolume.VolumeSource.ISCSI
+		return name, &types.Volume{
+			ISCSI: &types.ISCSIVolume{
+				TargetPortal:      source.TargetPortal,
+				IQN:               source.IQN,
+				Lun:               source.Lun,
+				ISCSIInterface:    source.ISCSIInterface,
+				FSType:            source.FSType,
+				ReadOnly:          source.ReadOnly,
+				Portals:           source.Portals,
+				DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+				SessionCHAPAuth:   source.SessionCHAPAuth,
+				SecretRef:         convertLocalObjectRef(source.SecretRef),
+				InitiatorName:     util.FromStringPtr(source.InitiatorName),
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
