@@ -465,6 +465,18 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.Quobyte != nil {
+		source := kubeVolume.Quobyte
+		return name, &types.Volume{
+			Quobyte: &types.QuobyteVolume{
+				Registry: source.Registry,
+				Volume:   source.Volume,
+				ReadOnly: source.ReadOnly,
+				User:     source.User,
+				Group:    source.Group,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

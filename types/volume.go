@@ -32,6 +32,7 @@ type Volume struct {
 	PhotonPD     *PhotonPDVolume
 	Portworx     *PortworxVolume
 	PVC          *PVCVolume
+	Quobyte      *QuobyteVolume
 }
 
 const (
@@ -52,6 +53,7 @@ const (
 	VolumeTypePhotonPD     = "photon"
 	VolumeTypePortworx     = "portworx"
 	VolumeTypePVC          = "pvc"
+	VolumeTypeQuobyte      = "quobyte"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -213,6 +215,14 @@ type PVCVolume struct {
 	ReadOnly  bool   `json:"-"`
 }
 
+type QuobyteVolume struct {
+	Registry string `json:"registry"`
+	Volume   string `json:"-"`
+	ReadOnly bool   `json:"ro,omitempty"`
+	User     string `json:"user,omitempty"`
+	Group    string `json:"group,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -281,6 +291,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalPortworxVolume(obj, selector)
 	case VolumeTypePVC:
 		return v.UnmarshalPVCVolume(selector)
+	case VolumeTypeQuobyte:
+		return v.UnmarshalQuobyteVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -345,6 +357,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.PVC != nil {
 		marshalledVolume, err = v.PVC.Marshal()
+	}
+	if v.Quobyte != nil {
+		marshalledVolume, err = v.Quobyte.Marshal()
 	}
 
 	if err != nil {
@@ -917,5 +932,34 @@ func (s PVCVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:     VolumeTypePVC,
 		Selector: selector,
+	}, nil
+}
+
+func (v *Volume) UnmarshalQuobyteVolume(obj map[string]interface{}, selector []string) error {
+	source := QuobyteVolume{}
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypeQuobyte)
+	}
+	source.Volume = selector[0]
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeQuobyte)
+	}
+
+	v.Quobyte = &source
+	return nil
+}
+
+func (s QuobyteVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeQuobyte)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeQuobyte,
+		Selector:    []string{s.Volume},
+		ExtraFields: obj,
 	}, nil
 }

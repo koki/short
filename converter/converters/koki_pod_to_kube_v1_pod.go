@@ -545,6 +545,21 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.Quobyte != nil {
+		source := kokiVolume.Quobyte
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Quobyte: &v1.QuobyteVolumeSource{
+					Registry: source.Registry,
+					Volume:   source.Volume,
+					ReadOnly: source.ReadOnly,
+					User:     source.User,
+					Group:    source.Group,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

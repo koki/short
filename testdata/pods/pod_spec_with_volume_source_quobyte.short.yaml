@@ -8,11 +8,11 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - group: quobyte.group
-    name: test_volume
-    read_only: true
-    registry: registry.quobyte
-    type: quobyte
-    user: quobyte.user
-    volume: volume.quobyte
+    test_volume:
+      group: quobyte.group
+      registry: registry.quobyte
+      ro: true
+      user: quobyte.user
+      vol_name: volume.quobyte
+      vol_type: quobyte
 

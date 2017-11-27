@@ -246,6 +246,16 @@ var kokiPVCVolume1 = Volume{
 	},
 }
 
+var kokiQuobyteVolume0 = Volume{
+	Quobyte: &QuobyteVolume{
+		Registry: "registry:6789",
+		Volume:   "testVolume",
+		ReadOnly: true,
+		User:     "root",
+		Group:    "root",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -275,6 +285,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiPortworxVolume1, t, true)
 	testVolumeSource(kokiPVCVolume0, t, true)
 	testVolumeSource(kokiPVCVolume1, t, true)
+	testVolumeSource(kokiQuobyteVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {
