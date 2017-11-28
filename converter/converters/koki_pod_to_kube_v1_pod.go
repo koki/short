@@ -888,6 +888,21 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.StorageOS != nil {
+		source := kokiVolume.StorageOS
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				StorageOS: &v1.StorageOSVolumeSource{
+					VolumeName:      source.VolumeName,
+					VolumeNamespace: source.VolumeNamespace,
+					FSType:          source.FSType,
+					ReadOnly:        source.ReadOnly,
+					SecretRef:       revertLocalObjectRef(source.SecretRef),
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

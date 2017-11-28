@@ -176,6 +176,19 @@ var kokiPersistentLocalVolume0 = PersistentVolumeSource{
 	},
 }
 
+var kokiPersistentStorageOSVolume0 = PersistentVolumeSource{
+	StorageOS: &StorageOSPersistentVolume{
+		VolumeName:      "vol-0",
+		VolumeNamespace: "namespace-0",
+		FSType:          "ext4",
+		ReadOnly:        true,
+		SecretRef: &SecretReference{
+			Name:      "secret-name",
+			Namespace: "secret-namespace",
+		},
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -200,6 +213,7 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentAzureFile1, t)
 	testPersistentVolumeSource(kokiPersistentScaleIOVolume0, t)
 	testPersistentVolumeSource(kokiPersistentLocalVolume0, t)
+	testPersistentVolumeSource(kokiPersistentStorageOSVolume0, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

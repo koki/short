@@ -504,6 +504,16 @@ var kokiRBDVolume1 = Volume{
 	},
 }
 
+var kokiStorageOSVolume0 = Volume{
+	StorageOS: &StorageOSVolume{
+		VolumeName:      "vol-0",
+		VolumeNamespace: "namespace-0",
+		FSType:          "ext4",
+		ReadOnly:        true,
+		SecretRef:       "secret-name",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -548,6 +558,7 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiGitVolume1, t, true)
 	testVolumeSource(kokiRBDVolume0, t, false)
 	testVolumeSource(kokiRBDVolume1, t, false)
+	testVolumeSource(kokiStorageOSVolume0, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

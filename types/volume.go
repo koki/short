@@ -46,6 +46,7 @@ type Volume struct {
 	Projected    *ProjectedVolume
 	Git          *GitVolume
 	RBD          *RBDVolume
+	StorageOS    *StorageOSVolume
 }
 
 const (
@@ -379,6 +380,14 @@ type RBDVolume struct {
 	ReadOnly     bool     `json:"ro,omitempty"`
 }
 
+type StorageOSVolume struct {
+	VolumeName      string `json:"-"`
+	VolumeNamespace string `json:"vol_namespace,omitempty"`
+	FSType          string `json:"fs,omitempty"`
+	ReadOnly        bool   `json:"ro,omitempty"`
+	SecretRef       string `json:"secret,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -481,6 +490,9 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 	case VolumeTypeRBD:
 		v.RBD = &RBDVolume{}
 		return v.RBD.Unmarshal(obj, selector)
+	case VolumeTypeStorageOS:
+		v.StorageOS = &StorageOSVolume{}
+		return v.StorageOS.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -572,6 +584,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.RBD != nil {
 		marshalledVolume, err = v.RBD.Marshal()
+	}
+	if v.StorageOS != nil {
+		marshalledVolume, err = v.StorageOS.Marshal()
 	}
 
 	if err != nil {
@@ -1544,6 +1559,33 @@ func (s RBDVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeRBD,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *StorageOSVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeStorageOS)
+	}
+	s.VolumeName = selector[0]
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+	}
+
+	return nil
+}
+
+func (s StorageOSVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeStorageOS,
+		Selector:    []string{s.VolumeName},
 		ExtraFields: obj,
 	}, nil
 }

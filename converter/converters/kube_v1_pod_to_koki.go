@@ -755,6 +755,18 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.StorageOS != nil {
+		source := kubeVolume.StorageOS
+		return name, &types.Volume{
+			StorageOS: &types.StorageOSVolume{
+				VolumeName:      source.VolumeName,
+				VolumeNamespace: source.VolumeNamespace,
+				FSType:          source.FSType,
+				ReadOnly:        source.ReadOnly,
+				SecretRef:       convertLocalObjectRef(source.SecretRef),
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

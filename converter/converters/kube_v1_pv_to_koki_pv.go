@@ -80,6 +80,17 @@ func convertCephFSPersistentSecretFileOrRef(kubeFile string, kubeRef *v1.SecretR
 	return nil
 }
 
+func convertObjectRefToSecretRef(kubeRef *v1.ObjectReference) *types.SecretReference {
+	if kubeRef == nil {
+		return nil
+	}
+
+	return &types.SecretReference{
+		Namespace: kubeRef.Namespace,
+		Name:      kubeRef.Name,
+	}
+}
+
 func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.PersistentVolumeSource, error) {
 	if kubeSource.GCEPersistentDisk != nil {
 		return types.PersistentVolumeSource{
@@ -231,6 +242,18 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 		return types.PersistentVolumeSource{
 			Local: &types.LocalVolume{
 				Path: source.Path,
+			},
+		}, nil
+	}
+	if kubeSource.StorageOS != nil {
+		source := kubeSource.StorageOS
+		return types.PersistentVolumeSource{
+			StorageOS: &types.StorageOSPersistentVolume{
+				VolumeName:      source.VolumeName,
+				VolumeNamespace: source.VolumeNamespace,
+				FSType:          source.FSType,
+				ReadOnly:        source.ReadOnly,
+				SecretRef:       convertObjectRefToSecretRef(source.SecretRef),
 			},
 		}, nil
 	}

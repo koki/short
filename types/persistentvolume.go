@@ -70,6 +70,7 @@ type PersistentVolumeSource struct {
 	AzureFile    *AzureFilePersistentVolume
 	ScaleIO      *ScaleIOPersistentVolume
 	Local        *LocalVolume
+	StorageOS    *StorageOSPersistentVolume
 }
 
 const (
@@ -126,6 +127,14 @@ type ScaleIOPersistentVolume struct {
 
 type LocalVolume struct {
 	Path string `json:"path"`
+}
+
+type StorageOSPersistentVolume struct {
+	VolumeName      string           `json:"-"`
+	VolumeNamespace string           `json:"vol_namespace,omitempty"`
+	FSType          string           `json:"fs,omitempty"`
+	ReadOnly        bool             `json:"ro,omitempty"`
+	SecretRef       *SecretReference `json:"secret,omitempty"`
 }
 
 // comma-separated list of modes
@@ -344,6 +353,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeLocal:
 		v.Local = &LocalVolume{}
 		return v.Local.Unmarshal(obj, selector)
+	case VolumeTypeStorageOS:
+		v.StorageOS = &StorageOSPersistentVolume{}
+		return v.StorageOS.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -411,6 +423,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.Local != nil {
 		marshalledVolume, err = v.Local.Marshal()
+	}
+	if v.StorageOS != nil {
+		marshalledVolume, err = v.StorageOS.Marshal()
 	}
 
 	if err != nil {
@@ -622,6 +637,33 @@ func (s LocalVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeLocal,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *StorageOSPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeStorageOS)
+	}
+	s.VolumeName = selector[0]
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+	}
+
+	return nil
+}
+
+func (s StorageOSPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeStorageOS,
+		Selector:    []string{s.VolumeName},
 		ExtraFields: obj,
 	}, nil
 }
