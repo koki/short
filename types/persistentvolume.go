@@ -66,6 +66,7 @@ type PersistentVolumeSource struct {
 	PhotonPD     *PhotonPDVolume
 	Portworx     *PortworxVolume
 	RBD          *RBDPersistentVolume
+	CephFS       *CephFSPersistentVolume
 }
 
 const (
@@ -86,6 +87,19 @@ type RBDPersistentVolume struct {
 type SecretReference struct {
 	Name      string `json:"-"`
 	Namespace string `json:"-"`
+}
+
+type CephFSPersistentVolume struct {
+	Monitors        []string                         `json:"monitors"`
+	Path            string                           `json:"path, omitempty"`
+	User            string                           `json:"user,omitempty"`
+	SecretFileOrRef *CephFSPersistentSecretFileOrRef `json:"secret,omitempty"`
+	ReadOnly        bool                             `json:"ro,omitempty"`
+}
+
+type CephFSPersistentSecretFileOrRef struct {
+	File string           `json:"-"`
+	Ref  *SecretReference `json:"-"`
 }
 
 // comma-separated list of modes
@@ -292,6 +306,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeRBD:
 		v.RBD = &RBDPersistentVolume{}
 		return v.RBD.Unmarshal(obj, selector)
+	case VolumeTypeCephFS:
+		v.CephFS = &CephFSPersistentVolume{}
+		return v.CephFS.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -348,6 +365,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	if v.RBD != nil {
 		marshalledVolume, err = v.RBD.Marshal()
 	}
+	if v.CephFS != nil {
+		marshalledVolume, err = v.CephFS.Marshal()
+	}
 
 	if err != nil {
 		return nil, err
@@ -372,13 +392,7 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 
 var secretRefRegexp = regexp.MustCompile(`^(.*):([^:]*)`)
 
-func (s *SecretReference) UnmarshalJSON(data []byte) error {
-	str := ""
-	err := json.Unmarshal(data, &str)
-	if err != nil {
-		return util.ContextualizeErrorf(err, "secret ref should be a string")
-	}
-
+func (s *SecretReference) UnmarshalString(str string) {
 	matches := secretRefRegexp.FindStringSubmatch(str)
 	if len(matches) > 0 {
 		s.Namespace = matches[1]
@@ -386,16 +400,29 @@ func (s *SecretReference) UnmarshalJSON(data []byte) error {
 	} else {
 		s.Name = str
 	}
+}
+
+func (s *SecretReference) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "secret ref should be a string")
+	}
+	s.UnmarshalString(str)
 
 	return nil
 }
 
-func (s SecretReference) MarshalJSON() ([]byte, error) {
+func (s SecretReference) MarshalString() string {
 	if len(s.Namespace) > 0 {
-		return json.Marshal(fmt.Sprintf("%s:%s", s.Namespace, s.Name))
+		return fmt.Sprintf("%s:%s", s.Namespace, s.Name)
 	}
 
-	return json.Marshal(s.Name)
+	return s.Name
+}
+
+func (s SecretReference) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.MarshalString())
 }
 
 func (s *RBDPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
@@ -419,6 +446,61 @@ func (s RBDPersistentVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeRBD,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *CephFSPersistentSecretFileOrRef) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "cephfs secret should be a string")
+	}
+
+	matches := fileOrRefRegexp.FindStringSubmatch(str)
+	if len(matches) > 0 {
+		if matches[1] == "file" {
+			s.File = matches[2]
+		} else {
+			s.Ref = &SecretReference{}
+			s.Ref.UnmarshalString(matches[2])
+		}
+	} else {
+		return util.InvalidValueErrorf(string(data), "unrecognized format for cephfs secret")
+	}
+
+	return nil
+}
+
+func (s CephFSPersistentSecretFileOrRef) MarshalJSON() ([]byte, error) {
+	if s.Ref != nil {
+		return json.Marshal(fmt.Sprintf("ref:%s", s.Ref.MarshalString()))
+	}
+
+	return json.Marshal(fmt.Sprintf("file:%s", s.File))
+}
+
+func (s *CephFSPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeCephFS)
+	}
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeCephFS)
+	}
+
+	return nil
+}
+
+func (s CephFSPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeCephFS)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeCephFS,
 		ExtraFields: obj,
 	}, nil
 }

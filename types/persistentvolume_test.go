@@ -101,6 +101,38 @@ var kokiPersistentRBDVolume1 = PersistentVolumeSource{
 	},
 }
 
+var kokiPersistentCephFS0 = PersistentVolumeSource{
+	CephFS: &CephFSPersistentVolume{
+		Monitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		Path: "/path",
+		User: "admin",
+		SecretFileOrRef: &CephFSPersistentSecretFileOrRef{
+			File: "/etc/ceph/admin.secret",
+		},
+		ReadOnly: true,
+	},
+}
+var kokiPersistentCephFS1 = PersistentVolumeSource{
+	CephFS: &CephFSPersistentVolume{
+		Monitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		Path: "/path",
+		User: "admin",
+		SecretFileOrRef: &CephFSPersistentSecretFileOrRef{
+			Ref: &SecretReference{
+				Namespace: "secret-namespace",
+				Name:      "secret-name",
+			},
+		},
+		ReadOnly: true,
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -119,6 +151,8 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentPortworxVolume0, t)
 	testPersistentVolumeSource(kokiPersistentRBDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentRBDVolume1, t)
+	testPersistentVolumeSource(kokiPersistentCephFS0, t)
+	testPersistentVolumeSource(kokiPersistentCephFS1, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

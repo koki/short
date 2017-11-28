@@ -64,6 +64,22 @@ func convertSecretReference(kubeRef *v1.SecretReference) *types.SecretReference 
 	}
 }
 
+func convertCephFSPersistentSecretFileOrRef(kubeFile string, kubeRef *v1.SecretReference) *types.CephFSPersistentSecretFileOrRef {
+	if len(kubeFile) > 0 {
+		return &types.CephFSPersistentSecretFileOrRef{
+			File: kubeFile,
+		}
+	}
+
+	if kubeRef != nil {
+		return &types.CephFSPersistentSecretFileOrRef{
+			Ref: convertSecretReference(kubeRef),
+		}
+	}
+
+	return nil
+}
+
 func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.PersistentVolumeSource, error) {
 	if kubeSource.GCEPersistentDisk != nil {
 		return types.PersistentVolumeSource{
@@ -160,6 +176,19 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 				Keyring:      source.Keyring,
 				SecretRef:    convertSecretReference(source.SecretRef),
 				ReadOnly:     source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeSource.CephFS != nil {
+		source := kubeSource.CephFS
+		secretFileOrRef := convertCephFSPersistentSecretFileOrRef(source.SecretFile, source.SecretRef)
+		return types.PersistentVolumeSource{
+			CephFS: &types.CephFSPersistentVolume{
+				Monitors:        source.Monitors,
+				Path:            source.Path,
+				User:            source.User,
+				SecretFileOrRef: secretFileOrRef,
+				ReadOnly:        source.ReadOnly,
 			},
 		}, nil
 	}

@@ -61,6 +61,18 @@ func revertSecretReference(kokiRef *types.SecretReference) *v1.SecretReference {
 	}
 }
 
+func revertCephFSPersistentSecretFileOrRef(kokiSecret *types.CephFSPersistentSecretFileOrRef) (string, *v1.SecretReference) {
+	if kokiSecret == nil {
+		return "", nil
+	}
+
+	if len(kokiSecret.File) > 0 {
+		return kokiSecret.File, nil
+	}
+
+	return "", revertSecretReference(kokiSecret.Ref)
+}
+
 func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.PersistentVolumeSource, error) {
 	if kokiSource.GcePD != nil {
 		return v1.PersistentVolumeSource{
@@ -157,6 +169,20 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 				Keyring:      source.Keyring,
 				SecretRef:    revertSecretReference(source.SecretRef),
 				ReadOnly:     source.ReadOnly,
+			},
+		}, nil
+	}
+	if kokiSource.CephFS != nil {
+		source := kokiSource.CephFS
+		secretFile, secretRef := revertCephFSPersistentSecretFileOrRef(source.SecretFileOrRef)
+		return v1.PersistentVolumeSource{
+			CephFS: &v1.CephFSPersistentVolumeSource{
+				Monitors:   source.Monitors,
+				Path:       source.Path,
+				User:       source.User,
+				SecretFile: secretFile,
+				SecretRef:  secretRef,
+				ReadOnly:   source.ReadOnly,
 			},
 		}, nil
 	}
