@@ -466,6 +466,19 @@ var kokiProjectedVolume1 = Volume{
 	},
 }
 
+var kokiGitVolume0 = Volume{
+	Git: &GitVolume{
+		Repository: "git@github.com:koki/short.git",
+		Revision:   "425cf6991e957446c2bd09db9ef7baf154d19b23",
+		Directory:  "./types",
+	},
+}
+var kokiGitVolume1 = Volume{
+	Git: &GitVolume{
+		Repository: "git@github.com:koki/short.git",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -506,6 +519,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiDownwardAPIVolume1, t, false)
 	testVolumeSource(kokiProjectedVolume0, t, false)
 	testVolumeSource(kokiProjectedVolume1, t, false)
+	testVolumeSource(kokiGitVolume0, t, false)
+	testVolumeSource(kokiGitVolume1, t, true)
 }
 
 func isString(data []byte, t *testing.T) bool {
