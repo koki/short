@@ -59,6 +59,11 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			GcePD: convertGcePDVolume(kubeSource.GCEPersistentDisk),
 		}, nil
 	}
+	if kubeSource.AWSElasticBlockStore != nil {
+		return types.PersistentVolumeSource{
+			AwsEBS: convertAwsEBSVolume(kubeSource.AWSElasticBlockStore),
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }

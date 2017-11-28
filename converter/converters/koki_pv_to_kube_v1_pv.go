@@ -56,6 +56,11 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			GCEPersistentDisk: revertGcePDVolume(kokiSource.GcePD),
 		}, nil
 	}
+	if kokiSource.AwsEBS != nil {
+		return v1.PersistentVolumeSource{
+			AWSElasticBlockStore: revertAwsEBSVolume(kokiSource.AwsEBS),
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

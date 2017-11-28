@@ -399,6 +399,15 @@ func convertGcePDVolume(source *v1.GCEPersistentDiskVolumeSource) *types.GcePDVo
 	}
 }
 
+func convertAwsEBSVolume(source *v1.AWSElasticBlockStoreVolumeSource) *types.AwsEBSVolume {
+	return &types.AwsEBSVolume{
+		VolumeID:  source.VolumeID,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -431,14 +440,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.AWSElasticBlockStore != nil {
-		source := kubeVolume.AWSElasticBlockStore
 		return name, &types.Volume{
-			AwsEBS: &types.AwsEBSVolume{
-				VolumeID:  source.VolumeID,
-				FSType:    source.FSType,
-				Partition: source.Partition,
-				ReadOnly:  source.ReadOnly,
-			},
+			AwsEBS: convertAwsEBSVolume(kubeVolume.AWSElasticBlockStore),
 		}, nil
 	}
 	if kubeVolume.AzureDisk != nil {

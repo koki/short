@@ -48,7 +48,8 @@ const (
 )
 
 type PersistentVolumeSource struct {
-	GcePD *GcePDVolume
+	GcePD  *GcePDVolume
+	AwsEBS *AwsEBSVolume
 }
 
 // comma-separated list of modes
@@ -210,6 +211,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeGcePD:
 		v.GcePD = &GcePDVolume{}
 		return v.GcePD.Unmarshal(obj, selector)
+	case VolumeTypeAwsEBS:
+		v.AwsEBS = &AwsEBSVolume{}
+		return v.AwsEBS.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -220,6 +224,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	var err error
 	if v.GcePD != nil {
 		marshalledVolume, err = v.GcePD.Marshal()
+	}
+	if v.AwsEBS != nil {
+		marshalledVolume, err = v.AwsEBS.Marshal()
 	}
 
 	if err != nil {

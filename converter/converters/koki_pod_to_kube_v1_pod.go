@@ -449,6 +449,15 @@ func revertGcePDVolume(source *types.GcePDVolume) *v1.GCEPersistentDiskVolumeSou
 	}
 }
 
+func revertAwsEBSVolume(source *types.AwsEBSVolume) *v1.AWSElasticBlockStoreVolumeSource {
+	return &v1.AWSElasticBlockStoreVolumeSource{
+		VolumeID:  source.VolumeID,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -489,16 +498,10 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.AwsEBS != nil {
-		source := kokiVolume.AwsEBS
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				AWSElasticBlockStore: &v1.AWSElasticBlockStoreVolumeSource{
-					VolumeID:  source.VolumeID,
-					FSType:    source.FSType,
-					Partition: source.Partition,
-					ReadOnly:  source.ReadOnly,
-				},
+				AWSElasticBlockStore: revertAwsEBSVolume(kokiVolume.AwsEBS),
 			},
 		}, nil
 	}

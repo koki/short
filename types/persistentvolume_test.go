@@ -14,8 +14,13 @@ var kokiPersistentGcePDVolume0 = PersistentVolumeSource{
 	GcePD: kokiGcePD0.GcePD,
 }
 
+var kokiPersistentAwsEBSVolume0 = PersistentVolumeSource{
+	AwsEBS: kokiAwsEBS0.AwsEBS,
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
+	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {
