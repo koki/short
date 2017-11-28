@@ -70,6 +70,37 @@ var kokiPersistentPortworxVolume0 = PersistentVolumeSource{
 	Portworx: kokiPortworxVolume0.Portworx,
 }
 
+var kokiPersistentRBDVolume0 = PersistentVolumeSource{
+	RBD: &RBDPersistentVolume{
+		CephMonitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		RBDImage:  "foo",
+		FSType:    "ext4",
+		RBDPool:   "kube",
+		RadosUser: "admin",
+		Keyring:   "/etc/ceph/keyring",
+		SecretRef: &SecretReference{
+			Namespace: "secret-namespace",
+			Name:      "secret-name",
+		},
+		ReadOnly: true,
+	},
+}
+var kokiPersistentRBDVolume1 = PersistentVolumeSource{
+	RBD: &RBDPersistentVolume{
+		CephMonitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		RBDImage: "foo",
+		SecretRef: &SecretReference{
+			Name: "secret-name",
+		},
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -86,6 +117,8 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentAzureDiskVolume0, t)
 	testPersistentVolumeSource(kokiPersistentPhotonPDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentPortworxVolume0, t)
+	testPersistentVolumeSource(kokiPersistentRBDVolume0, t)
+	testPersistentVolumeSource(kokiPersistentRBDVolume1, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

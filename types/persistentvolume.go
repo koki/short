@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -63,6 +65,27 @@ type PersistentVolumeSource struct {
 	AzureDisk    *AzureDiskVolume
 	PhotonPD     *PhotonPDVolume
 	Portworx     *PortworxVolume
+	RBD          *RBDPersistentVolume
+}
+
+const (
+	VolumeTypeLocal = "local"
+)
+
+type RBDPersistentVolume struct {
+	CephMonitors []string         `json:"monitors"`
+	RBDImage     string           `json:"image"`
+	FSType       string           `json:"fs,omitempty"`
+	RBDPool      string           `json:"pool,omitempty"`
+	RadosUser    string           `json:"user,omitempty"`
+	Keyring      string           `json:"keyring,omitempty"`
+	SecretRef    *SecretReference `json:"secret,omitempty"`
+	ReadOnly     bool             `json:"ro,omitempty"`
+}
+
+type SecretReference struct {
+	Name      string `json:"-"`
+	Namespace string `json:"-"`
 }
 
 // comma-separated list of modes
@@ -266,6 +289,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypePortworx:
 		v.Portworx = &PortworxVolume{}
 		return v.Portworx.Unmarshal(obj, selector)
+	case VolumeTypeRBD:
+		v.RBD = &RBDPersistentVolume{}
+		return v.RBD.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -319,6 +345,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	if v.Portworx != nil {
 		marshalledVolume, err = v.Portworx.Marshal()
 	}
+	if v.RBD != nil {
+		marshalledVolume, err = v.RBD.Marshal()
+	}
 
 	if err != nil {
 		return nil, err
@@ -339,4 +368,57 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(obj)
+}
+
+var secretRefRegexp = regexp.MustCompile(`^(.*):([^:]*)`)
+
+func (s *SecretReference) UnmarshalJSON(data []byte) error {
+	str := ""
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "secret ref should be a string")
+	}
+
+	matches := secretRefRegexp.FindStringSubmatch(str)
+	if len(matches) > 0 {
+		s.Namespace = matches[1]
+		s.Name = matches[2]
+	} else {
+		s.Name = str
+	}
+
+	return nil
+}
+
+func (s SecretReference) MarshalJSON() ([]byte, error) {
+	if len(s.Namespace) > 0 {
+		return json.Marshal(fmt.Sprintf("%s:%s", s.Namespace, s.Name))
+	}
+
+	return json.Marshal(s.Name)
+}
+
+func (s *RBDPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeRBD)
+	}
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeRBD)
+	}
+
+	return nil
+}
+
+func (s RBDPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeRBD)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeRBD,
+		ExtraFields: obj,
+	}, nil
 }

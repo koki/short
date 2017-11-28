@@ -479,6 +479,31 @@ var kokiGitVolume1 = Volume{
 	},
 }
 
+var kokiRBDVolume0 = Volume{
+	RBD: &RBDVolume{
+		CephMonitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		RBDImage:  "foo",
+		FSType:    "ext4",
+		RBDPool:   "kube",
+		RadosUser: "admin",
+		Keyring:   "/etc/ceph/keyring",
+		SecretRef: "secret-name",
+		ReadOnly:  true,
+	},
+}
+var kokiRBDVolume1 = Volume{
+	RBD: &RBDVolume{
+		CephMonitors: []string{
+			"1.2.3.4:6789",
+			"1.2.3.5:6789",
+		},
+		RBDImage: "foo",
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -521,6 +546,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiProjectedVolume1, t, false)
 	testVolumeSource(kokiGitVolume0, t, false)
 	testVolumeSource(kokiGitVolume1, t, true)
+	testVolumeSource(kokiRBDVolume0, t, false)
+	testVolumeSource(kokiRBDVolume1, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

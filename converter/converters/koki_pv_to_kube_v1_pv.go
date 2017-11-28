@@ -50,6 +50,17 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 	return kubePV, nil
 }
 
+func revertSecretReference(kokiRef *types.SecretReference) *v1.SecretReference {
+	if kokiRef == nil {
+		return nil
+	}
+
+	return &v1.SecretReference{
+		Namespace: kokiRef.Namespace,
+		Name:      kokiRef.Name,
+	}
+}
+
 func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.PersistentVolumeSource, error) {
 	if kokiSource.GcePD != nil {
 		return v1.PersistentVolumeSource{
@@ -132,6 +143,21 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 	if kokiSource.Portworx != nil {
 		return v1.PersistentVolumeSource{
 			PortworxVolume: revertPortworxVolume(kokiSource.Portworx),
+		}, nil
+	}
+	if kokiSource.RBD != nil {
+		source := kokiSource.RBD
+		return v1.PersistentVolumeSource{
+			RBD: &v1.RBDPersistentVolumeSource{
+				CephMonitors: source.CephMonitors,
+				RBDImage:     source.RBDImage,
+				FSType:       source.FSType,
+				RBDPool:      source.RBDPool,
+				RadosUser:    source.RadosUser,
+				Keyring:      source.Keyring,
+				SecretRef:    revertSecretReference(source.SecretRef),
+				ReadOnly:     source.ReadOnly,
+			},
 		}, nil
 	}
 

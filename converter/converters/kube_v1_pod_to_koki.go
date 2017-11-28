@@ -740,6 +740,21 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.RBD != nil {
+		source := kubeVolume.RBD
+		return name, &types.Volume{
+			RBD: &types.RBDVolume{
+				CephMonitors: source.CephMonitors,
+				RBDImage:     source.RBDImage,
+				FSType:       source.FSType,
+				RBDPool:      source.RBDPool,
+				RadosUser:    source.RadosUser,
+				Keyring:      source.Keyring,
+				SecretRef:    convertLocalObjectRef(source.SecretRef),
+				ReadOnly:     source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

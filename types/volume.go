@@ -45,6 +45,7 @@ type Volume struct {
 	DownwardAPI  *DownwardAPIVolume
 	Projected    *ProjectedVolume
 	Git          *GitVolume
+	RBD          *RBDVolume
 }
 
 const (
@@ -73,6 +74,8 @@ const (
 	VolumeTypeDownwardAPI  = "downward-api"
 	VolumeTypeProjected    = "projected"
 	VolumeTypeGit          = "git"
+	VolumeTypeRBD          = "rbd"
+	VolumeTypeStorageOS    = "storageos"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -365,6 +368,17 @@ type GitVolume struct {
 	Directory  string `json:"directory,omitempty"`
 }
 
+type RBDVolume struct {
+	CephMonitors []string `json:"monitors"`
+	RBDImage     string   `json:"image"`
+	FSType       string   `json:"fs,omitempty"`
+	RBDPool      string   `json:"pool,omitempty"`
+	RadosUser    string   `json:"user,omitempty"`
+	Keyring      string   `json:"keyring,omitempty"`
+	SecretRef    string   `json:"secret,omitempty"`
+	ReadOnly     bool     `json:"ro,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -464,6 +478,9 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalProjectedVolume(obj, selector)
 	case VolumeTypeGit:
 		return v.UnmarshalGitVolume(obj, selector)
+	case VolumeTypeRBD:
+		v.RBD = &RBDVolume{}
+		return v.RBD.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -552,6 +569,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Git != nil {
 		marshalledVolume, err = v.Git.Marshal()
+	}
+	if v.RBD != nil {
+		marshalledVolume, err = v.RBD.Marshal()
 	}
 
 	if err != nil {
@@ -1499,6 +1519,31 @@ func (s GitVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeGit,
 		Selector:    []string{s.Repository},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *RBDVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeRBD)
+	}
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeRBD)
+	}
+
+	return nil
+}
+
+func (s RBDVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeRBD)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeRBD,
 		ExtraFields: obj,
 	}, nil
 }

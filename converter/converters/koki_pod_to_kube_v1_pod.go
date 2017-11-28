@@ -870,6 +870,24 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.RBD != nil {
+		source := kokiVolume.RBD
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				RBD: &v1.RBDVolumeSource{
+					CephMonitors: source.CephMonitors,
+					RBDImage:     source.RBDImage,
+					FSType:       source.FSType,
+					RBDPool:      source.RBDPool,
+					RadosUser:    source.RadosUser,
+					Keyring:      source.Keyring,
+					SecretRef:    revertLocalObjectRef(source.SecretRef),
+					ReadOnly:     source.ReadOnly,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }
