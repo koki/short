@@ -341,6 +341,55 @@ func convertVolumeResourceFieldRef(kubeRef *v1.ResourceFieldSelector) *types.Vol
 	}
 }
 
+func convertVolumeProjections(kubeProjections []v1.VolumeProjection) []types.VolumeProjection {
+	if len(kubeProjections) == 0 {
+		return nil
+	}
+
+	projections := make([]types.VolumeProjection, len(kubeProjections))
+	for i, projection := range kubeProjections {
+		projections[i] = types.VolumeProjection{
+			Secret:      convertSecretProjection(projection.Secret),
+			DownwardAPI: convertDownwardAPIProjection(projection.DownwardAPI),
+			ConfigMap:   convertConfigMapProjection(projection.ConfigMap),
+		}
+	}
+
+	return projections
+}
+
+func convertSecretProjection(kubeProjection *v1.SecretProjection) *types.SecretProjection {
+	if kubeProjection == nil {
+		return nil
+	}
+
+	return &types.SecretProjection{
+		Name:  convertLocalObjectRef(&kubeProjection.LocalObjectReference),
+		Items: convertKeyToPathItems(kubeProjection.Items),
+	}
+}
+
+func convertConfigMapProjection(kubeProjection *v1.ConfigMapProjection) *types.ConfigMapProjection {
+	if kubeProjection == nil {
+		return nil
+	}
+
+	return &types.ConfigMapProjection{
+		Name:  convertLocalObjectRef(&kubeProjection.LocalObjectReference),
+		Items: convertKeyToPathItems(kubeProjection.Items),
+	}
+}
+
+func convertDownwardAPIProjection(kubeProjection *v1.DownwardAPIProjection) *types.DownwardAPIProjection {
+	if kubeProjection == nil {
+		return nil
+	}
+
+	return &types.DownwardAPIProjection{
+		Items: convertDownwardAPIVolumeFiles(kubeProjection.Items),
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -614,6 +663,15 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		return name, &types.Volume{
 			DownwardAPI: &types.DownwardAPIVolume{
 				Items:       convertDownwardAPIVolumeFiles(source.Items),
+				DefaultMode: convertFileMode(source.DefaultMode),
+			},
+		}, nil
+	}
+	if kubeVolume.Projected != nil {
+		source := kubeVolume.Projected
+		return name, &types.Volume{
+			Projected: &types.ProjectedVolume{
+				Sources:     convertVolumeProjections(source.Sources),
 				DefaultMode: convertFileMode(source.DefaultMode),
 			},
 		}, nil

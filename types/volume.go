@@ -43,6 +43,7 @@ type Volume struct {
 	ConfigMap    *ConfigMapVolume
 	Secret       *SecretVolume
 	DownwardAPI  *DownwardAPIVolume
+	Projected    *ProjectedVolume
 }
 
 const (
@@ -69,6 +70,7 @@ const (
 	VolumeTypeConfigMap    = "config-map"
 	VolumeTypeSecret       = "secret"
 	VolumeTypeDownwardAPI  = "downward-api"
+	VolumeTypeProjected    = "projected"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -322,6 +324,39 @@ type VolumeResourceFieldSelector struct {
 	Divisor resource.Quantity `json:"-"`
 }
 
+type ProjectedVolume struct {
+	Sources     []VolumeProjection `json:"sources"`
+	DefaultMode *FileMode          `json:"mode,omitempty"`
+}
+
+type VolumeProjection struct {
+	Secret      *SecretProjection      `json:"-"`
+	DownwardAPI *DownwardAPIProjection `json:"-"`
+	ConfigMap   *ConfigMapProjection   `json:"-"`
+}
+
+type SecretProjection struct {
+	Name string `json:"secret"`
+
+	Items map[string]KeyAndMode `json:"items,omitempty"`
+
+	// NOTE: opposite of Optional
+	Required *bool `json:"required,omitempty"`
+}
+
+type ConfigMapProjection struct {
+	Name string `json:"config"`
+
+	Items map[string]KeyAndMode `json:"items,omitempty"`
+
+	// NOTE: opposite of Optional
+	Required *bool `json:"required,omitempty"`
+}
+
+type DownwardAPIProjection struct {
+	Items map[string]DownwardAPIVolumeFile `json:"items,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -402,6 +437,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalSecretVolume(obj, selector)
 	case VolumeTypeDownwardAPI:
 		return v.UnmarshalDownwardAPIVolume(obj, selector)
+	case VolumeTypeProjected:
+		return v.UnmarshalProjectedVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -484,6 +521,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.DownwardAPI != nil {
 		marshalledVolume, err = v.DownwardAPI.Marshal()
+	}
+	if v.Projected != nil {
+		marshalledVolume, err = v.Projected.Marshal()
 	}
 
 	if err != nil {
@@ -1375,4 +1415,66 @@ func (s DownwardAPIVolume) Marshal() (*MarshalledVolume, error) {
 		Type:        VolumeTypeDownwardAPI,
 		ExtraFields: obj,
 	}, nil
+}
+
+func (v *Volume) UnmarshalProjectedVolume(obj map[string]interface{}, selector []string) error {
+	source := ProjectedVolume{}
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeProjected)
+	}
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeProjected)
+	}
+
+	v.Projected = &source
+	return nil
+}
+
+func (s ProjectedVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeProjected)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeProjected,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (p *VolumeProjection) UnmarshalJSON(data []byte) error {
+	obj := map[string]interface{}{}
+	err := json.Unmarshal(data, &obj)
+	if err != nil {
+		return util.ContextualizeErrorf(err, "projected volume source item")
+	}
+
+	if _, ok := obj["secret"]; ok {
+		p.Secret = &SecretProjection{}
+		return json.Unmarshal(data, p.Secret)
+	}
+	if _, ok := obj["config"]; ok {
+		p.ConfigMap = &ConfigMapProjection{}
+		return json.Unmarshal(data, p.ConfigMap)
+	}
+	p.DownwardAPI = &DownwardAPIProjection{}
+	return json.Unmarshal(data, p.DownwardAPI)
+}
+
+func (p VolumeProjection) MarshalJSON() ([]byte, error) {
+	if p.Secret != nil {
+		return json.Marshal(p.Secret)
+	}
+
+	if p.DownwardAPI != nil {
+		return json.Marshal(p.DownwardAPI)
+	}
+
+	if p.ConfigMap != nil {
+		return json.Marshal(p.ConfigMap)
+	}
+
+	return nil, util.InvalidInstanceErrorf(p, "empty volume projection")
 }

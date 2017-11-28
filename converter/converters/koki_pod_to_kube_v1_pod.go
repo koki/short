@@ -375,6 +375,71 @@ func revertVolumeResourceFieldRef(kokiRef *types.VolumeResourceFieldSelector) *v
 	}
 }
 
+func revertVolumeProjections(kokiProjections []types.VolumeProjection) ([]v1.VolumeProjection, error) {
+	if len(kokiProjections) == 0 {
+		return nil, nil
+	}
+
+	projections := make([]v1.VolumeProjection, len(kokiProjections))
+	for i, projection := range kokiProjections {
+		secret, err := revertSecretProjection(projection.Secret)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "secret volume-projection #%d", i)
+		}
+		config, err := revertConfigMapProjection(projection.ConfigMap)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "config-map volume-projection #%d", i)
+		}
+		projections[i] = v1.VolumeProjection{
+			Secret:      secret,
+			DownwardAPI: revertDownwardAPIProjection(projection.DownwardAPI),
+			ConfigMap:   config,
+		}
+	}
+
+	return projections, nil
+}
+
+func revertSecretProjection(kokiProjection *types.SecretProjection) (*v1.SecretProjection, error) {
+	if kokiProjection == nil {
+		return nil, nil
+	}
+
+	ref := revertLocalObjectRef(kokiProjection.Name)
+	if ref == nil {
+		return nil, util.InvalidInstanceErrorf(kokiProjection, "secret name is missing")
+	}
+	return &v1.SecretProjection{
+		LocalObjectReference: *ref,
+		Items:                revertKeyToPathItems(kokiProjection.Items),
+	}, nil
+}
+
+func revertConfigMapProjection(kokiProjection *types.ConfigMapProjection) (*v1.ConfigMapProjection, error) {
+	if kokiProjection == nil {
+		return nil, nil
+	}
+
+	ref := revertLocalObjectRef(kokiProjection.Name)
+	if ref == nil {
+		return nil, util.InvalidInstanceErrorf(kokiProjection, "config-map name is missing")
+	}
+	return &v1.ConfigMapProjection{
+		LocalObjectReference: *ref,
+		Items:                revertKeyToPathItems(kokiProjection.Items),
+	}, nil
+}
+
+func revertDownwardAPIProjection(kokiProjection *types.DownwardAPIProjection) *v1.DownwardAPIProjection {
+	if kokiProjection == nil {
+		return nil
+	}
+
+	return &v1.DownwardAPIProjection{
+		Items: revertDownwardAPIVolumeFiles(kokiProjection.Items),
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -717,6 +782,22 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			VolumeSource: v1.VolumeSource{
 				DownwardAPI: &v1.DownwardAPIVolumeSource{
 					Items:       revertDownwardAPIVolumeFiles(source.Items),
+					DefaultMode: revertFileMode(source.DefaultMode),
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.Projected != nil {
+		source := kokiVolume.Projected
+		sources, err := revertVolumeProjections(source.Sources)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+		}
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				Projected: &v1.ProjectedVolumeSource{
+					Sources:     sources,
 					DefaultMode: revertFileMode(source.DefaultMode),
 				},
 			},

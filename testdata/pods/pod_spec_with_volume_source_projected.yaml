@@ -17,18 +17,23 @@ spec:
           name: secret_name
           items:
           - key: key
-            path: /path/to/key
+            path: path/to/key
             mode: 0644
       - configMap:
           name: config_map_name
           items:
           - key: key
-            path: /path/to/key
+            path: path/to/key1
             mode: 0644
       - downwardAPI:
           items:
-          - path: /path/to/downwardapi
-            fieldRef:
-              fieldPath: /path/to/data
-            mode: 0644
+          - path: path/to/file
+            fieldRef: 
+              fieldPath: metadata.annotation
+            mode: 0644 
+          - path: path/to/file1
+            resourceFieldRef:
+              containerName: container-name
+              resource: limits.cpu
+              divisor: 1m
     defaultMode: 0644        
