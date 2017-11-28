@@ -803,6 +803,19 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 			},
 		}, nil
 	}
+	if kokiVolume.Git != nil {
+		source := kokiVolume.Git
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				GitRepo: &v1.GitRepoVolumeSource{
+					Repository: source.Repository,
+					Revision:   source.Revision,
+					Directory:  source.Directory,
+				},
+			},
+		}, nil
+	}
 
 	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }

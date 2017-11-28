@@ -676,6 +676,16 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 			},
 		}, nil
 	}
+	if kubeVolume.GitRepo != nil {
+		source := kubeVolume.GitRepo
+		return name, &types.Volume{
+			Git: &types.GitVolume{
+				Repository: source.Repository,
+				Revision:   source.Revision,
+				Directory:  source.Directory,
+			},
+		}, nil
+	}
 
 	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }

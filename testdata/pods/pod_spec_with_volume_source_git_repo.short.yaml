@@ -8,9 +8,9 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - directory: testdata
-    name: test_volume
-    repository: github.com/koki
-    revision: master
-    type: git-repo
+    test_volume:
+      directory: testdata
+      revision: master
+      vol_id: github.com/koki
+      vol_type: git
 

@@ -44,6 +44,7 @@ type Volume struct {
 	Secret       *SecretVolume
 	DownwardAPI  *DownwardAPIVolume
 	Projected    *ProjectedVolume
+	Git          *GitVolume
 }
 
 const (
@@ -71,6 +72,7 @@ const (
 	VolumeTypeSecret       = "secret"
 	VolumeTypeDownwardAPI  = "downward-api"
 	VolumeTypeProjected    = "projected"
+	VolumeTypeGit          = "git"
 
 	SelectorSegmentReadOnly = "ro"
 )
@@ -357,6 +359,12 @@ type DownwardAPIProjection struct {
 	Items map[string]DownwardAPIVolumeFile `json:"items,omitempty"`
 }
 
+type GitVolume struct {
+	Repository string `json:"-"`
+	Revision   string `json:"revision,omitempty"`
+	Directory  string `json:"directory,omitempty"`
+}
+
 func (v *Volume) UnmarshalJSON(data []byte) error {
 	var err error
 	str := ""
@@ -439,6 +447,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		return v.UnmarshalDownwardAPIVolume(obj, selector)
 	case VolumeTypeProjected:
 		return v.UnmarshalProjectedVolume(obj, selector)
+	case VolumeTypeGit:
+		return v.UnmarshalGitVolume(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -524,6 +534,9 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 	if v.Projected != nil {
 		marshalledVolume, err = v.Projected.Marshal()
+	}
+	if v.Git != nil {
+		marshalledVolume, err = v.Git.Marshal()
 	}
 
 	if err != nil {
@@ -1477,4 +1490,30 @@ func (p VolumeProjection) MarshalJSON() ([]byte, error) {
 	}
 
 	return nil, util.InvalidInstanceErrorf(p, "empty volume projection")
+}
+
+func (v *Volume) UnmarshalGitVolume(obj map[string]interface{}, selector []string) error {
+	source := GitVolume{}
+	source.Repository = strings.Join(selector, ":")
+
+	err := util.UnmarshalMap(obj, &source)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeGit)
+	}
+
+	v.Git = &source
+	return nil
+}
+
+func (s GitVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeGit)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeGit,
+		Selector:    []string{s.Repository},
+		ExtraFields: obj,
+	}, nil
 }
