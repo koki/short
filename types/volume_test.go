@@ -370,6 +370,102 @@ var kokiDownwardAPIVolume1 = Volume{
 	},
 }
 
+var kokiProjectedVolume0 = Volume{
+	Projected: &ProjectedVolume{
+		Sources: []VolumeProjection{
+			VolumeProjection{
+				Secret: &SecretProjection{
+					Name: "secret-name",
+					Items: map[string]KeyAndMode{
+						"my-group/my-user": KeyAndMode{
+							Key:  "username",
+							Mode: FileModePtr(0644),
+						},
+					},
+					Required: util.BoolPtr(true),
+				},
+			},
+			VolumeProjection{
+				ConfigMap: &ConfigMapProjection{
+					Name: "config-name",
+					Items: map[string]KeyAndMode{
+						"my-group/my-config": KeyAndMode{
+							Key:  "config",
+							Mode: FileModePtr(0644),
+						},
+					},
+					Required: util.BoolPtr(true),
+				},
+			},
+			VolumeProjection{
+				DownwardAPI: &DownwardAPIProjection{
+					Items: map[string]DownwardAPIVolumeFile{
+						"labels": DownwardAPIVolumeFile{
+							FieldRef: &ObjectFieldSelector{
+								FieldPath:  "metadata.labels",
+								APIVersion: "v1",
+							},
+							Mode: FileModePtr(0644),
+						},
+						"cpu_limit": DownwardAPIVolumeFile{
+							ResourceFieldRef: &VolumeResourceFieldSelector{
+								ContainerName: "client-container",
+								Resource:      "limits.cpu",
+								Divisor:       resource.MustParse("1m"),
+							},
+							Mode: FileModePtr(0644),
+						},
+					},
+				},
+			},
+		},
+		DefaultMode: FileModePtr(0644),
+	},
+}
+var kokiProjectedVolume1 = Volume{
+	Projected: &ProjectedVolume{
+		Sources: []VolumeProjection{
+			VolumeProjection{
+				Secret: &SecretProjection{
+					Name: "secret-name",
+					Items: map[string]KeyAndMode{
+						"my-group/my-user": KeyAndMode{
+							Key: "username",
+						},
+					},
+				},
+			},
+			VolumeProjection{
+				ConfigMap: &ConfigMapProjection{
+					Name: "config-name",
+					Items: map[string]KeyAndMode{
+						"my-group/my-config": KeyAndMode{
+							Key: "config",
+						},
+					},
+				},
+			},
+			VolumeProjection{
+				DownwardAPI: &DownwardAPIProjection{
+					Items: map[string]DownwardAPIVolumeFile{
+						"labels": DownwardAPIVolumeFile{
+							FieldRef: &ObjectFieldSelector{
+								FieldPath: "metadata.labels",
+							},
+						},
+						"cpu_limit": DownwardAPIVolumeFile{
+							ResourceFieldRef: &VolumeResourceFieldSelector{
+								ContainerName: "client-container",
+								Resource:      "limits.cpu",
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
 func TestVolume(t *testing.T) {
 	testVolumeSource(kokiHostPath0, t, true)
 	testVolumeSource(kokiEmptyDir0, t, false)
@@ -408,6 +504,8 @@ func TestVolume(t *testing.T) {
 	testVolumeSource(kokiSecretVolume1, t, false)
 	testVolumeSource(kokiDownwardAPIVolume0, t, false)
 	testVolumeSource(kokiDownwardAPIVolume1, t, false)
+	testVolumeSource(kokiProjectedVolume0, t, false)
+	testVolumeSource(kokiProjectedVolume1, t, false)
 }
 
 func isString(data []byte, t *testing.T) bool {

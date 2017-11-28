@@ -13,6 +13,6 @@ pod:
         path/to/file: root:0644
       mode: "0644"
       required: false
-      vol_name: config_map_name
+      vol_id: config_map_name
       vol_type: config-map
 
