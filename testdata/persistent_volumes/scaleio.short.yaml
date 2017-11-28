@@ -1,0 +1,29 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  fs: xfs
+  gateway: https://localhost:443/api
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  protection_domain: pd01
+  reclaim: recycle
+  ro: true
+  secret: secret-namespace:secret-name
+  ssl: true
+  status: {}
+  storage: 10Gi
+  storage_class: storageClass
+  storage_mode: ThickProvisioned
+  storage_pool: sp01
+  system: scaleio
+  version: v1
+  vol_id: vol-0
+  vol_type: scaleio
