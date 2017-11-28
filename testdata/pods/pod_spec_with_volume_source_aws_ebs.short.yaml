@@ -11,6 +11,6 @@ pod:
     aws_ebs_test_volume:
       fs: xfs
       ro: true
-      vol_name: i4054053
+      vol_id: i4054053
       vol_type: aws_ebs
 

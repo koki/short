@@ -18,6 +18,6 @@ pod:
       storage_mode: storage.mode
       storage_pool: storage.pool
       system: system
-      vol_name: volName
+      vol_id: volName
       vol_type: scaleio
 

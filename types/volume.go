@@ -108,8 +108,7 @@ type AwsEBSVolume struct {
 }
 
 type AzureDiskVolume struct {
-	DiskName string `json:"-"`
-	// DataDiskURI is required
+	DiskName    string                    `json:"disk_name"`
 	DataDiskURI string                    `json:"disk_uri"`
 	CachingMode *AzureDataDiskCachingMode `json:"cache,omitempty"`
 	FSType      string                    `json:"fs,omitempty"`
@@ -176,9 +175,11 @@ type FlockerVolume struct {
 }
 
 type GlusterfsVolume struct {
-	EndpointsName string `json:"-"`
-	Path          string `json:"path"`
-	ReadOnly      bool   `json:"ro,omitempty"`
+	EndpointsName string `json:"endpoints"`
+
+	// Path is the Glusterfs volume name.
+	Path     string `json:"-"`
+	ReadOnly bool   `json:"ro,omitempty"`
 }
 
 type ISCSIVolume struct {
@@ -267,11 +268,11 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	}
 
 	selector := []string{}
-	if val, ok := obj["vol_name"]; ok {
+	if val, ok := obj["vol_id"]; ok {
 		if volName, ok := val.(string); ok {
 			selector = append(selector, volName)
 		} else {
-			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_name\"")
+			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_id\"")
 		}
 	}
 
@@ -417,7 +418,7 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	obj := marshalledVolume.ExtraFields
 	obj["vol_type"] = marshalledVolume.Type
 	if len(marshalledVolume.Selector) > 0 {
-		obj["vol_name"] = strings.Join(marshalledVolume.Selector, ":")
+		obj["vol_id"] = strings.Join(marshalledVolume.Selector, ":")
 	}
 
 	return json.Marshal(obj)
@@ -561,10 +562,9 @@ func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
 
 func (v *Volume) UnmarshalAzureDiskVolume(obj map[string]interface{}, selector []string) error {
 	source := AzureDiskVolume{}
-	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeAzureDisk)
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeAzureDisk)
 	}
-	source.DiskName = selector[0]
 
 	err := util.UnmarshalMap(obj, &source)
 	if err != nil {
@@ -582,12 +582,15 @@ func (s AzureDiskVolume) Marshal() (*MarshalledVolume, error) {
 	}
 
 	if len(s.DiskName) == 0 {
-		return nil, util.InvalidInstanceErrorf(&s, "selector must contain disk name")
+		return nil, util.InvalidInstanceErrorf(&s, "disk_name is required for %s", VolumeTypeAzureDisk)
+	}
+
+	if len(s.DataDiskURI) == 0 {
+		return nil, util.InvalidInstanceErrorf(&s, "disk_uri is required for %s", VolumeTypeAzureDisk)
 	}
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeAzureDisk,
-		Selector:    []string{s.DiskName},
 		ExtraFields: obj,
 	}, nil
 }
@@ -793,9 +796,9 @@ func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalGlusterfsVolume(obj map[string]interface{}, selector []string) error {
 	source := GlusterfsVolume{}
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (endpoints name) for %s", VolumeTypeGlusterfs)
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeGlusterfs)
 	}
-	source.EndpointsName = selector[0]
+	source.Path = selector[0]
 
 	err := util.UnmarshalMap(obj, &source)
 	if err != nil {
@@ -814,7 +817,7 @@ func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeGlusterfs,
-		Selector:    []string{s.EndpointsName},
+		Selector:    []string{s.Path},
 		ExtraFields: obj,
 	}, nil
 }

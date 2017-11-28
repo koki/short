@@ -11,6 +11,6 @@ pod:
     test_volume:
       fs: xfs
       ro: true
-      vol_name: 3094ejer
+      vol_id: 3094ejer
       vol_type: portworx
 

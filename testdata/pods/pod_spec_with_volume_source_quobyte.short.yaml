@@ -13,6 +13,6 @@ pod:
       registry: registry.quobyte
       ro: true
       user: quobyte.user
-      vol_name: volume.quobyte
+      vol_id: volume.quobyte
       vol_type: quobyte
 

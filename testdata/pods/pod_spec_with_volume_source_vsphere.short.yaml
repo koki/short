@@ -13,6 +13,6 @@ pod:
       policy:
         id: id
         name: policy
-      vol_name: /path/to/vsphere/volume
+      vol_id: /path/to/vsphere/volume
       vol_type: vsphere
 

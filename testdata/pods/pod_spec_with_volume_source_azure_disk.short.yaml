@@ -10,9 +10,9 @@ pod:
   volumes:
     azure_disk_test_volume:
       cache: rw
+      disk_name: azure_disk_name
       disk_uri: disk://uri.azure.disk
       fs: xfs
       kind: dedicated
-      vol_name: azure_disk_name
       vol_type: azure_disk
 

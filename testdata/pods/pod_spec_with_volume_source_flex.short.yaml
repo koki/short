@@ -15,6 +15,6 @@ pod:
         key2: value2
       ro: true
       secret: secret_name
-      vol_name: flex-driver
+      vol_id: flex-driver
       vol_type: flex
 

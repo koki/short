@@ -11,6 +11,6 @@ pod:
     test_volume:
       fs: xfs
       ro: true
-      vol_name: cinderID
+      vol_id: cinderID
       vol_type: cinder
 

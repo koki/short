@@ -9,8 +9,8 @@ pod:
   version: v1
   volumes:
     test_volume:
-      path: /path/to/vol
+      endpoints: endpointsName
       ro: true
-      vol_name: endpointsName
+      vol_id: kube_vol
       vol_type: glusterfs
 
