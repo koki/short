@@ -214,6 +214,14 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			},
 		}, nil
 	}
+	if kokiSource.Local != nil {
+		source := kokiSource.Local
+		return v1.PersistentVolumeSource{
+			Local: &v1.LocalVolumeSource{
+				Path: source.Path,
+			},
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

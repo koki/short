@@ -170,6 +170,12 @@ var kokiPersistentScaleIOVolume0 = PersistentVolumeSource{
 	},
 }
 
+var kokiPersistentLocalVolume0 = PersistentVolumeSource{
+	Local: &LocalVolume{
+		Path: "/some/path",
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -193,6 +199,7 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentAzureFile0, t)
 	testPersistentVolumeSource(kokiPersistentAzureFile1, t)
 	testPersistentVolumeSource(kokiPersistentScaleIOVolume0, t)
+	testPersistentVolumeSource(kokiPersistentLocalVolume0, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

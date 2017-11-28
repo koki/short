@@ -69,6 +69,7 @@ type PersistentVolumeSource struct {
 	CephFS       *CephFSPersistentVolume
 	AzureFile    *AzureFilePersistentVolume
 	ScaleIO      *ScaleIOPersistentVolume
+	Local        *LocalVolume
 }
 
 const (
@@ -121,6 +122,10 @@ type ScaleIOPersistentVolume struct {
 	VolumeName       string          `json:"-"`
 	FSType           string          `json:"fs,omitempty"`
 	ReadOnly         bool            `json:"ro,omitempty"`
+}
+
+type LocalVolume struct {
+	Path string `json:"path"`
 }
 
 // comma-separated list of modes
@@ -336,6 +341,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeScaleIO:
 		v.ScaleIO = &ScaleIOPersistentVolume{}
 		return v.ScaleIO.Unmarshal(obj, selector)
+	case VolumeTypeLocal:
+		v.Local = &LocalVolume{}
+		return v.Local.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -400,6 +408,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.ScaleIO != nil {
 		marshalledVolume, err = v.ScaleIO.Marshal()
+	}
+	if v.Local != nil {
+		marshalledVolume, err = v.Local.Marshal()
 	}
 
 	if err != nil {
@@ -586,6 +597,31 @@ func (s ScaleIOPersistentVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeScaleIO,
 		Selector:    []string{s.VolumeName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *LocalVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeLocal)
+	}
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeLocal)
+	}
+
+	return nil
+}
+
+func (s LocalVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeLocal)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeLocal,
 		ExtraFields: obj,
 	}, nil
 }

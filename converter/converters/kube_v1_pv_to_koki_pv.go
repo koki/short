@@ -226,6 +226,14 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			},
 		}, nil
 	}
+	if kubeSource.Local != nil {
+		source := kubeSource.Local
+		return types.PersistentVolumeSource{
+			Local: &types.LocalVolume{
+				Path: source.Path,
+			},
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
