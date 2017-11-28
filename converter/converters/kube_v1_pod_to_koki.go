@@ -390,6 +390,15 @@ func convertDownwardAPIProjection(kubeProjection *v1.DownwardAPIProjection) *typ
 	}
 }
 
+func convertGcePDVolume(source *v1.GCEPersistentDiskVolumeSource) *types.GcePDVolume {
+	return &types.GcePDVolume{
+		PDName:    source.PDName,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -417,14 +426,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.GCEPersistentDisk != nil {
-		source := kubeVolume.GCEPersistentDisk
 		return name, &types.Volume{
-			GcePD: &types.GcePDVolume{
-				PDName:    source.PDName,
-				FSType:    source.FSType,
-				Partition: source.Partition,
-				ReadOnly:  source.ReadOnly,
-			},
+			GcePD: convertGcePDVolume(kubeVolume.GCEPersistentDisk),
 		}, nil
 	}
 	if kubeVolume.AWSElasticBlockStore != nil {

@@ -404,7 +404,8 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 	case VolumeTypeEmptyDir:
 		return v.UnmarshalEmptyDirVolume(obj, selector)
 	case VolumeTypeGcePD:
-		return v.UnmarshalGcePDVolume(obj, selector)
+		v.GcePD = &GcePDVolume{}
+		return v.GcePD.Unmarshal(obj, selector)
 	case VolumeTypeAwsEBS:
 		return v.UnmarshalAwsEBSVolume(obj, selector)
 	case VolumeTypeAzureDisk:
@@ -632,19 +633,17 @@ func (s EmptyDirVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalGcePDVolume(obj map[string]interface{}, selector []string) error {
-	source := GcePDVolume{}
+func (s *GcePDVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeGcePD)
 	}
-	source.PDName = selector[0]
+	s.PDName = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeGcePD)
 	}
 
-	v.GcePD = &source
 	return nil
 }
 

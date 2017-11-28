@@ -28,8 +28,10 @@ func Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubePV *v1.Persis
 		return nil, err
 	}
 
-	// TODO
-	//kokiPV.PersistentVolumeSource.VolumeSource = kubeSpec.PersistentVolumeSource
+	kokiPV.PersistentVolumeSource, err = convertPersistentVolumeSource(kubeSpec.PersistentVolumeSource)
+	if err != nil {
+		return nil, err
+	}
 	if len(kubeSpec.AccessModes) > 0 {
 		kokiPV.AccessModes = &types.AccessModes{
 			Modes: kubeSpec.AccessModes,
@@ -49,6 +51,16 @@ func Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubePV *v1.Persis
 	return &types.PersistentVolumeWrapper{
 		PersistentVolume: *kokiPV,
 	}, nil
+}
+
+func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.PersistentVolumeSource, error) {
+	if kubeSource.GCEPersistentDisk != nil {
+		return types.PersistentVolumeSource{
+			GcePD: convertGcePDVolume(kubeSource.GCEPersistentDisk),
+		}, nil
+	}
+
+	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
 
 func convertReclaimPolicy(kubePolicy v1.PersistentVolumeReclaimPolicy) types.PersistentVolumeReclaimPolicy {

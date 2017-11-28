@@ -440,6 +440,15 @@ func revertDownwardAPIProjection(kokiProjection *types.DownwardAPIProjection) *v
 	}
 }
 
+func revertGcePDVolume(source *types.GcePDVolume) *v1.GCEPersistentDiskVolumeSource {
+	return &v1.GCEPersistentDiskVolumeSource{
+		PDName:    source.PDName,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -472,16 +481,10 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.GcePD != nil {
-		source := kokiVolume.GcePD
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-					PDName:    source.PDName,
-					FSType:    source.FSType,
-					Partition: source.Partition,
-					ReadOnly:  source.ReadOnly,
-				},
+				GCEPersistentDisk: revertGcePDVolume(kokiVolume.GcePD),
 			},
 		}, nil
 	}

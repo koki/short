@@ -48,6 +48,7 @@ const (
 )
 
 type PersistentVolumeSource struct {
+	GcePD *GcePDVolume
 }
 
 // comma-separated list of modes
@@ -177,4 +178,69 @@ func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 	}
 
 	return result, nil
+}
+
+func (v *PersistentVolumeSource) UnmarshalJSON(data []byte) error {
+	var err error
+	obj := map[string]interface{}{}
+	err = json.Unmarshal(data, &obj)
+	if err != nil {
+		return util.InvalidValueErrorf(string(data), "expected dictionary for persistent volume")
+	}
+
+	var selector []string
+	if val, ok := obj["vol_id"]; ok {
+		if volName, ok := val.(string); ok {
+			selector = []string{volName}
+		} else {
+			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_id\"")
+		}
+	}
+
+	volType, err := util.GetStringEntry(obj, "vol_type")
+	if err != nil {
+		return err
+	}
+
+	return v.Unmarshal(obj, volType, selector)
+}
+
+func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType string, selector []string) error {
+	switch volType {
+	case VolumeTypeGcePD:
+		v.GcePD = &GcePDVolume{}
+		return v.GcePD.Unmarshal(obj, selector)
+	default:
+		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
+	}
+}
+
+func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
+	var marshalledVolume *MarshalledVolume
+	var err error
+	if v.GcePD != nil {
+		marshalledVolume, err = v.GcePD.Marshal()
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if marshalledVolume == nil {
+		return nil, util.InvalidInstanceErrorf(v, "empty volume definition")
+	}
+
+	if len(marshalledVolume.ExtraFields) == 0 {
+		segments := []string{marshalledVolume.Type}
+		segments = append(segments, marshalledVolume.Selector...)
+		return json.Marshal(strings.Join(segments, ":"))
+	}
+
+	obj := marshalledVolume.ExtraFields
+	obj["vol_type"] = marshalledVolume.Type
+	if len(marshalledVolume.Selector) > 0 {
+		obj["vol_id"] = strings.Join(marshalledVolume.Selector, ":")
+	}
+
+	return json.Marshal(obj)
 }
