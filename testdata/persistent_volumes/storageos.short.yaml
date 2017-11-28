@@ -1,0 +1,24 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  fs: ext4
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  reclaim: recycle
+  ro: true
+  secret: secret-namespace:secret-name
+  status: {}
+  storage: 10Gi
+  storage_class: storageClass
+  version: v1
+  vol_id: vol-0
+  vol_namespace: namespace-0
+  vol_type: storageos

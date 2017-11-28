@@ -1,0 +1,22 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  fs: ext4
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  reclaim: recycle
+  ro: true
+  status: {}
+  storage: 10Gi
+  storage_class: storageClass
+  version: v1
+  vol_id: volume-id
+  vol_type: portworx

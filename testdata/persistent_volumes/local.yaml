@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    annotationKey: annotationValue
+  clusterName: cluster
+  creationTimestamp: null
+  labels:
+    labelKey: labelValue
+  name: vol-name
+  namespace: namespace
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  claimRef:
+    name: claimName
+    namespace: claimNamespace
+  local:
+    path: /some/path
+  mountOptions:
+  - option 1
+  - option 2
+  - option 3
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: storageClass
+status: {}
+

@@ -440,6 +440,155 @@ func revertDownwardAPIProjection(kokiProjection *types.DownwardAPIProjection) *v
 	}
 }
 
+func revertGcePDVolume(source *types.GcePDVolume) *v1.GCEPersistentDiskVolumeSource {
+	return &v1.GCEPersistentDiskVolumeSource{
+		PDName:    source.PDName,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
+func revertAwsEBSVolume(source *types.AwsEBSVolume) *v1.AWSElasticBlockStoreVolumeSource {
+	return &v1.AWSElasticBlockStoreVolumeSource{
+		VolumeID:  source.VolumeID,
+		FSType:    source.FSType,
+		Partition: source.Partition,
+		ReadOnly:  source.ReadOnly,
+	}
+}
+
+func revertHostPathVolume(source *types.HostPathVolume) (*v1.HostPathVolumeSource, error) {
+	kubeType, err := revertHostPathType(source.Type)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.HostPathVolumeSource{
+		Path: source.Path,
+		Type: &kubeType,
+	}, nil
+}
+
+func revertGlusterfsVolume(source *types.GlusterfsVolume) *v1.GlusterfsVolumeSource {
+	return &v1.GlusterfsVolumeSource{
+		EndpointsName: source.EndpointsName,
+		Path:          source.Path,
+		ReadOnly:      source.ReadOnly,
+	}
+}
+
+func revertNFSVolume(source *types.NFSVolume) *v1.NFSVolumeSource {
+	return &v1.NFSVolumeSource{
+		Server:   source.Server,
+		Path:     source.Path,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
+func revertISCSIVolume(source *types.ISCSIVolume) *v1.ISCSIVolumeSource {
+	return &v1.ISCSIVolumeSource{
+		TargetPortal:      source.TargetPortal,
+		IQN:               source.IQN,
+		Lun:               source.Lun,
+		ISCSIInterface:    source.ISCSIInterface,
+		FSType:            source.FSType,
+		ReadOnly:          source.ReadOnly,
+		Portals:           source.Portals,
+		DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+		SessionCHAPAuth:   source.SessionCHAPAuth,
+		SecretRef:         revertLocalObjectRef(source.SecretRef),
+		InitiatorName:     util.StringPtrOrNil(source.InitiatorName),
+	}
+}
+
+func revertCinderVolume(source *types.CinderVolume) *v1.CinderVolumeSource {
+	return &v1.CinderVolumeSource{
+		VolumeID: source.VolumeID,
+		FSType:   source.FSType,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
+func revertFibreChannelVolume(source *types.FibreChannelVolume) *v1.FCVolumeSource {
+	return &v1.FCVolumeSource{
+		TargetWWNs: source.TargetWWNs,
+		Lun:        source.Lun,
+		FSType:     source.FSType,
+		ReadOnly:   source.ReadOnly,
+		WWIDs:      source.WWIDs,
+	}
+}
+
+func revertFlockerVolume(source *types.FlockerVolume) *v1.FlockerVolumeSource {
+	return &v1.FlockerVolumeSource{
+		DatasetUUID: source.DatasetUUID,
+	}
+}
+
+func revertFlexVolume(source *types.FlexVolume) *v1.FlexVolumeSource {
+	return &v1.FlexVolumeSource{
+		Driver:    source.Driver,
+		FSType:    source.FSType,
+		SecretRef: revertLocalObjectRef(source.SecretRef),
+		ReadOnly:  source.ReadOnly,
+		Options:   source.Options,
+	}
+}
+
+func revertVsphereVolume(source *types.VsphereVolume) *v1.VsphereVirtualDiskVolumeSource {
+	storagePolicyName, storagePolicyID := revertVsphereStoragePolicy(source.StoragePolicy)
+	return &v1.VsphereVirtualDiskVolumeSource{
+		VolumePath:        source.VolumePath,
+		FSType:            source.FSType,
+		StoragePolicyName: storagePolicyName,
+		StoragePolicyID:   storagePolicyID,
+	}
+}
+
+func revertQuobyteVolume(source *types.QuobyteVolume) *v1.QuobyteVolumeSource {
+	return &v1.QuobyteVolumeSource{
+		Registry: source.Registry,
+		Volume:   source.Volume,
+		ReadOnly: source.ReadOnly,
+		User:     source.User,
+		Group:    source.Group,
+	}
+}
+
+func revertAzureDiskVolume(source *types.AzureDiskVolume) (*v1.AzureDiskVolumeSource, error) {
+	kind, err := revertAzureDiskKind(source.Kind)
+	if err != nil {
+		return nil, err
+	}
+	cachingMode, err := revertAzureDiskCachingMode(source.CachingMode)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.AzureDiskVolumeSource{
+		DiskName:    source.DiskName,
+		DataDiskURI: source.DataDiskURI,
+		FSType:      util.StringPtrOrNil(source.FSType),
+		ReadOnly:    util.BoolPtrOrNil(source.ReadOnly),
+		Kind:        kind,
+		CachingMode: cachingMode,
+	}, nil
+}
+
+func revertPhotonPDVolume(source *types.PhotonPDVolume) *v1.PhotonPersistentDiskVolumeSource {
+	return &v1.PhotonPersistentDiskVolumeSource{
+		PdID:   source.PdID,
+		FSType: source.FSType,
+	}
+}
+
+func revertPortworxVolume(source *types.PortworxVolume) *v1.PortworxVolumeSource {
+	return &v1.PortworxVolumeSource{
+		VolumeID: source.VolumeID,
+		FSType:   source.FSType,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -457,69 +606,42 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.HostPath != nil {
-		kubeType, err := revertHostPathType(kokiVolume.HostPath.Type)
+		source, err := revertHostPathVolume(kokiVolume.HostPath)
 		if err != nil {
 			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				HostPath: &v1.HostPathVolumeSource{
-					Path: kokiVolume.HostPath.Path,
-					Type: &kubeType,
-				},
+				HostPath: source,
 			},
 		}, nil
 	}
 	if kokiVolume.GcePD != nil {
-		source := kokiVolume.GcePD
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-					PDName:    source.PDName,
-					FSType:    source.FSType,
-					Partition: source.Partition,
-					ReadOnly:  source.ReadOnly,
-				},
+				GCEPersistentDisk: revertGcePDVolume(kokiVolume.GcePD),
 			},
 		}, nil
 	}
 	if kokiVolume.AwsEBS != nil {
-		source := kokiVolume.AwsEBS
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				AWSElasticBlockStore: &v1.AWSElasticBlockStoreVolumeSource{
-					VolumeID:  source.VolumeID,
-					FSType:    source.FSType,
-					Partition: source.Partition,
-					ReadOnly:  source.ReadOnly,
-				},
+				AWSElasticBlockStore: revertAwsEBSVolume(kokiVolume.AwsEBS),
 			},
 		}, nil
 	}
 	if kokiVolume.AzureDisk != nil {
-		source := kokiVolume.AzureDisk
-		kind, err := revertAzureDiskKind(source.Kind)
-		if err != nil {
-			return nil, err
-		}
-		cachingMode, err := revertAzureDiskCachingMode(source.CachingMode)
+		source, err := revertAzureDiskVolume(kokiVolume.AzureDisk)
 		if err != nil {
 			return nil, err
 		}
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				AzureDisk: &v1.AzureDiskVolumeSource{
-					DiskName:    source.DiskName,
-					DataDiskURI: source.DataDiskURI,
-					FSType:      util.StringPtrOrNil(source.FSType),
-					ReadOnly:    util.BoolPtrOrNil(source.ReadOnly),
-					Kind:        kind,
-					CachingMode: cachingMode,
-				},
+				AzureDisk: source,
 			},
 		}, nil
 	}
@@ -554,128 +676,74 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.Cinder != nil {
-		source := kokiVolume.Cinder
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				Cinder: &v1.CinderVolumeSource{
-					VolumeID: source.VolumeID,
-					FSType:   source.FSType,
-					ReadOnly: source.ReadOnly,
-				},
+				Cinder: revertCinderVolume(kokiVolume.Cinder),
 			},
 		}, nil
 	}
 	if kokiVolume.FibreChannel != nil {
-		source := kokiVolume.FibreChannel
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				FC: &v1.FCVolumeSource{
-					TargetWWNs: source.TargetWWNs,
-					Lun:        source.Lun,
-					FSType:     source.FSType,
-					ReadOnly:   source.ReadOnly,
-					WWIDs:      source.WWIDs,
-				},
+				FC: revertFibreChannelVolume(kokiVolume.FibreChannel),
 			},
 		}, nil
 	}
 	if kokiVolume.Flex != nil {
-		source := kokiVolume.Flex
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				FlexVolume: &v1.FlexVolumeSource{
-					Driver:    source.Driver,
-					FSType:    source.FSType,
-					SecretRef: revertLocalObjectRef(source.SecretRef),
-					ReadOnly:  source.ReadOnly,
-					Options:   source.Options,
-				},
+				FlexVolume: revertFlexVolume(kokiVolume.Flex),
 			},
 		}, nil
 	}
 	if kokiVolume.Flocker != nil {
-		source := kokiVolume.Flocker
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				Flocker: &v1.FlockerVolumeSource{
-					DatasetUUID: source.DatasetUUID,
-				},
+				Flocker: revertFlockerVolume(kokiVolume.Flocker),
 			},
 		}, nil
 	}
 	if kokiVolume.Glusterfs != nil {
-		source := kokiVolume.Glusterfs
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				Glusterfs: &v1.GlusterfsVolumeSource{
-					EndpointsName: source.EndpointsName,
-					Path:          source.Path,
-					ReadOnly:      source.ReadOnly,
-				},
+				Glusterfs: revertGlusterfsVolume(kokiVolume.Glusterfs),
 			},
 		}, nil
 	}
 	if kokiVolume.ISCSI != nil {
-		source := kokiVolume.ISCSI
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				ISCSI: &v1.ISCSIVolumeSource{
-					TargetPortal:      source.TargetPortal,
-					IQN:               source.IQN,
-					Lun:               source.Lun,
-					ISCSIInterface:    source.ISCSIInterface,
-					FSType:            source.FSType,
-					ReadOnly:          source.ReadOnly,
-					Portals:           source.Portals,
-					DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
-					SessionCHAPAuth:   source.SessionCHAPAuth,
-					SecretRef:         revertLocalObjectRef(source.SecretRef),
-					InitiatorName:     util.StringPtrOrNil(source.InitiatorName),
-				},
+				ISCSI: revertISCSIVolume(kokiVolume.ISCSI),
 			},
 		}, nil
 	}
 	if kokiVolume.NFS != nil {
-		source := kokiVolume.NFS
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				NFS: &v1.NFSVolumeSource{
-					Server:   source.Server,
-					Path:     source.Path,
-					ReadOnly: source.ReadOnly,
-				},
+				NFS: revertNFSVolume(kokiVolume.NFS),
 			},
 		}, nil
 	}
 	if kokiVolume.PhotonPD != nil {
-		source := kokiVolume.PhotonPD
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				PhotonPersistentDisk: &v1.PhotonPersistentDiskVolumeSource{
-					PdID:   source.PdID,
-					FSType: source.FSType,
-				},
+				PhotonPersistentDisk: revertPhotonPDVolume(kokiVolume.PhotonPD),
 			},
 		}, nil
 	}
 	if kokiVolume.Portworx != nil {
-		source := kokiVolume.Portworx
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				PortworxVolume: &v1.PortworxVolumeSource{
-					VolumeID: source.VolumeID,
-					FSType:   source.FSType,
-					ReadOnly: source.ReadOnly,
-				},
+				PortworxVolume: revertPortworxVolume(kokiVolume.Portworx),
 			},
 		}, nil
 
@@ -693,17 +761,10 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.Quobyte != nil {
-		source := kokiVolume.Quobyte
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				Quobyte: &v1.QuobyteVolumeSource{
-					Registry: source.Registry,
-					Volume:   source.Volume,
-					ReadOnly: source.ReadOnly,
-					User:     source.User,
-					Group:    source.Group,
-				},
+				Quobyte: revertQuobyteVolume(kokiVolume.Quobyte),
 			},
 		}, nil
 	}
@@ -728,17 +789,10 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.Vsphere != nil {
-		source := kokiVolume.Vsphere
-		storagePolicyName, storagePolicyID := revertVsphereStoragePolicy(source.StoragePolicy)
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				VsphereVolume: &v1.VsphereVirtualDiskVolumeSource{
-					VolumePath:        source.VolumePath,
-					FSType:            source.FSType,
-					StoragePolicyName: storagePolicyName,
-					StoragePolicyID:   storagePolicyID,
-				},
+				VsphereVolume: revertVsphereVolume(kokiVolume.Vsphere),
 			},
 		}, nil
 	}
@@ -812,6 +866,39 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					Repository: source.Repository,
 					Revision:   source.Revision,
 					Directory:  source.Directory,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.RBD != nil {
+		source := kokiVolume.RBD
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				RBD: &v1.RBDVolumeSource{
+					CephMonitors: source.CephMonitors,
+					RBDImage:     source.RBDImage,
+					FSType:       source.FSType,
+					RBDPool:      source.RBDPool,
+					RadosUser:    source.RadosUser,
+					Keyring:      source.Keyring,
+					SecretRef:    revertLocalObjectRef(source.SecretRef),
+					ReadOnly:     source.ReadOnly,
+				},
+			},
+		}, nil
+	}
+	if kokiVolume.StorageOS != nil {
+		source := kokiVolume.StorageOS
+		return &v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				StorageOS: &v1.StorageOSVolumeSource{
+					VolumeName:      source.VolumeName,
+					VolumeNamespace: source.VolumeNamespace,
+					FSType:          source.FSType,
+					ReadOnly:        source.ReadOnly,
+					SecretRef:       revertLocalObjectRef(source.SecretRef),
 				},
 			},
 		}, nil

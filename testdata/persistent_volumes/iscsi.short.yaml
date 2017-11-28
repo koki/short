@@ -1,0 +1,32 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  chap_discovery: true
+  chap_session: true
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  fs: ext4
+  initiator: iqn.1996-04.de.suse:linux-host1
+  iqn: iqn.2015-02.example.com:test
+  iscsi_interface: default
+  labels:
+    labelKey: labelValue
+  lun: 0
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  portals:
+  - 1.2.3.5:3260
+  - 1.2.3.6:3260
+  reclaim: recycle
+  ro: true
+  secret: secret-name
+  status: {}
+  storage: 10Gi
+  storage_class: storageClass
+  target_portal: 1.2.3.4:3260
+  version: v1
+  vol_type: iscsi

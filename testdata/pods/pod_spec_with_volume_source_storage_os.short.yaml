@@ -8,12 +8,11 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: test_volume
-    read_only: true
-    secret_ref:
-      name: secret_name
-    type: storageos
-    volume_name: storageOS.VolName
-    volume_namespace: storageOS.VolNamespace
+    test_volume:
+      fs: xfs
+      ro: true
+      secret: secret_name
+      vol_id: storageOS.VolName
+      vol_namespace: storageOS.VolNamespace
+      vol_type: storageos
 
