@@ -11,3 +11,17 @@ metadata:
 spec:
   volumes:
   - name: test_volume
+    rbd:
+      fsType: ext4
+      image: foo
+      keyring: /etc/ceph/keyring
+      monitors:
+      - 1.2.3.4:6789
+      - 1.2.3.5:6789
+      pool: kube
+      readOnly: true
+      secretRef:
+        name: secret-name
+        namespace: secret-namespace
+      user: admin
+

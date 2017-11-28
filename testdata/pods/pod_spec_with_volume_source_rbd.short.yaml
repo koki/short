@@ -1,0 +1,23 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      fs: ext4
+      image: foo
+      keyring: /etc/ceph/keyring
+      monitors:
+      - 1.2.3.4:6789
+      - 1.2.3.5:6789
+      pool: kube
+      ro: true
+      secret: secret-name
+      user: admin
+      vol_type: rbd
+
