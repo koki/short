@@ -197,6 +197,23 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			},
 		}, nil
 	}
+	if kokiSource.ScaleIO != nil {
+		source := kokiSource.ScaleIO
+		return v1.PersistentVolumeSource{
+			ScaleIO: &v1.ScaleIOPersistentVolumeSource{
+				Gateway:          source.Gateway,
+				System:           source.System,
+				SecretRef:        revertSecretReference(&source.SecretRef),
+				SSLEnabled:       source.SSLEnabled,
+				ProtectionDomain: source.ProtectionDomain,
+				StoragePool:      source.StoragePool,
+				StorageMode:      source.StorageMode,
+				VolumeName:       source.VolumeName,
+				FSType:           source.FSType,
+				ReadOnly:         source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

@@ -68,6 +68,7 @@ type PersistentVolumeSource struct {
 	RBD          *RBDPersistentVolume
 	CephFS       *CephFSPersistentVolume
 	AzureFile    *AzureFilePersistentVolume
+	ScaleIO      *ScaleIOPersistentVolume
 }
 
 const (
@@ -107,6 +108,19 @@ type AzureFilePersistentVolume struct {
 	Secret    SecretReference `json:"secret"`
 	ShareName string          `json:"share"`
 	ReadOnly  bool            `json:"ro,omitempty"`
+}
+
+type ScaleIOPersistentVolume struct {
+	Gateway          string          `json:"gateway"`
+	System           string          `json:"system"`
+	SecretRef        SecretReference `json:"secret"`
+	SSLEnabled       bool            `json:"ssl,omitempty"`
+	ProtectionDomain string          `json:"protection_domain,omitempty"`
+	StoragePool      string          `json:"storage_pool,omitempty"`
+	StorageMode      string          `json:"storage_mode,omitempty"`
+	VolumeName       string          `json:"-"`
+	FSType           string          `json:"fs,omitempty"`
+	ReadOnly         bool            `json:"ro,omitempty"`
 }
 
 // comma-separated list of modes
@@ -319,6 +333,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeAzureFile:
 		v.AzureFile = &AzureFilePersistentVolume{}
 		return v.AzureFile.Unmarshal(obj, selector)
+	case VolumeTypeScaleIO:
+		v.ScaleIO = &ScaleIOPersistentVolume{}
+		return v.ScaleIO.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -380,6 +397,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.AzureFile != nil {
 		marshalledVolume, err = v.AzureFile.Marshal()
+	}
+	if v.ScaleIO != nil {
+		marshalledVolume, err = v.ScaleIO.Marshal()
 	}
 
 	if err != nil {
@@ -539,6 +559,33 @@ func (s AzureFilePersistentVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeAzureFile,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *ScaleIOPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 1 {
+		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeScaleIO)
+	}
+	s.VolumeName = selector[0]
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+	}
+
+	return nil
+}
+
+func (s ScaleIOPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeScaleIO,
+		Selector:    []string{s.VolumeName},
 		ExtraFields: obj,
 	}, nil
 }

@@ -152,6 +152,24 @@ var kokiPersistentAzureFile1 = PersistentVolumeSource{
 	},
 }
 
+var kokiPersistentScaleIOVolume0 = PersistentVolumeSource{
+	ScaleIO: &ScaleIOPersistentVolume{
+		Gateway: "https://localhost:443/api",
+		System:  "scaleio",
+		SecretRef: SecretReference{
+			Name:      "secret-name",
+			Namespace: "secret-namespace",
+		},
+		SSLEnabled:       true,
+		ProtectionDomain: "pd01",
+		StoragePool:      "sp01",
+		StorageMode:      "ThickProvisioned",
+		VolumeName:       "vol-0",
+		FSType:           "xfs",
+		ReadOnly:         true,
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -174,6 +192,7 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentCephFS1, t)
 	testPersistentVolumeSource(kokiPersistentAzureFile0, t)
 	testPersistentVolumeSource(kokiPersistentAzureFile1, t)
+	testPersistentVolumeSource(kokiPersistentScaleIOVolume0, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {
