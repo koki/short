@@ -48,9 +48,21 @@ const (
 )
 
 type PersistentVolumeSource struct {
-	GcePD    *GcePDVolume
-	AwsEBS   *AwsEBSVolume
-	HostPath *HostPathVolume
+	GcePD        *GcePDVolume
+	AwsEBS       *AwsEBSVolume
+	HostPath     *HostPathVolume
+	Glusterfs    *GlusterfsVolume
+	NFS          *NFSVolume
+	ISCSI        *ISCSIVolume
+	Cinder       *CinderVolume
+	FibreChannel *FibreChannelVolume
+	Flocker      *FlockerVolume
+	Flex         *FlexVolume
+	Vsphere      *VsphereVolume
+	Quobyte      *QuobyteVolume
+	AzureDisk    *AzureDiskVolume
+	PhotonPD     *PhotonPDVolume
+	Portworx     *PortworxVolume
 }
 
 // comma-separated list of modes
@@ -218,6 +230,42 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeHostPath:
 		v.HostPath = &HostPathVolume{}
 		return v.HostPath.Unmarshal(selector)
+	case VolumeTypeGlusterfs:
+		v.Glusterfs = &GlusterfsVolume{}
+		return v.Glusterfs.Unmarshal(obj, selector)
+	case VolumeTypeNFS:
+		v.NFS = &NFSVolume{}
+		return v.NFS.Unmarshal(selector)
+	case VolumeTypeISCSI:
+		v.ISCSI = &ISCSIVolume{}
+		return v.ISCSI.Unmarshal(obj, selector)
+	case VolumeTypeCinder:
+		v.Cinder = &CinderVolume{}
+		return v.Cinder.Unmarshal(obj, selector)
+	case VolumeTypeFibreChannel:
+		v.FibreChannel = &FibreChannelVolume{}
+		return v.FibreChannel.Unmarshal(obj, selector)
+	case VolumeTypeFlocker:
+		v.Flocker = &FlockerVolume{}
+		return v.Flocker.Unmarshal(selector)
+	case VolumeTypeFlex:
+		v.Flex = &FlexVolume{}
+		return v.Flex.Unmarshal(obj, selector)
+	case VolumeTypeVsphere:
+		v.Vsphere = &VsphereVolume{}
+		return v.Vsphere.Unmarshal(obj, selector)
+	case VolumeTypeQuobyte:
+		v.Quobyte = &QuobyteVolume{}
+		return v.Quobyte.Unmarshal(obj, selector)
+	case VolumeTypeAzureDisk:
+		v.AzureDisk = &AzureDiskVolume{}
+		return v.AzureDisk.Unmarshal(obj, selector)
+	case VolumeTypePhotonPD:
+		v.PhotonPD = &PhotonPDVolume{}
+		return v.PhotonPD.Unmarshal(selector)
+	case VolumeTypePortworx:
+		v.Portworx = &PortworxVolume{}
+		return v.Portworx.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -234,6 +282,42 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.HostPath != nil {
 		marshalledVolume, err = v.HostPath.Marshal()
+	}
+	if v.Glusterfs != nil {
+		marshalledVolume, err = v.Glusterfs.Marshal()
+	}
+	if v.NFS != nil {
+		marshalledVolume, err = v.NFS.Marshal()
+	}
+	if v.ISCSI != nil {
+		marshalledVolume, err = v.ISCSI.Marshal()
+	}
+	if v.Cinder != nil {
+		marshalledVolume, err = v.Cinder.Marshal()
+	}
+	if v.FibreChannel != nil {
+		marshalledVolume, err = v.FibreChannel.Marshal()
+	}
+	if v.Flocker != nil {
+		marshalledVolume, err = v.Flocker.Marshal()
+	}
+	if v.Flex != nil {
+		marshalledVolume, err = v.Flex.Marshal()
+	}
+	if v.Vsphere != nil {
+		marshalledVolume, err = v.Vsphere.Marshal()
+	}
+	if v.Quobyte != nil {
+		marshalledVolume, err = v.Quobyte.Marshal()
+	}
+	if v.AzureDisk != nil {
+		marshalledVolume, err = v.AzureDisk.Marshal()
+	}
+	if v.PhotonPD != nil {
+		marshalledVolume, err = v.PhotonPD.Marshal()
+	}
+	if v.Portworx != nil {
+		marshalledVolume, err = v.Portworx.Marshal()
 	}
 
 	if err != nil {

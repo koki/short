@@ -12,13 +12,12 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
+  cinder:
+    fsType: ext4
+    readOnly: true
+    volumeID: bd82f7e2-wece-4c01-a505-4acf60b07f4a
   claimRef:
     name: claimName
     namespace: claimNamespace

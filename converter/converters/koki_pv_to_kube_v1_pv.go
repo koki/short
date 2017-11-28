@@ -70,6 +70,70 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			HostPath: source,
 		}, nil
 	}
+	if kokiSource.Glusterfs != nil {
+		return v1.PersistentVolumeSource{
+			Glusterfs: revertGlusterfsVolume(kokiSource.Glusterfs),
+		}, nil
+	}
+	if kokiSource.NFS != nil {
+		return v1.PersistentVolumeSource{
+			NFS: revertNFSVolume(kokiSource.NFS),
+		}, nil
+	}
+	if kokiSource.ISCSI != nil {
+		return v1.PersistentVolumeSource{
+			ISCSI: revertISCSIVolume(kokiSource.ISCSI),
+		}, nil
+	}
+	if kokiSource.Cinder != nil {
+		return v1.PersistentVolumeSource{
+			Cinder: revertCinderVolume(kokiSource.Cinder),
+		}, nil
+	}
+	if kokiSource.FibreChannel != nil {
+		return v1.PersistentVolumeSource{
+			FC: revertFibreChannelVolume(kokiSource.FibreChannel),
+		}, nil
+	}
+	if kokiSource.Flocker != nil {
+		return v1.PersistentVolumeSource{
+			Flocker: revertFlockerVolume(kokiSource.Flocker),
+		}, nil
+	}
+	if kokiSource.Flex != nil {
+		return v1.PersistentVolumeSource{
+			FlexVolume: revertFlexVolume(kokiSource.Flex),
+		}, nil
+	}
+	if kokiSource.Vsphere != nil {
+		return v1.PersistentVolumeSource{
+			VsphereVolume: revertVsphereVolume(kokiSource.Vsphere),
+		}, nil
+	}
+	if kokiSource.Quobyte != nil {
+		return v1.PersistentVolumeSource{
+			Quobyte: revertQuobyteVolume(kokiSource.Quobyte),
+		}, nil
+	}
+	if kokiSource.AzureDisk != nil {
+		source, err := revertAzureDiskVolume(kokiSource.AzureDisk)
+		if err != nil {
+			return v1.PersistentVolumeSource{}, err
+		}
+		return v1.PersistentVolumeSource{
+			AzureDisk: source,
+		}, nil
+	}
+	if kokiSource.PhotonPD != nil {
+		return v1.PersistentVolumeSource{
+			PhotonPersistentDisk: revertPhotonPDVolume(kokiSource.PhotonPD),
+		}, nil
+	}
+	if kokiSource.Portworx != nil {
+		return v1.PersistentVolumeSource{
+			PortworxVolume: revertPortworxVolume(kokiSource.Portworx),
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

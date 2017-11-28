@@ -22,10 +22,70 @@ var kokiPersistentHostPathVolume0 = PersistentVolumeSource{
 	HostPath: kokiHostPath0.HostPath,
 }
 
+var kokiPersistentGlusterfsVolume0 = PersistentVolumeSource{
+	Glusterfs: kokiGlusterfsVolume0.Glusterfs,
+}
+
+var kokiPersistentNFSVolume0 = PersistentVolumeSource{
+	NFS: kokiNFSVolume0.NFS,
+}
+
+var kokiPersistentISCSIVolume0 = PersistentVolumeSource{
+	ISCSI: kokiISCSIVolume0.ISCSI,
+}
+
+var kokiPersistentCinderVolume0 = PersistentVolumeSource{
+	Cinder: kokiCinder0.Cinder,
+}
+
+var kokiPersistentFibreChannelVolume0 = PersistentVolumeSource{
+	FibreChannel: kokiFibreChannel0.FibreChannel,
+}
+
+var kokiPersistentFlockerVolume0 = PersistentVolumeSource{
+	Flocker: kokiFlockerVolume0.Flocker,
+}
+
+var kokiPersistentFlexVolume0 = PersistentVolumeSource{
+	Flex: kokiFlexVolume0.Flex,
+}
+
+var kokiPersistentVsphereVolume0 = PersistentVolumeSource{
+	Vsphere: kokiVsphereVolume0.Vsphere,
+}
+
+var kokiPersistentQuobyteVolume0 = PersistentVolumeSource{
+	Quobyte: kokiQuobyteVolume0.Quobyte,
+}
+
+var kokiPersistentAzureDiskVolume0 = PersistentVolumeSource{
+	AzureDisk: kokiAzureDisk0.AzureDisk,
+}
+
+var kokiPersistentPhotonPDVolume0 = PersistentVolumeSource{
+	PhotonPD: kokiPhotonPDVolume0.PhotonPD,
+}
+
+var kokiPersistentPortworxVolume0 = PersistentVolumeSource{
+	Portworx: kokiPortworxVolume0.Portworx,
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
 	testPersistentVolumeSource(kokiPersistentHostPathVolume0, t)
+	testPersistentVolumeSource(kokiPersistentGlusterfsVolume0, t)
+	testPersistentVolumeSource(kokiPersistentNFSVolume0, t)
+	testPersistentVolumeSource(kokiPersistentISCSIVolume0, t)
+	testPersistentVolumeSource(kokiPersistentCinderVolume0, t)
+	testPersistentVolumeSource(kokiPersistentFibreChannelVolume0, t)
+	testPersistentVolumeSource(kokiPersistentFlockerVolume0, t)
+	testPersistentVolumeSource(kokiPersistentFlexVolume0, t)
+	testPersistentVolumeSource(kokiPersistentVsphereVolume0, t)
+	testPersistentVolumeSource(kokiPersistentQuobyteVolume0, t)
+	testPersistentVolumeSource(kokiPersistentAzureDiskVolume0, t)
+	testPersistentVolumeSource(kokiPersistentPhotonPDVolume0, t)
+	testPersistentVolumeSource(kokiPersistentPortworxVolume0, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

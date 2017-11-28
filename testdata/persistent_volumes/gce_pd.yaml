@@ -4,6 +4,7 @@ metadata:
   annotations:
     annotationKey: annotationValue
   clusterName: cluster
+  creationTimestamp: null
   labels:
     labelKey: labelValue
   name: vol-name
@@ -27,3 +28,5 @@ spec:
   - option 3
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: storageClass
+status: {}
+

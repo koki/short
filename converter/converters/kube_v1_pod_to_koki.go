@@ -419,6 +419,131 @@ func convertHostPathVolume(source *v1.HostPathVolumeSource) (*types.HostPathVolu
 	}, nil
 }
 
+func convertGlusterfsVolume(source *v1.GlusterfsVolumeSource) *types.GlusterfsVolume {
+	return &types.GlusterfsVolume{
+		EndpointsName: source.EndpointsName,
+		Path:          source.Path,
+		ReadOnly:      source.ReadOnly,
+	}
+}
+
+func convertNFSVolume(source *v1.NFSVolumeSource) *types.NFSVolume {
+	return &types.NFSVolume{
+		Server:   source.Server,
+		Path:     source.Path,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
+func convertISCSIVolume(source *v1.ISCSIVolumeSource) *types.ISCSIVolume {
+	return &types.ISCSIVolume{
+		TargetPortal:      source.TargetPortal,
+		IQN:               source.IQN,
+		Lun:               source.Lun,
+		ISCSIInterface:    source.ISCSIInterface,
+		FSType:            source.FSType,
+		ReadOnly:          source.ReadOnly,
+		Portals:           source.Portals,
+		DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+		SessionCHAPAuth:   source.SessionCHAPAuth,
+		SecretRef:         convertLocalObjectRef(source.SecretRef),
+		InitiatorName:     util.FromStringPtr(source.InitiatorName),
+	}
+}
+
+func convertCinderVolume(source *v1.CinderVolumeSource) *types.CinderVolume {
+	return &types.CinderVolume{
+		VolumeID: source.VolumeID,
+		FSType:   source.FSType,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
+func convertFibreChannelVolume(source *v1.FCVolumeSource) *types.FibreChannelVolume {
+	return &types.FibreChannelVolume{
+		TargetWWNs: source.TargetWWNs,
+		Lun:        source.Lun,
+		ReadOnly:   source.ReadOnly,
+		WWIDs:      source.WWIDs,
+	}
+}
+
+func convertFlockerVolume(source *v1.FlockerVolumeSource) *types.FlockerVolume {
+	var dataset string
+	if len(source.DatasetUUID) > 0 {
+		dataset = source.DatasetUUID
+	} else {
+		dataset = source.DatasetName
+	}
+	return &types.FlockerVolume{
+		DatasetUUID: dataset,
+	}
+}
+
+func convertFlexVolume(source *v1.FlexVolumeSource) *types.FlexVolume {
+	return &types.FlexVolume{
+		Driver:    source.Driver,
+		FSType:    source.FSType,
+		SecretRef: convertLocalObjectRef(source.SecretRef),
+		ReadOnly:  source.ReadOnly,
+		Options:   source.Options,
+	}
+}
+
+func convertVsphereVolume(source *v1.VsphereVirtualDiskVolumeSource) *types.VsphereVolume {
+	return &types.VsphereVolume{
+		VolumePath:    source.VolumePath,
+		FSType:        source.FSType,
+		StoragePolicy: convertVsphereStoragePolicy(source.StoragePolicyName, source.StoragePolicyID),
+	}
+}
+
+func convertQuobyteVolume(source *v1.QuobyteVolumeSource) *types.QuobyteVolume {
+	return &types.QuobyteVolume{
+		Registry: source.Registry,
+		Volume:   source.Volume,
+		ReadOnly: source.ReadOnly,
+		User:     source.User,
+		Group:    source.Group,
+	}
+}
+
+func convertAzureDiskVolume(source *v1.AzureDiskVolumeSource) (*types.AzureDiskVolume, error) {
+	fstype := util.FromStringPtr(source.FSType)
+	readOnly := util.FromBoolPtr(source.ReadOnly)
+	kind, err := convertAzureDiskKind(source.Kind)
+	if err != nil {
+		return nil, err
+	}
+	cachingMode, err := convertAzureDiskCachingMode(source.CachingMode)
+	if err != nil {
+		return nil, err
+	}
+	return &types.AzureDiskVolume{
+		DiskName:    source.DiskName,
+		DataDiskURI: source.DataDiskURI,
+		FSType:      fstype,
+		ReadOnly:    readOnly,
+		Kind:        kind,
+		CachingMode: cachingMode,
+	}, nil
+}
+
+func convertPhotonPDVolume(source *v1.PhotonPersistentDiskVolumeSource) *types.PhotonPDVolume {
+	return &types.PhotonPDVolume{
+		PdID:   source.PdID,
+		FSType: source.FSType,
+	}
+}
+
+func convertPortworxVolume(source *v1.PortworxVolumeSource) *types.PortworxVolume {
+	return &types.PortworxVolume{
+		VolumeID: source.VolumeID,
+		FSType:   source.FSType,
+		ReadOnly: source.ReadOnly,
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -453,26 +578,12 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.AzureDisk != nil {
-		source := kubeVolume.AzureDisk
-		fstype := util.FromStringPtr(source.FSType)
-		readOnly := util.FromBoolPtr(source.ReadOnly)
-		kind, err := convertAzureDiskKind(source.Kind)
-		if err != nil {
-			return name, nil, err
-		}
-		cachingMode, err := convertAzureDiskCachingMode(source.CachingMode)
+		source, err := convertAzureDiskVolume(kubeVolume.AzureDisk)
 		if err != nil {
 			return name, nil, err
 		}
 		return name, &types.Volume{
-			AzureDisk: &types.AzureDiskVolume{
-				DiskName:    source.DiskName,
-				DataDiskURI: source.DataDiskURI,
-				FSType:      fstype,
-				ReadOnly:    readOnly,
-				Kind:        kind,
-				CachingMode: cachingMode,
-			},
+			AzureDisk: source,
 		}, nil
 	}
 	if kubeVolume.AzureFile != nil {
@@ -499,107 +610,48 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.Cinder != nil {
-		source := kubeVolume.Cinder
 		return name, &types.Volume{
-			Cinder: &types.CinderVolume{
-				VolumeID: source.VolumeID,
-				FSType:   source.FSType,
-				ReadOnly: source.ReadOnly,
-			},
+			Cinder: convertCinderVolume(kubeVolume.Cinder),
 		}, nil
 	}
 	if kubeVolume.FC != nil {
-		source := kubeVolume.FC
 		return name, &types.Volume{
-			FibreChannel: &types.FibreChannelVolume{
-				TargetWWNs: source.TargetWWNs,
-				Lun:        source.Lun,
-				ReadOnly:   source.ReadOnly,
-				WWIDs:      source.WWIDs,
-			},
+			FibreChannel: convertFibreChannelVolume(kubeVolume.FC),
 		}, nil
 	}
 	if kubeVolume.FlexVolume != nil {
-		source := kubeVolume.FlexVolume
 		return name, &types.Volume{
-			Flex: &types.FlexVolume{
-				Driver:    source.Driver,
-				FSType:    source.FSType,
-				SecretRef: convertLocalObjectRef(source.SecretRef),
-				ReadOnly:  source.ReadOnly,
-				Options:   source.Options,
-			},
+			Flex: convertFlexVolume(kubeVolume.FlexVolume),
 		}, nil
 	}
 	if kubeVolume.Flocker != nil {
-		source := kubeVolume.Flocker
-		var dataset string
-		if len(source.DatasetUUID) > 0 {
-			dataset = source.DatasetUUID
-		} else {
-			dataset = source.DatasetName
-		}
 		return name, &types.Volume{
-			Flocker: &types.FlockerVolume{
-				DatasetUUID: dataset,
-			},
+			Flocker: convertFlockerVolume(kubeVolume.Flocker),
 		}, nil
 	}
 	if kubeVolume.Glusterfs != nil {
-		source := kubeVolume.Glusterfs
 		return name, &types.Volume{
-			Glusterfs: &types.GlusterfsVolume{
-				EndpointsName: source.EndpointsName,
-				Path:          source.Path,
-				ReadOnly:      source.ReadOnly,
-			},
+			Glusterfs: convertGlusterfsVolume(kubeVolume.Glusterfs),
 		}, nil
 	}
 	if kubeVolume.ISCSI != nil {
-		source := kubeVolume.ISCSI
 		return name, &types.Volume{
-			ISCSI: &types.ISCSIVolume{
-				TargetPortal:      source.TargetPortal,
-				IQN:               source.IQN,
-				Lun:               source.Lun,
-				ISCSIInterface:    source.ISCSIInterface,
-				FSType:            source.FSType,
-				ReadOnly:          source.ReadOnly,
-				Portals:           source.Portals,
-				DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
-				SessionCHAPAuth:   source.SessionCHAPAuth,
-				SecretRef:         convertLocalObjectRef(source.SecretRef),
-				InitiatorName:     util.FromStringPtr(source.InitiatorName),
-			},
+			ISCSI: convertISCSIVolume(kubeVolume.ISCSI),
 		}, nil
 	}
 	if kubeVolume.NFS != nil {
-		source := kubeVolume.NFS
 		return name, &types.Volume{
-			NFS: &types.NFSVolume{
-				Server:   source.Server,
-				Path:     source.Path,
-				ReadOnly: source.ReadOnly,
-			},
+			NFS: convertNFSVolume(kubeVolume.NFS),
 		}, nil
 	}
 	if kubeVolume.PhotonPersistentDisk != nil {
-		source := kubeVolume.PhotonPersistentDisk
 		return name, &types.Volume{
-			PhotonPD: &types.PhotonPDVolume{
-				PdID:   source.PdID,
-				FSType: source.FSType,
-			},
+			PhotonPD: convertPhotonPDVolume(kubeVolume.PhotonPersistentDisk),
 		}, nil
 	}
 	if kubeVolume.PortworxVolume != nil {
-		source := kubeVolume.PortworxVolume
 		return name, &types.Volume{
-			Portworx: &types.PortworxVolume{
-				VolumeID: source.VolumeID,
-				FSType:   source.FSType,
-				ReadOnly: source.ReadOnly,
-			},
+			Portworx: convertPortworxVolume(kubeVolume.PortworxVolume),
 		}, nil
 	}
 	if kubeVolume.PersistentVolumeClaim != nil {
@@ -612,15 +664,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.Quobyte != nil {
-		source := kubeVolume.Quobyte
 		return name, &types.Volume{
-			Quobyte: &types.QuobyteVolume{
-				Registry: source.Registry,
-				Volume:   source.Volume,
-				ReadOnly: source.ReadOnly,
-				User:     source.User,
-				Group:    source.Group,
-			},
+			Quobyte: convertQuobyteVolume(kubeVolume.Quobyte),
 		}, nil
 	}
 	if kubeVolume.ScaleIO != nil {
@@ -641,13 +686,8 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.VsphereVolume != nil {
-		source := kubeVolume.VsphereVolume
 		return name, &types.Volume{
-			Vsphere: &types.VsphereVolume{
-				VolumePath:    source.VolumePath,
-				FSType:        source.FSType,
-				StoragePolicy: convertVsphereStoragePolicy(source.StoragePolicyName, source.StoragePolicyID),
-			},
+			Vsphere: convertVsphereVolume(kubeVolume.VsphereVolume),
 		}, nil
 	}
 	if kubeVolume.ConfigMap != nil {

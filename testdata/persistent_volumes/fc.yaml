@@ -12,16 +12,21 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
     name: claimName
     namespace: claimNamespace
+  fc:
+    fsType: ext4
+    lun: 2
+    readOnly: true
+    targetWWNs:
+    - 500a0982991b8dc5
+    - 500a0982891b8dc5
+    wwids:
+    - actually, WWIDs should not be specified here
+    - either wwids or (targetwwns + lun), not both
   mountOptions:
   - option 1
   - option 2

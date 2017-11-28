@@ -12,16 +12,15 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
     name: claimName
     namespace: claimNamespace
+  glusterfs:
+    endpoints: glusterfs-cluster
+    path: kube_vol
+    readOnly: true
   mountOptions:
   - option 1
   - option 2

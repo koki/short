@@ -12,11 +12,13 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
+  azureDisk:
+    cachingMode: ReadWrite
+    diskName: test.vhd
+    diskURI: https://someaccount.blob.microsoft.net/vhds/test.vhd
     fsType: ext4
-    partition: 1
+    kind: Shared
     readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:

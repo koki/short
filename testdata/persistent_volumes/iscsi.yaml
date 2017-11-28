@@ -12,16 +12,26 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
     name: claimName
     namespace: claimNamespace
+  iscsi:
+    chapAuthDiscovery: true
+    chapAuthSession: true
+    fsType: ext4
+    initiatorName: iqn.1996-04.de.suse:linux-host1
+    iqn: iqn.2015-02.example.com:test
+    iscsiInterface: default
+    lun: 0
+    portals:
+    - 1.2.3.5:3260
+    - 1.2.3.6:3260
+    readOnly: true
+    secretRef:
+      name: secret-name
+    targetPortal: 1.2.3.4:3260
   mountOptions:
   - option 1
   - option 2

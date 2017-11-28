@@ -12,11 +12,6 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
@@ -27,6 +22,9 @@ spec:
   - option 2
   - option 3
   persistentVolumeReclaimPolicy: Recycle
+  photonPersistentDisk:
+    fsType: ext4
+    pdID: some-pdid
   storageClassName: storageClass
 status: {}
 

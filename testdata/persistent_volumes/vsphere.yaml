@@ -12,11 +12,6 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
@@ -28,5 +23,10 @@ spec:
   - option 3
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: storageClass
+  vsphereVolume:
+    fsType: ext4
+    storagePolicyID: policy-id
+    storagePolicyName: policy-name
+    volumePath: '[datastore1] volumes/myDisk'
 status: {}
 

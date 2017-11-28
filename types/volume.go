@@ -411,37 +411,49 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		v.AwsEBS = &AwsEBSVolume{}
 		return v.AwsEBS.Unmarshal(obj, selector)
 	case VolumeTypeAzureDisk:
-		return v.UnmarshalAzureDiskVolume(obj, selector)
+		v.AzureDisk = &AzureDiskVolume{}
+		return v.AzureDisk.Unmarshal(obj, selector)
 	case VolumeTypeAzureFile:
 		return v.UnmarshalAzureFileVolume(selector)
 	case VolumeTypeCephFS:
 		return v.UnmarshalCephFSVolume(obj, selector)
 	case VolumeTypeCinder:
-		return v.UnmarshalCinderVolume(obj, selector)
+		v.Cinder = &CinderVolume{}
+		return v.Cinder.Unmarshal(obj, selector)
 	case VolumeTypeFibreChannel:
-		return v.UnmarshalFibreChannelVolume(obj, selector)
+		v.FibreChannel = &FibreChannelVolume{}
+		return v.FibreChannel.Unmarshal(obj, selector)
 	case VolumeTypeFlex:
-		return v.UnmarshalFlexVolume(obj, selector)
+		v.Flex = &FlexVolume{}
+		return v.Flex.Unmarshal(obj, selector)
 	case VolumeTypeFlocker:
-		return v.UnmarshalFlockerVolume(selector)
+		v.Flocker = &FlockerVolume{}
+		return v.Flocker.Unmarshal(selector)
 	case VolumeTypeGlusterfs:
-		return v.UnmarshalGlusterfsVolume(obj, selector)
+		v.Glusterfs = &GlusterfsVolume{}
+		return v.Glusterfs.Unmarshal(obj, selector)
 	case VolumeTypeISCSI:
-		return v.UnmarshalISCSIVolume(obj, selector)
+		v.ISCSI = &ISCSIVolume{}
+		return v.ISCSI.Unmarshal(obj, selector)
 	case VolumeTypeNFS:
-		return v.UnmarshalNFSVolume(selector)
+		v.NFS = &NFSVolume{}
+		return v.NFS.Unmarshal(selector)
 	case VolumeTypePhotonPD:
-		return v.UnmarshalPhotonPDVolume(selector)
+		v.PhotonPD = &PhotonPDVolume{}
+		return v.PhotonPD.Unmarshal(selector)
 	case VolumeTypePortworx:
-		return v.UnmarshalPortworxVolume(obj, selector)
+		v.Portworx = &PortworxVolume{}
+		return v.Portworx.Unmarshal(obj, selector)
 	case VolumeTypePVC:
 		return v.UnmarshalPVCVolume(selector)
 	case VolumeTypeQuobyte:
-		return v.UnmarshalQuobyteVolume(obj, selector)
+		v.Quobyte = &QuobyteVolume{}
+		return v.Quobyte.Unmarshal(obj, selector)
 	case VolumeTypeScaleIO:
 		return v.UnmarshalScaleIOVolume(obj, selector)
 	case VolumeTypeVsphere:
-		return v.UnmarshalVsphereVolume(obj, selector)
+		v.Vsphere = &VsphereVolume{}
+		return v.Vsphere.Unmarshal(obj, selector)
 	case VolumeTypeConfigMap:
 		return v.UnmarshalConfigMapVolume(obj, selector)
 	case VolumeTypeSecret:
@@ -695,18 +707,16 @@ func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalAzureDiskVolume(obj map[string]interface{}, selector []string) error {
-	source := AzureDiskVolume{}
+func (s *AzureDiskVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
 		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeAzureDisk)
 	}
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeAzureDisk)
 	}
 
-	v.AzureDisk = &source
 	return nil
 }
 
@@ -823,20 +833,18 @@ func (s CephFSSecretFileOrRef) MarshalJSON() ([]byte, error) {
 	return json.Marshal(fmt.Sprintf("file:%s", s.File))
 }
 
-func (v *Volume) UnmarshalCinderVolume(obj map[string]interface{}, selector []string) error {
-	source := CinderVolume{}
+func (s *CinderVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 (volume ID) selector segment for %s", VolumeTypeCinder)
 	}
 
-	source.VolumeID = selector[0]
+	s.VolumeID = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeCinder)
 	}
 
-	v.Cinder = &source
 	return nil
 }
 
@@ -853,18 +861,16 @@ func (s CinderVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalFibreChannelVolume(obj map[string]interface{}, selector []string) error {
-	source := FibreChannelVolume{}
+func (s *FibreChannelVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
 		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeFibreChannel)
 	}
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeFibreChannel)
 	}
 
-	v.FibreChannel = &source
 	return nil
 }
 
@@ -880,19 +886,17 @@ func (s FibreChannelVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalFlexVolume(obj map[string]interface{}, selector []string) error {
-	source := FlexVolume{}
+func (s *FlexVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (driver) for %s", VolumeTypeFlex)
 	}
-	source.Driver = selector[0]
+	s.Driver = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeFlex)
 	}
 
-	v.Flex = &source
 	return nil
 }
 
@@ -909,15 +913,13 @@ func (s FlexVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalFlockerVolume(selector []string) error {
-	source := FlockerVolume{}
+func (s *FlockerVolume) Unmarshal(selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected exactly one selector segment (dataset UUID) for %s", VolumeTypeFlocker)
 	}
 
-	source.DatasetUUID = selector[0]
+	s.DatasetUUID = selector[0]
 
-	v.Flocker = &source
 	return nil
 }
 
@@ -928,19 +930,17 @@ func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalGlusterfsVolume(obj map[string]interface{}, selector []string) error {
-	source := GlusterfsVolume{}
+func (s *GlusterfsVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeGlusterfs)
 	}
-	source.Path = selector[0]
+	s.Path = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeGlusterfs)
 	}
 
-	v.Glusterfs = &source
 	return nil
 }
 
@@ -957,18 +957,16 @@ func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalISCSIVolume(obj map[string]interface{}, selector []string) error {
-	source := ISCSIVolume{}
+func (s *ISCSIVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
 		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeISCSI)
 	}
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeISCSI)
 	}
 
-	v.ISCSI = &source
 	return nil
 }
 
@@ -984,25 +982,23 @@ func (s ISCSIVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalNFSVolume(selector []string) error {
-	source := NFSVolume{}
+func (s *NFSVolume) Unmarshal(selector []string) error {
 	if len(selector) > 3 || len(selector) < 2 {
 		return util.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeNFS)
 	}
 
-	source.Server = selector[0]
-	source.Path = selector[1]
+	s.Server = selector[0]
+	s.Path = selector[1]
 
 	if len(selector) > 2 {
 		switch selector[2] {
 		case SelectorSegmentReadOnly:
-			source.ReadOnly = true
+			s.ReadOnly = true
 		default:
 			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeNFS)
 		}
 	}
 
-	v.NFS = &source
 	return nil
 }
 
@@ -1019,19 +1015,17 @@ func (s NFSVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalPhotonPDVolume(selector []string) error {
-	source := PhotonPDVolume{}
+func (s *PhotonPDVolume) Unmarshal(selector []string) error {
 	if len(selector) > 2 || len(selector) < 1 {
 		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePhotonPD)
 	}
 
-	source.PdID = selector[0]
+	s.PdID = selector[0]
 
 	if len(selector) > 1 {
-		source.FSType = selector[1]
+		s.FSType = selector[1]
 	}
 
-	v.PhotonPD = &source
 	return nil
 }
 
@@ -1048,19 +1042,17 @@ func (s PhotonPDVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalPortworxVolume(obj map[string]interface{}, selector []string) error {
-	source := PortworxVolume{}
+func (s *PortworxVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypePortworx)
 	}
-	source.VolumeID = selector[0]
+	s.VolumeID = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypePortworx)
 	}
 
-	v.Portworx = &source
 	return nil
 }
 
@@ -1111,19 +1103,17 @@ func (s PVCVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalQuobyteVolume(obj map[string]interface{}, selector []string) error {
-	source := QuobyteVolume{}
+func (s *QuobyteVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypeQuobyte)
 	}
-	source.Volume = selector[0]
+	s.Volume = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeQuobyte)
 	}
 
-	v.Quobyte = &source
 	return nil
 }
 
@@ -1169,19 +1159,17 @@ func (s ScaleIOVolume) Marshal() (*MarshalledVolume, error) {
 	}, nil
 }
 
-func (v *Volume) UnmarshalVsphereVolume(obj map[string]interface{}, selector []string) error {
-	source := VsphereVolume{}
+func (s *VsphereVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
 		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume path) for %s", VolumeTypeVsphere)
 	}
-	source.VolumePath = selector[0]
+	s.VolumePath = selector[0]
 
-	err := util.UnmarshalMap(obj, &source)
+	err := util.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeVsphere)
 	}
 
-	v.Vsphere = &source
 	return nil
 }
 

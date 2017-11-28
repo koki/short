@@ -12,16 +12,13 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
     name: claimName
     namespace: claimNamespace
+  flocker:
+    datasetUUID: flocker_uuid
   mountOptions:
   - option 1
   - option 2

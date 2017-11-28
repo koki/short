@@ -12,16 +12,21 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  awsElasticBlockStore:
-    fsType: ext4
-    partition: 1
-    readOnly: true
-    volumeID: volume-id
   capacity:
     storage: 10Gi
   claimRef:
     name: claimName
     namespace: claimNamespace
+  flexVolume:
+    driver: kubernetes.io/lvm
+    fsType: ext4
+    options:
+      size: 1000m
+      volumeID: vol1
+      volumegroup: kube_vg
+    readOnly: true
+    secretRef:
+      name: secret-name
   mountOptions:
   - option 1
   - option 2

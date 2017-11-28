@@ -73,6 +73,70 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			HostPath: source,
 		}, nil
 	}
+	if kubeSource.Glusterfs != nil {
+		return types.PersistentVolumeSource{
+			Glusterfs: convertGlusterfsVolume(kubeSource.Glusterfs),
+		}, nil
+	}
+	if kubeSource.NFS != nil {
+		return types.PersistentVolumeSource{
+			NFS: convertNFSVolume(kubeSource.NFS),
+		}, nil
+	}
+	if kubeSource.ISCSI != nil {
+		return types.PersistentVolumeSource{
+			ISCSI: convertISCSIVolume(kubeSource.ISCSI),
+		}, nil
+	}
+	if kubeSource.Cinder != nil {
+		return types.PersistentVolumeSource{
+			Cinder: convertCinderVolume(kubeSource.Cinder),
+		}, nil
+	}
+	if kubeSource.FC != nil {
+		return types.PersistentVolumeSource{
+			FibreChannel: convertFibreChannelVolume(kubeSource.FC),
+		}, nil
+	}
+	if kubeSource.Flocker != nil {
+		return types.PersistentVolumeSource{
+			Flocker: convertFlockerVolume(kubeSource.Flocker),
+		}, nil
+	}
+	if kubeSource.FlexVolume != nil {
+		return types.PersistentVolumeSource{
+			Flex: convertFlexVolume(kubeSource.FlexVolume),
+		}, nil
+	}
+	if kubeSource.VsphereVolume != nil {
+		return types.PersistentVolumeSource{
+			Vsphere: convertVsphereVolume(kubeSource.VsphereVolume),
+		}, nil
+	}
+	if kubeSource.Quobyte != nil {
+		return types.PersistentVolumeSource{
+			Quobyte: convertQuobyteVolume(kubeSource.Quobyte),
+		}, nil
+	}
+	if kubeSource.AzureDisk != nil {
+		source, err := convertAzureDiskVolume(kubeSource.AzureDisk)
+		if err != nil {
+			return types.PersistentVolumeSource{}, err
+		}
+		return types.PersistentVolumeSource{
+			AzureDisk: source,
+		}, nil
+	}
+	if kubeSource.PhotonPersistentDisk != nil {
+		return types.PersistentVolumeSource{
+			PhotonPD: convertPhotonPDVolume(kubeSource.PhotonPersistentDisk),
+		}, nil
+	}
+	if kubeSource.PortworxVolume != nil {
+		return types.PersistentVolumeSource{
+			Portworx: convertPortworxVolume(kubeSource.PortworxVolume),
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
