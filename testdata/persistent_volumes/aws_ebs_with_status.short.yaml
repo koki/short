@@ -5,22 +5,21 @@ persistent_volume:
     name: claimName
     namespace: claimNamespace
   cluster: cluster
+  fs: ext4
   labels:
     labelKey: labelValue
   modes: rw-once
-  monitors:
-  - 1.2.3.4:6789
-  - 1.2.3.5:6789
   mount_options: option 1,option 2,option 3
   name: vol-name
   namespace: namespace
-  path: /path
+  partition: 1
   reclaim: recycle
   ro: true
-  secret: file:/etc/ceph/admin.secret
+  status: available
+  status_message: the volume is available
+  status_reason: reasonForCurrentStatus
   storage: 10Gi
   storage_class: storageClass
-  user: admin
   version: v1
-  vol_type: cephfs
-
+  vol_id: volume-id
+  vol_type: aws_ebs

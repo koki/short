@@ -1,7 +1,6 @@
 package converters
 
 import (
-	"reflect"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -44,13 +43,40 @@ func Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubePV *v1.Persis
 		kokiPV.MountOptions = strings.Join(kubeSpec.MountOptions, ",")
 	}
 
-	if !reflect.DeepEqual(kubePV.Status, v1.PersistentVolumeStatus{}) {
-		kokiPV.Status = &kubePV.Status
-	}
+	kokiPV.PersistentVolumeStatus, err = convertPersistentVolumeStatus(kubePV.Status)
 
 	return &types.PersistentVolumeWrapper{
 		PersistentVolume: *kokiPV,
 	}, nil
+}
+
+func convertPersistentVolumeStatus(kubeStatus v1.PersistentVolumeStatus) (types.PersistentVolumeStatus, error) {
+	phase, err := convertPersistentVolumePhase(kubeStatus.Phase)
+	if err != nil {
+		return types.PersistentVolumeStatus{}, err
+	}
+	return types.PersistentVolumeStatus{
+		Phase:   phase,
+		Message: kubeStatus.Message,
+		Reason:  kubeStatus.Reason,
+	}, nil
+}
+
+func convertPersistentVolumePhase(kubePhase v1.PersistentVolumePhase) (types.PersistentVolumePhase, error) {
+	switch kubePhase {
+	case v1.VolumePending:
+		return types.VolumePending, nil
+	case v1.VolumeAvailable:
+		return types.VolumeAvailable, nil
+	case v1.VolumeBound:
+		return types.VolumeBound, nil
+	case v1.VolumeReleased:
+		return types.VolumeReleased, nil
+	case v1.VolumeFailed:
+		return types.VolumeFailed, nil
+	default:
+		return types.VolumeFailed, util.InvalidValueErrorf(kubePhase, "unrecognized status (phase) for persistent volume")
+	}
 }
 
 func convertSecretReference(kubeRef *v1.SecretReference) *types.SecretReference {

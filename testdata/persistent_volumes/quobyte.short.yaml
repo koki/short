@@ -15,10 +15,10 @@ persistent_volume:
   reclaim: recycle
   registry: registry:6789
   ro: true
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   user: root
   version: v1
   vol_id: testVolume
   vol_type: quobyte
+

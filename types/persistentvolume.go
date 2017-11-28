@@ -38,8 +38,24 @@ type PersistentVolumeMeta struct {
 	// comma-separated list of options
 	MountOptions string `json:"mount_options,omitempty" protobuf:"bytes,7,opt,name=mountOptions"`
 
-	Status *v1.PersistentVolumeStatus `json:"status,omitempty"`
+	PersistentVolumeStatus `json:",inline"`
 }
+
+type PersistentVolumeStatus struct {
+	Phase   PersistentVolumePhase `json:"status,omitempty"`
+	Message string                `json:"status_message,omitempty"`
+	Reason  string                `json:"status_reason,omitempty"`
+}
+
+type PersistentVolumePhase string
+
+const (
+	VolumePending   PersistentVolumePhase = "pending"
+	VolumeAvailable PersistentVolumePhase = "available"
+	VolumeBound     PersistentVolumePhase = "bound"
+	VolumeReleased  PersistentVolumePhase = "released"
+	VolumeFailed    PersistentVolumePhase = "failed"
+)
 
 type PersistentVolumeReclaimPolicy string
 

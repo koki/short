@@ -24,9 +24,9 @@ persistent_volume:
   reclaim: recycle
   ro: true
   secret: secret-name
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   target_portal: 1.2.3.4:3260
   version: v1
   vol_type: iscsi
+

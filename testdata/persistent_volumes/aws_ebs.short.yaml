@@ -15,9 +15,9 @@ persistent_volume:
   partition: 1
   reclaim: recycle
   ro: true
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_id: volume-id
   vol_type: aws_ebs
+

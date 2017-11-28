@@ -15,8 +15,8 @@ persistent_volume:
   ro: true
   secret: secret-namespace:secret-name
   share: k8stest
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_type: azure_file
+
