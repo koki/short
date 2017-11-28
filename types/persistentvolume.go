@@ -67,6 +67,7 @@ type PersistentVolumeSource struct {
 	Portworx     *PortworxVolume
 	RBD          *RBDPersistentVolume
 	CephFS       *CephFSPersistentVolume
+	AzureFile    *AzureFilePersistentVolume
 }
 
 const (
@@ -100,6 +101,12 @@ type CephFSPersistentVolume struct {
 type CephFSPersistentSecretFileOrRef struct {
 	File string           `json:"-"`
 	Ref  *SecretReference `json:"-"`
+}
+
+type AzureFilePersistentVolume struct {
+	Secret    SecretReference `json:"secret"`
+	ShareName string          `json:"share"`
+	ReadOnly  bool            `json:"ro,omitempty"`
 }
 
 // comma-separated list of modes
@@ -309,6 +316,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeCephFS:
 		v.CephFS = &CephFSPersistentVolume{}
 		return v.CephFS.Unmarshal(obj, selector)
+	case VolumeTypeAzureFile:
+		v.AzureFile = &AzureFilePersistentVolume{}
+		return v.AzureFile.Unmarshal(obj, selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -367,6 +377,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.CephFS != nil {
 		marshalledVolume, err = v.CephFS.Marshal()
+	}
+	if v.AzureFile != nil {
+		marshalledVolume, err = v.AzureFile.Marshal()
 	}
 
 	if err != nil {
@@ -501,6 +514,31 @@ func (s CephFSPersistentVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeCephFS,
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *AzureFilePersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeAzureFile)
+	}
+
+	err := util.UnmarshalMap(obj, &s)
+	if err != nil {
+		return util.ContextualizeErrorf(err, VolumeTypeAzureFile)
+	}
+
+	return nil
+}
+
+func (s AzureFilePersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := util.MarshalMap(&s)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, VolumeTypeAzureFile)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeAzureFile,
 		ExtraFields: obj,
 	}, nil
 }

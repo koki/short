@@ -133,6 +133,25 @@ var kokiPersistentCephFS1 = PersistentVolumeSource{
 	},
 }
 
+var kokiPersistentAzureFile0 = PersistentVolumeSource{
+	AzureFile: &AzureFilePersistentVolume{
+		Secret: SecretReference{
+			Namespace: "secret-namespace",
+			Name:      "secret-name",
+		},
+		ShareName: "k8stest",
+		ReadOnly:  true,
+	},
+}
+var kokiPersistentAzureFile1 = PersistentVolumeSource{
+	AzureFile: &AzureFilePersistentVolume{
+		Secret: SecretReference{
+			Name: "secret-name",
+		},
+		ShareName: "k8stest",
+	},
+}
+
 func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentGcePDVolume0, t)
 	testPersistentVolumeSource(kokiPersistentAwsEBSVolume0, t)
@@ -153,6 +172,8 @@ func TestPersistentVolume(t *testing.T) {
 	testPersistentVolumeSource(kokiPersistentRBDVolume1, t)
 	testPersistentVolumeSource(kokiPersistentCephFS0, t)
 	testPersistentVolumeSource(kokiPersistentCephFS1, t)
+	testPersistentVolumeSource(kokiPersistentAzureFile0, t)
+	testPersistentVolumeSource(kokiPersistentAzureFile1, t)
 }
 
 func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {

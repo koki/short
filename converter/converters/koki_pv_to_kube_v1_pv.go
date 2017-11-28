@@ -186,6 +186,17 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			},
 		}, nil
 	}
+	if kokiSource.AzureFile != nil {
+		source := kokiSource.AzureFile
+		return v1.PersistentVolumeSource{
+			AzureFile: &v1.AzureFilePersistentVolumeSource{
+				SecretName:      source.Secret.Name,
+				ShareName:       source.ShareName,
+				ReadOnly:        source.ReadOnly,
+				SecretNamespace: util.StringPtrOrNil(source.Secret.Namespace),
+			},
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

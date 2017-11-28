@@ -192,6 +192,19 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			},
 		}, nil
 	}
+	if kubeSource.AzureFile != nil {
+		source := kubeSource.AzureFile
+		return types.PersistentVolumeSource{
+			AzureFile: &types.AzureFilePersistentVolume{
+				Secret: types.SecretReference{
+					Name:      source.SecretName,
+					Namespace: util.FromStringPtr(source.SecretNamespace),
+				},
+				ShareName: source.ShareName,
+				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
