@@ -8,12 +8,14 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - default_mode: 420
-    items:
-    - field_ref:
-        field_path: metadata.annotation
-      mode: 420
-      path: /path/to/file
-    name: test_volume
-    type: downward-api
+    test_volume:
+      items:
+        path/to/file:
+          field: metadata.annotation
+          mode: "0644"
+        path/to/file1:
+          mode: "0644"
+          resource: container-name:limits.cpu:1m
+      mode: "0644"
+      vol_type: downward-api
 

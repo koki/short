@@ -269,6 +269,78 @@ func convertVsphereStoragePolicy(kubeName, kubeID string) *types.VsphereStorageP
 	return nil
 }
 
+func convertFileMode(kubeMode *int32) *types.FileMode {
+	if kubeMode == nil {
+		return nil
+	}
+
+	return types.FileModePtr(types.FileMode(*kubeMode))
+}
+
+func convertKeyToPathItems(kubeItems []v1.KeyToPath) map[string]types.KeyAndMode {
+	if len(kubeItems) == 0 {
+		return nil
+	}
+
+	kokiItems := map[string]types.KeyAndMode{}
+	for _, item := range kubeItems {
+		kokiItems[item.Path] = types.KeyAndMode{
+			Key:  item.Key,
+			Mode: convertFileMode(item.Mode),
+		}
+	}
+
+	return kokiItems
+}
+
+func convertOptionalToRequired(optional *bool) *bool {
+	if optional == nil {
+		return nil
+	}
+
+	return util.BoolPtr(!*optional)
+}
+
+func convertDownwardAPIVolumeFiles(kubeItems []v1.DownwardAPIVolumeFile) map[string]types.DownwardAPIVolumeFile {
+	if len(kubeItems) == 0 {
+		return nil
+	}
+
+	items := map[string]types.DownwardAPIVolumeFile{}
+	for _, kubeItem := range kubeItems {
+		items[kubeItem.Path] = types.DownwardAPIVolumeFile{
+			FieldRef:         convertObjectFieldRef(kubeItem.FieldRef),
+			ResourceFieldRef: convertVolumeResourceFieldRef(kubeItem.ResourceFieldRef),
+			Mode:             convertFileMode(kubeItem.Mode),
+		}
+	}
+
+	return items
+}
+
+func convertObjectFieldRef(kubeRef *v1.ObjectFieldSelector) *types.ObjectFieldSelector {
+	if kubeRef == nil {
+		return nil
+	}
+
+	return &types.ObjectFieldSelector{
+		FieldPath:  kubeRef.FieldPath,
+		APIVersion: kubeRef.APIVersion,
+	}
+}
+
+func convertVolumeResourceFieldRef(kubeRef *v1.ResourceFieldSelector) *types.VolumeResourceFieldSelector {
+	if kubeRef == nil {
+		return nil
+	}
+
+	return &types.VolumeResourceFieldSelector{
+		ContainerName: kubeRef.ContainerName,
+		Resource:      kubeRef.Resource,
+		Divisor:       kubeRef.Divisor,
+	}
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -512,6 +584,37 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				VolumePath:    source.VolumePath,
 				FSType:        source.FSType,
 				StoragePolicy: convertVsphereStoragePolicy(source.StoragePolicyName, source.StoragePolicyID),
+			},
+		}, nil
+	}
+	if kubeVolume.ConfigMap != nil {
+		source := kubeVolume.ConfigMap
+		return name, &types.Volume{
+			ConfigMap: &types.ConfigMapVolume{
+				Name:        convertLocalObjectRef(&source.LocalObjectReference),
+				Items:       convertKeyToPathItems(source.Items),
+				DefaultMode: convertFileMode(source.DefaultMode),
+				Required:    convertOptionalToRequired(source.Optional),
+			},
+		}, nil
+	}
+	if kubeVolume.Secret != nil {
+		source := kubeVolume.Secret
+		return name, &types.Volume{
+			Secret: &types.SecretVolume{
+				SecretName:  source.SecretName,
+				Items:       convertKeyToPathItems(source.Items),
+				DefaultMode: convertFileMode(source.DefaultMode),
+				Required:    convertOptionalToRequired(source.Optional),
+			},
+		}, nil
+	}
+	if kubeVolume.DownwardAPI != nil {
+		source := kubeVolume.DownwardAPI
+		return name, &types.Volume{
+			DownwardAPI: &types.DownwardAPIVolume{
+				Items:       convertDownwardAPIVolumeFiles(source.Items),
+				DefaultMode: convertFileMode(source.DefaultMode),
 			},
 		}, nil
 	}

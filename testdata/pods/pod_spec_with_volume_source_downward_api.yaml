@@ -14,7 +14,13 @@ spec:
     downwardAPI:
       defaultMode: 0644
       items: 
-      - path: /path/to/file
+      - path: path/to/file
         fieldRef: 
           fieldPath: metadata.annotation
+        mode: 0644 
+      - path: path/to/file1
+        resourceFieldRef:
+          containerName: container-name
+          resource: limits.cpu
+          divisor: 1m
         mode: 0644 
