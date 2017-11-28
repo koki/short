@@ -48,8 +48,9 @@ const (
 )
 
 type PersistentVolumeSource struct {
-	GcePD  *GcePDVolume
-	AwsEBS *AwsEBSVolume
+	GcePD    *GcePDVolume
+	AwsEBS   *AwsEBSVolume
+	HostPath *HostPathVolume
 }
 
 // comma-separated list of modes
@@ -192,7 +193,7 @@ func (v *PersistentVolumeSource) UnmarshalJSON(data []byte) error {
 	var selector []string
 	if val, ok := obj["vol_id"]; ok {
 		if volName, ok := val.(string); ok {
-			selector = []string{volName}
+			selector = strings.Split(volName, ":")
 		} else {
 			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_id\"")
 		}
@@ -214,6 +215,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeAwsEBS:
 		v.AwsEBS = &AwsEBSVolume{}
 		return v.AwsEBS.Unmarshal(obj, selector)
+	case VolumeTypeHostPath:
+		v.HostPath = &HostPathVolume{}
+		return v.HostPath.Unmarshal(selector)
 	default:
 		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -228,6 +232,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	if v.AwsEBS != nil {
 		marshalledVolume, err = v.AwsEBS.Marshal()
 	}
+	if v.HostPath != nil {
+		marshalledVolume, err = v.HostPath.Marshal()
+	}
 
 	if err != nil {
 		return nil, err
@@ -238,9 +245,7 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 
 	if len(marshalledVolume.ExtraFields) == 0 {
-		segments := []string{marshalledVolume.Type}
-		segments = append(segments, marshalledVolume.Selector...)
-		return json.Marshal(strings.Join(segments, ":"))
+		marshalledVolume.ExtraFields = map[string]interface{}{}
 	}
 
 	obj := marshalledVolume.ExtraFields

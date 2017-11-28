@@ -400,7 +400,8 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector []string) error {
 	switch volType {
 	case VolumeTypeHostPath:
-		return v.UnmarshalHostPathVolume(selector)
+		v.HostPath = &HostPathVolume{}
+		return v.HostPath.Unmarshal(selector)
 	case VolumeTypeEmptyDir:
 		return v.UnmarshalEmptyDirVolume(obj, selector)
 	case VolumeTypeGcePD:
@@ -564,13 +565,12 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	return json.Marshal(obj)
 }
 
-func (v *Volume) UnmarshalHostPathVolume(selector []string) error {
-	source := HostPathVolume{}
+func (s *HostPathVolume) Unmarshal(selector []string) error {
 	if len(selector) > 2 || len(selector) == 0 {
 		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypeHostPath)
 	}
 
-	source.Path = selector[0]
+	s.Path = selector[0]
 
 	if len(selector) > 1 {
 		hostPathType := HostPathType(selector[1])
@@ -587,10 +587,9 @@ func (v *Volume) UnmarshalHostPathVolume(selector []string) error {
 			return util.InvalidValueErrorf(hostPathType, "invalid 'vol_type' selector for %s", VolumeTypeHostPath)
 		}
 
-		source.Type = hostPathType
+		s.Type = hostPathType
 	}
 
-	v.HostPath = &source
 	return nil
 }
 

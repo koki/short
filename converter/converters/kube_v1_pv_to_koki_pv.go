@@ -64,6 +64,15 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			AwsEBS: convertAwsEBSVolume(kubeSource.AWSElasticBlockStore),
 		}, nil
 	}
+	if kubeSource.HostPath != nil {
+		source, err := convertHostPathVolume(kubeSource.HostPath)
+		if err != nil {
+			return types.PersistentVolumeSource{}, err
+		}
+		return types.PersistentVolumeSource{
+			HostPath: source,
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }

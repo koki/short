@@ -408,6 +408,17 @@ func convertAwsEBSVolume(source *v1.AWSElasticBlockStoreVolumeSource) *types.Aws
 	}
 }
 
+func convertHostPathVolume(source *v1.HostPathVolumeSource) (*types.HostPathVolume, error) {
+	kokiType, err := convertHostPathType(source.Type)
+	if err != nil {
+		return nil, err
+	}
+	return &types.HostPathVolume{
+		Path: source.Path,
+		Type: kokiType,
+	}, nil
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
 	if kubeVolume.EmptyDir != nil {
@@ -423,15 +434,12 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 	if kubeVolume.HostPath != nil {
-		kokiType, err := convertHostPathType(kubeVolume.HostPath.Type)
+		source, err := convertHostPathVolume(kubeVolume.HostPath)
 		if err != nil {
 			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return name, &types.Volume{
-			HostPath: &types.HostPathVolume{
-				Path: kubeVolume.HostPath.Path,
-				Type: kokiType,
-			},
+			HostPath: source,
 		}, nil
 	}
 	if kubeVolume.GCEPersistentDisk != nil {

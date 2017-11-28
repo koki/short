@@ -458,6 +458,17 @@ func revertAwsEBSVolume(source *types.AwsEBSVolume) *v1.AWSElasticBlockStoreVolu
 	}
 }
 
+func revertHostPathVolume(source *types.HostPathVolume) (*v1.HostPathVolumeSource, error) {
+	kubeType, err := revertHostPathType(source.Type)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.HostPathVolumeSource{
+		Path: source.Path,
+		Type: &kubeType,
+	}, nil
+}
+
 func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
@@ -475,17 +486,14 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 	if kokiVolume.HostPath != nil {
-		kubeType, err := revertHostPathType(kokiVolume.HostPath.Type)
+		source, err := revertHostPathVolume(kokiVolume.HostPath)
 		if err != nil {
 			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
-				HostPath: &v1.HostPathVolumeSource{
-					Path: kokiVolume.HostPath.Path,
-					Type: &kubeType,
-				},
+				HostPath: source,
 			},
 		}, nil
 	}

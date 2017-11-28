@@ -61,6 +61,15 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			AWSElasticBlockStore: revertAwsEBSVolume(kokiSource.AwsEBS),
 		}, nil
 	}
+	if kokiSource.HostPath != nil {
+		source, err := revertHostPathVolume(kokiSource.HostPath)
+		if err != nil {
+			return v1.PersistentVolumeSource{}, err
+		}
+		return v1.PersistentVolumeSource{
+			HostPath: source,
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }
