@@ -8,14 +8,13 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - driver: flex-driver
-    fs_type: xfs
-    name: test_volume
-    options:
-      key: value
-      key2: value2
-    read_only: true
-    secret_ref:
-      name: secret_name
-    type: flex-volume
+    test_volume:
+      fs: xfs
+      options:
+        key: value
+        key2: value2
+      ro: true
+      secret: secret_name
+      vol_id: flex-driver
+      vol_type: flex
 

@@ -8,15 +8,13 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - monitors:
-    - monitor1
-    - monitor2
-    name: ceph_fs_test_volume
-    path: /path/to/nowhere
-    read_only: true
-    secret_file: /path/to/secret
-    secret_ref:
-      name: secret_name
-    type: cephfs
-    user: username
+    ceph_fs_test_volume:
+      monitors:
+      - monitor1
+      - monitor2
+      path: /path/to/nowhere
+      ro: true
+      secret: file:/path/to/secret
+      user: username
+      vol_type: cephfs
 

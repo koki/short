@@ -19,6 +19,4 @@ spec:
       user: username
       secretFile: /path/to/secret
       readOnly: true
-      secretRef:
-        name: secret_name
                 

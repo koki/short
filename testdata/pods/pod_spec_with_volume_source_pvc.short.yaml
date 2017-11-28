@@ -8,8 +8,5 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - claim_name: pvc_name
-    name: test_volume
-    read_only: true
-    type: persistent-volume-claim
+    test_volume: pvc:pvc_name:ro
 

@@ -8,9 +8,5 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - name: azure_file_test_volume
-    read_only: true
-    secret_name: azure_file_secret_name
-    share_name: azure_file_share_name
-    type: azure-file
+    azure_file_test_volume: azure_file:azure_file_secret_name:azure_file_share_name:ro
 

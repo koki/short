@@ -12,6 +12,6 @@ spec:
   volumes:
   - name: test_volume
     glusterfs:
-      path: /path/to/vol
-      endpointsName: endpointsName
+      path: kube_vol
+      endpoints: endpointsName
       readOnly: true      

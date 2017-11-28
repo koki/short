@@ -8,6 +8,5 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - name: test_volume
-    type: flocker
+    test_volume: flocker:uuid
 

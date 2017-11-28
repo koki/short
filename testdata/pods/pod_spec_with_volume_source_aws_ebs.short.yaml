@@ -8,9 +8,9 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: aws_ebs_test_volume
-    read_only: true
-    type: aws-elastic-block-store
-    volume_id: i4054053
+    aws_ebs_test_volume:
+      fs: xfs
+      ro: true
+      vol_id: i4054053
+      vol_type: aws_ebs
 

@@ -146,7 +146,7 @@ func convertVolumes(kubeVolumes []v1.Volume) (map[string]types.Volume, error) {
 	for _, kubeVolume := range kubeVolumes {
 		name, kokiVolume, err := convertVolume(kubeVolume)
 		if err != nil {
-			return nil, err
+			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		kokiVolumes[name] = *kokiVolume
 	}
@@ -194,39 +194,324 @@ func convertHostPathType(kubeType *v1.HostPathType) (types.HostPathType, error) 
 	}
 }
 
+func convertAzureDiskKind(kubeKind *v1.AzureDataDiskKind) (*types.AzureDataDiskKind, error) {
+	if kubeKind == nil {
+		return nil, nil
+	}
+
+	var kind types.AzureDataDiskKind
+	switch *kubeKind {
+	case v1.AzureDedicatedBlobDisk:
+		kind = types.AzureDedicatedBlobDisk
+	case v1.AzureSharedBlobDisk:
+		kind = types.AzureSharedBlobDisk
+	case v1.AzureManagedDisk:
+		kind = types.AzureManagedDisk
+	default:
+		return nil, util.InvalidValueErrorf(kubeKind, "unrecognized kind")
+	}
+
+	return &kind, nil
+}
+
+func convertAzureDiskCachingMode(kubeMode *v1.AzureDataDiskCachingMode) (*types.AzureDataDiskCachingMode, error) {
+	if kubeMode == nil {
+		return nil, nil
+	}
+
+	var mode types.AzureDataDiskCachingMode
+	switch *kubeMode {
+	case v1.AzureDataDiskCachingNone:
+		mode = types.AzureDataDiskCachingNone
+	case v1.AzureDataDiskCachingReadOnly:
+		mode = types.AzureDataDiskCachingReadOnly
+	case v1.AzureDataDiskCachingReadWrite:
+		mode = types.AzureDataDiskCachingReadWrite
+	default:
+		return nil, util.InvalidValueErrorf(kubeMode, "unrecognized cache")
+	}
+
+	return &mode, nil
+}
+
+func convertCephFSSecretFileOrRef(kubeFile string, kubeRef *v1.LocalObjectReference) *types.CephFSSecretFileOrRef {
+	if len(kubeFile) > 0 {
+		return &types.CephFSSecretFileOrRef{
+			File: kubeFile,
+		}
+	}
+
+	if kubeRef != nil {
+		return &types.CephFSSecretFileOrRef{
+			Ref: kubeRef.Name,
+		}
+	}
+
+	return nil
+}
+
+func convertLocalObjectRef(kubeRef *v1.LocalObjectReference) string {
+	if kubeRef == nil {
+		return ""
+	}
+
+	return kubeRef.Name
+}
+
+func convertVsphereStoragePolicy(kubeName, kubeID string) *types.VsphereStoragePolicy {
+	if len(kubeName) > 0 {
+		return &types.VsphereStoragePolicy{
+			Name: kubeName,
+			ID:   kubeID,
+		}
+	}
+
+	return nil
+}
+
 func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	name := kubeVolume.Name
-	if kubeVolume.VolumeSource.EmptyDir != nil {
-		medium, err := convertStorageMedium(kubeVolume.VolumeSource.EmptyDir.Medium)
+	if kubeVolume.EmptyDir != nil {
+		medium, err := convertStorageMedium(kubeVolume.EmptyDir.Medium)
 		if err != nil {
-			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return name, nil, err
 		}
 		return name, &types.Volume{
 			EmptyDir: &types.EmptyDirVolume{
 				Medium:    medium,
-				SizeLimit: kubeVolume.VolumeSource.EmptyDir.SizeLimit,
+				SizeLimit: kubeVolume.EmptyDir.SizeLimit,
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.HostPath != nil {
-		kokiType, err := convertHostPathType(kubeVolume.VolumeSource.HostPath.Type)
+	if kubeVolume.HostPath != nil {
+		kokiType, err := convertHostPathType(kubeVolume.HostPath.Type)
 		if err != nil {
 			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return name, &types.Volume{
 			HostPath: &types.HostPathVolume{
-				Path: kubeVolume.VolumeSource.HostPath.Path,
+				Path: kubeVolume.HostPath.Path,
 				Type: kokiType,
 			},
 		}, nil
 	}
-	if kubeVolume.VolumeSource.GCEPersistentDisk != nil {
+	if kubeVolume.GCEPersistentDisk != nil {
+		source := kubeVolume.GCEPersistentDisk
 		return name, &types.Volume{
 			GcePD: &types.GcePDVolume{
-				PDName:    kubeVolume.VolumeSource.GCEPersistentDisk.PDName,
-				FSType:    kubeVolume.VolumeSource.GCEPersistentDisk.FSType,
-				Partition: kubeVolume.VolumeSource.GCEPersistentDisk.Partition,
-				ReadOnly:  kubeVolume.VolumeSource.GCEPersistentDisk.ReadOnly,
+				PDName:    source.PDName,
+				FSType:    source.FSType,
+				Partition: source.Partition,
+				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.AWSElasticBlockStore != nil {
+		source := kubeVolume.AWSElasticBlockStore
+		return name, &types.Volume{
+			AwsEBS: &types.AwsEBSVolume{
+				VolumeID:  source.VolumeID,
+				FSType:    source.FSType,
+				Partition: source.Partition,
+				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.AzureDisk != nil {
+		source := kubeVolume.AzureDisk
+		fstype := util.FromStringPtr(source.FSType)
+		readOnly := util.FromBoolPtr(source.ReadOnly)
+		kind, err := convertAzureDiskKind(source.Kind)
+		if err != nil {
+			return name, nil, err
+		}
+		cachingMode, err := convertAzureDiskCachingMode(source.CachingMode)
+		if err != nil {
+			return name, nil, err
+		}
+		return name, &types.Volume{
+			AzureDisk: &types.AzureDiskVolume{
+				DiskName:    source.DiskName,
+				DataDiskURI: source.DataDiskURI,
+				FSType:      fstype,
+				ReadOnly:    readOnly,
+				Kind:        kind,
+				CachingMode: cachingMode,
+			},
+		}, nil
+	}
+	if kubeVolume.AzureFile != nil {
+		source := kubeVolume.AzureFile
+		return name, &types.Volume{
+			AzureFile: &types.AzureFileVolume{
+				SecretName: source.SecretName,
+				ShareName:  source.ShareName,
+				ReadOnly:   source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.CephFS != nil {
+		source := kubeVolume.CephFS
+		secretFileOrRef := convertCephFSSecretFileOrRef(source.SecretFile, source.SecretRef)
+		return name, &types.Volume{
+			CephFS: &types.CephFSVolume{
+				Monitors:        source.Monitors,
+				Path:            source.Path,
+				User:            source.User,
+				SecretFileOrRef: secretFileOrRef,
+				ReadOnly:        source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.Cinder != nil {
+		source := kubeVolume.Cinder
+		return name, &types.Volume{
+			Cinder: &types.CinderVolume{
+				VolumeID: source.VolumeID,
+				FSType:   source.FSType,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.FC != nil {
+		source := kubeVolume.FC
+		return name, &types.Volume{
+			FibreChannel: &types.FibreChannelVolume{
+				TargetWWNs: source.TargetWWNs,
+				Lun:        source.Lun,
+				ReadOnly:   source.ReadOnly,
+				WWIDs:      source.WWIDs,
+			},
+		}, nil
+	}
+	if kubeVolume.FlexVolume != nil {
+		source := kubeVolume.FlexVolume
+		return name, &types.Volume{
+			Flex: &types.FlexVolume{
+				Driver:    source.Driver,
+				FSType:    source.FSType,
+				SecretRef: convertLocalObjectRef(source.SecretRef),
+				ReadOnly:  source.ReadOnly,
+				Options:   source.Options,
+			},
+		}, nil
+	}
+	if kubeVolume.Flocker != nil {
+		source := kubeVolume.Flocker
+		var dataset string
+		if len(source.DatasetUUID) > 0 {
+			dataset = source.DatasetUUID
+		} else {
+			dataset = source.DatasetName
+		}
+		return name, &types.Volume{
+			Flocker: &types.FlockerVolume{
+				DatasetUUID: dataset,
+			},
+		}, nil
+	}
+	if kubeVolume.Glusterfs != nil {
+		source := kubeVolume.Glusterfs
+		return name, &types.Volume{
+			Glusterfs: &types.GlusterfsVolume{
+				EndpointsName: source.EndpointsName,
+				Path:          source.Path,
+				ReadOnly:      source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.ISCSI != nil {
+		source := kubeVolume.ISCSI
+		return name, &types.Volume{
+			ISCSI: &types.ISCSIVolume{
+				TargetPortal:      source.TargetPortal,
+				IQN:               source.IQN,
+				Lun:               source.Lun,
+				ISCSIInterface:    source.ISCSIInterface,
+				FSType:            source.FSType,
+				ReadOnly:          source.ReadOnly,
+				Portals:           source.Portals,
+				DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+				SessionCHAPAuth:   source.SessionCHAPAuth,
+				SecretRef:         convertLocalObjectRef(source.SecretRef),
+				InitiatorName:     util.FromStringPtr(source.InitiatorName),
+			},
+		}, nil
+	}
+	if kubeVolume.NFS != nil {
+		source := kubeVolume.NFS
+		return name, &types.Volume{
+			NFS: &types.NFSVolume{
+				Server:   source.Server,
+				Path:     source.Path,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.PhotonPersistentDisk != nil {
+		source := kubeVolume.PhotonPersistentDisk
+		return name, &types.Volume{
+			PhotonPD: &types.PhotonPDVolume{
+				PdID:   source.PdID,
+				FSType: source.FSType,
+			},
+		}, nil
+	}
+	if kubeVolume.PortworxVolume != nil {
+		source := kubeVolume.PortworxVolume
+		return name, &types.Volume{
+			Portworx: &types.PortworxVolume{
+				VolumeID: source.VolumeID,
+				FSType:   source.FSType,
+				ReadOnly: source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.PersistentVolumeClaim != nil {
+		source := kubeVolume.PersistentVolumeClaim
+		return name, &types.Volume{
+			PVC: &types.PVCVolume{
+				ClaimName: source.ClaimName,
+				ReadOnly:  source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.Quobyte != nil {
+		source := kubeVolume.Quobyte
+		return name, &types.Volume{
+			Quobyte: &types.QuobyteVolume{
+				Registry: source.Registry,
+				Volume:   source.Volume,
+				ReadOnly: source.ReadOnly,
+				User:     source.User,
+				Group:    source.Group,
+			},
+		}, nil
+	}
+	if kubeVolume.ScaleIO != nil {
+		source := kubeVolume.ScaleIO
+		return name, &types.Volume{
+			ScaleIO: &types.ScaleIOVolume{
+				Gateway:          source.Gateway,
+				System:           source.System,
+				SecretRef:        convertLocalObjectRef(source.SecretRef),
+				SSLEnabled:       source.SSLEnabled,
+				ProtectionDomain: source.ProtectionDomain,
+				StoragePool:      source.StoragePool,
+				StorageMode:      source.StorageMode,
+				VolumeName:       source.VolumeName,
+				FSType:           source.FSType,
+				ReadOnly:         source.ReadOnly,
+			},
+		}, nil
+	}
+	if kubeVolume.VsphereVolume != nil {
+		source := kubeVolume.VsphereVolume
+		return name, &types.Volume{
+			Vsphere: &types.VsphereVolume{
+				VolumePath:    source.VolumePath,
+				FSType:        source.FSType,
+				StoragePolicy: convertVsphereStoragePolicy(source.StoragePolicyName, source.StoragePolicyID),
 			},
 		}, nil
 	}

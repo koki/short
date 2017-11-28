@@ -8,9 +8,9 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - endpoints: ""
-    name: test_volume
-    path: /path/to/vol
-    read_only: true
-    type: glusterfs
+    test_volume:
+      endpoints: endpointsName
+      ro: true
+      vol_id: kube_vol
+      vol_type: glusterfs
 

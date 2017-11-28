@@ -8,12 +8,11 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - caching_mode: ReadWrite
-    disk_name: azure_disk_name
-    disk_uri: disk://uri.azure.disk
-    fs_type: xfs
-    kind: Dedicated
-    name: azure_disk_test_volume
-    read_only: false
-    type: azure-disk
+    azure_disk_test_volume:
+      cache: rw
+      disk_name: azure_disk_name
+      disk_uri: disk://uri.azure.disk
+      fs: xfs
+      kind: dedicated
+      vol_type: azure_disk
 

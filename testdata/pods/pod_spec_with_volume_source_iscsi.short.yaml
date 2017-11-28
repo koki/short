@@ -8,19 +8,19 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - chap_auth_discovery: true
-    chap_auth_session: true
-    fs_type: xfs
-    initiator_name: initiator.name
-    iqn: iqn.iscsi.hello.world
-    iscsi_interface: default
-    lun: 45
-    name: test_volume
-    portals:
-    - portal1
-    - portal2
-    secret_ref:
-      name: secretName
-    target_portal: portal
-    type: iscsi
+    test_volume:
+      chap_discovery: true
+      chap_session: true
+      fs: xfs
+      initiator: initiator.name
+      iqn: iqn.iscsi.hello.world
+      iscsi_interface: default
+      lun: 45
+      portals:
+      - portal1
+      - portal2
+      ro: true
+      secret: secretName
+      target_portal: portal
+      vol_type: iscsi
 

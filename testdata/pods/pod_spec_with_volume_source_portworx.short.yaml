@@ -8,9 +8,9 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    name: test_volume
-    read_only: true
-    type: portworx-volume
-    volume_id: 3094ejer
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_id: 3094ejer
+      vol_type: portworx
 

@@ -8,15 +8,14 @@ pod:
   namespace: test
   version: v1
   volumes:
-  - fs_type: xfs
-    lun: 3
-    name: test_volume
-    read_only: true
-    target_ww_ns:
-    - wwn1
-    - wwn2
-    type: fc
-    wwids:
-    - wwid1
-    - wwid2
+    test_volume:
+      lun: 3
+      ro: true
+      vol_type: fc
+      wwid:
+      - wwid1
+      - wwid2
+      wwn:
+      - wwn1
+      - wwn2
 

@@ -12,6 +12,6 @@ pod:
       fs: xfs
       partition: 1
       ro: true
-      vol_name: name_of_pd
+      vol_id: name_of_pd
       vol_type: gce_pd
 
