@@ -2,3 +2,4 @@
 generated/*.txt
 site/
 chrome-extension/node_modules
+chrome-extension/dist
