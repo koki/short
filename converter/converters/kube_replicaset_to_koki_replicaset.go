@@ -122,11 +122,11 @@ func convertReplicaSetConditions(kubeConditions []appsv1beta2.ReplicaSetConditio
 	for i, condition := range kubeConditions {
 		status, err := convertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		conditionType, err := convertReplicaSetConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		kokiConditions[i] = types.ReplicaSetCondition{
 			Type:               conditionType,

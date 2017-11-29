@@ -124,11 +124,11 @@ func revertReplicaSetConditions(kokiConditions []types.ReplicaSetCondition) ([]a
 	for i, condition := range kokiConditions {
 		status, err := revertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		conditionType, err := revertReplicaSetConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		kubeConditions[i] = appsv1beta2.ReplicaSetCondition{
 			Type:               conditionType,
