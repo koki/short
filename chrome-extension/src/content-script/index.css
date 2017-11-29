@@ -1,0 +1,36 @@
+#yaml {
+  padding: 10px;
+
+  .node {
+    .type {
+      padding: 2px 4px;
+      font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+      &:hover {
+        background-color: #f7f7f7;
+        border-radius: 4px;
+
+        &.branch {
+          cursor: pointer;
+        }
+
+        &.leaf {
+          cursor: default;
+        }
+      }
+
+      .value, .name {
+        margin-left: 5px;
+        padding: 2px 4px;
+        font-size: 90%;
+        color: #c7254e;
+        background-color: #f9f2f4;
+        border-radius: 4px;
+      }
+    }
+
+    .children {
+      padding-left: 15px;
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "Koki Short Github Viewer",
+  "version": "0.2.0",
+
+  "description": "Prettifies Kubernetes YAML viewed on Github",
+  "content_scripts": [
+      {
+          "matches": ["http://github.com/*", "https://github.com/*"],
+          "js": [
+              "content-script.js"
+          ],
+          "css": [
+              "content-script.css"
+          ]
+      }
+  ],
+  "background": {
+  	"scripts": [
+		"background.js"
+	],
+	"persistent": false
+  },
+  "permissions": [
+    "tabs",
+    "http://github.com/*",
+    "https://github.com/*",
+    "https://*.githubusercontent.com/*",
+	"https://koki.io/short/*"
+  ]
+}
