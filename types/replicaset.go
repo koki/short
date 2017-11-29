@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 
-	apps "k8s.io/api/apps/v1beta2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/koki/short/util"
 )
@@ -23,8 +23,6 @@ type ReplicaSet struct {
 	Replicas        *int32 `json:"replicas,omitempty"`
 	MinReadySeconds int32  `json:"ready_seconds,omitempty"`
 
-	Status *apps.ReplicaSetStatus `json:"status,omitempty"`
-
 	// Selector in ReplicaSet can express more complex rules than just matching
 	// pod labels, so it needs its own field (unlike in ReplicationController).
 	// Leaving it blank has the same effect as omitting Selector in RC.
@@ -32,11 +30,42 @@ type ReplicaSet struct {
 
 	TemplateMetadata *PodTemplateMeta `json:"pod_meta,omitempty"`
 	PodTemplate      `json:",inline"`
+
+	// Status
+	ReplicaSetStatus `json:",inline"`
 }
 
 type RSSelector struct {
 	Shorthand string
 	Labels    map[string]string
+}
+
+type ReplicaSetStatus struct {
+	ObservedGeneration int64                    `json:"generation_observed,omitempty"`
+	Replicas           ReplicaSetReplicasStatus `json:"replicas_status,omitempty"`
+	Conditions         []ReplicaSetCondition    `json:"condition,omitempty"`
+}
+
+type ReplicaSetReplicasStatus struct {
+	Total        int32 `json:"total,omitempty"`
+	FullyLabeled int32 `json:"fully_labeled,omitempty"`
+	Ready        int32 `json:"ready,omitempty"`
+	Available    int32 `json:"available,omitempty"`
+}
+
+type ReplicaSetConditionType string
+
+const (
+	ReplicaSetReplicaFailure ReplicaSetConditionType = "replica-failure"
+)
+
+// ReplicaSetCondition describes the state of a replica set at a certain point.
+type ReplicaSetCondition struct {
+	Type               ReplicaSetConditionType `json:"type"`
+	Status             ConditionStatus         `json:"status"`
+	LastTransitionTime metav1.Time             `json:"last_change,omitempty"`
+	Reason             string                  `json:"reason,omitempty"`
+	Message            string                  `json:"message,omitempty"`
 }
 
 func (s *RSSelector) UnmarshalJSON(data []byte) error {

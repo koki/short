@@ -92,11 +92,63 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 
 	// End Selector/Template section.
 
-	if kokiRS.Status != nil {
-		kubeRS.Status = *kokiRS.Status
+	kubeRS.Status, err = revertReplicaSetStatus(kokiRS.ReplicaSetStatus)
+	if err != nil {
+		return nil, err
 	}
 
 	return kubeRS, nil
+}
+
+func revertReplicaSetStatus(kokiStatus types.ReplicaSetStatus) (appsv1beta2.ReplicaSetStatus, error) {
+	conditions, err := revertReplicaSetConditions(kokiStatus.Conditions)
+	if err != nil {
+		return appsv1beta2.ReplicaSetStatus{}, err
+	}
+	return appsv1beta2.ReplicaSetStatus{
+		ObservedGeneration:   kokiStatus.ObservedGeneration,
+		Replicas:             kokiStatus.Replicas.Total,
+		FullyLabeledReplicas: kokiStatus.Replicas.FullyLabeled,
+		ReadyReplicas:        kokiStatus.Replicas.Ready,
+		AvailableReplicas:    kokiStatus.Replicas.Available,
+		Conditions:           conditions,
+	}, nil
+}
+
+func revertReplicaSetConditions(kokiConditions []types.ReplicaSetCondition) ([]appsv1beta2.ReplicaSetCondition, error) {
+	if len(kokiConditions) == 0 {
+		return nil, nil
+	}
+
+	kubeConditions := make([]appsv1beta2.ReplicaSetCondition, len(kokiConditions))
+	for i, condition := range kokiConditions {
+		status, err := revertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		conditionType, err := revertReplicaSetConditionType(condition.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		kubeConditions[i] = appsv1beta2.ReplicaSetCondition{
+			Type:               conditionType,
+			Status:             status,
+			LastTransitionTime: condition.LastTransitionTime,
+			Reason:             condition.Reason,
+			Message:            condition.Message,
+		}
+	}
+
+	return kubeConditions, nil
+}
+
+func revertReplicaSetConditionType(kokiType types.ReplicaSetConditionType) (appsv1beta2.ReplicaSetConditionType, error) {
+	switch kokiType {
+	case types.ReplicaSetReplicaFailure:
+		return appsv1beta2.ReplicaSetReplicaFailure, nil
+	default:
+		return appsv1beta2.ReplicaSetReplicaFailure, util.InvalidValueErrorf(kokiType, "unrecognized replica-set condition type")
+	}
 }
 
 func applyTemplateLabelsOverride(labelsOverride map[string]string, kokiMeta *types.PodTemplateMeta) *types.PodTemplateMeta {

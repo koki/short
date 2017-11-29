@@ -86,13 +86,67 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 
 	// End Selector/Template section.
 
-	if !reflect.DeepEqual(kubeRS.Status, appsv1beta2.ReplicaSetStatus{}) {
-		kokiRS.Status = &kubeRS.Status
+	kokiRS.ReplicaSetStatus, err = convertReplicaSetStatus(kubeRS.Status)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.ReplicaSetWrapper{
 		ReplicaSet: *kokiRS,
 	}, nil
+}
+
+func convertReplicaSetStatus(kubeStatus appsv1beta2.ReplicaSetStatus) (types.ReplicaSetStatus, error) {
+	conditions, err := convertReplicaSetConditions(kubeStatus.Conditions)
+	if err != nil {
+		return types.ReplicaSetStatus{}, err
+	}
+	return types.ReplicaSetStatus{
+		ObservedGeneration: kubeStatus.ObservedGeneration,
+		Replicas: types.ReplicaSetReplicasStatus{
+			Total:        kubeStatus.Replicas,
+			FullyLabeled: kubeStatus.FullyLabeledReplicas,
+			Ready:        kubeStatus.ReadyReplicas,
+			Available:    kubeStatus.AvailableReplicas,
+		},
+		Conditions: conditions,
+	}, nil
+}
+
+func convertReplicaSetConditions(kubeConditions []appsv1beta2.ReplicaSetCondition) ([]types.ReplicaSetCondition, error) {
+	if len(kubeConditions) == 0 {
+		return nil, nil
+	}
+
+	kokiConditions := make([]types.ReplicaSetCondition, len(kubeConditions))
+	for i, condition := range kubeConditions {
+		status, err := convertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		conditionType, err := convertReplicaSetConditionType(condition.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		kokiConditions[i] = types.ReplicaSetCondition{
+			Type:               conditionType,
+			Status:             status,
+			LastTransitionTime: condition.LastTransitionTime,
+			Reason:             condition.Reason,
+			Message:            condition.Message,
+		}
+	}
+
+	return kokiConditions, nil
+}
+
+func convertReplicaSetConditionType(kubeType appsv1beta2.ReplicaSetConditionType) (types.ReplicaSetConditionType, error) {
+	switch kubeType {
+	case appsv1beta2.ReplicaSetReplicaFailure:
+		return types.ReplicaSetReplicaFailure, nil
+	default:
+		return types.ReplicaSetReplicaFailure, util.InvalidValueErrorf(kubeType, "unrecognized replica-set condition type")
+	}
 }
 
 func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabels map[string]string) (*types.RSSelector, map[string]string, error) {
