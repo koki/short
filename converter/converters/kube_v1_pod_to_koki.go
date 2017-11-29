@@ -18,97 +18,14 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	var err error
 	kokiPod := &types.Pod{}
 
-	kokiPod.Name = pod.Name
-	kokiPod.Namespace = pod.Namespace
 	kokiPod.Version = pod.APIVersion
-	kokiPod.Cluster = pod.ClusterName
-	kokiPod.Labels = pod.Labels
-	kokiPod.Annotations = pod.Annotations
 
-	kokiPod.Volumes, err = convertVolumes(pod.Spec.Volumes)
-	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod volumes")
-	}
-	affinity, err := convertAffinity(pod.Spec)
+	kokiPod.PodTemplateMeta = convertPodObjectMeta(pod.ObjectMeta)
+	template, err := convertPodSpec(pod.Spec)
 	if err != nil {
 		return nil, err
 	}
-	kokiPod.Affinity = affinity
-
-	var initContainers []types.Container
-	for i := range pod.Spec.InitContainers {
-		container := pod.Spec.InitContainers[i]
-		kokiContainer, err := convertContainer(&container)
-		if err != nil {
-			return nil, err
-		}
-		initContainers = append(initContainers, *kokiContainer)
-	}
-	kokiPod.InitContainers = initContainers
-
-	var kokiContainers []types.Container
-	for i := range pod.Spec.Containers {
-		container := pod.Spec.Containers[i]
-		kokiContainer, err := convertContainer(&container)
-		if err != nil {
-			return nil, err
-		}
-		kokiContainers = append(kokiContainers, *kokiContainer)
-	}
-	kokiPod.Containers = kokiContainers
-
-	dnsPolicy, err := convertDNSPolicy(pod.Spec.DNSPolicy)
-	if err != nil {
-		return nil, err
-	}
-	kokiPod.DNSPolicy = dnsPolicy
-
-	kokiPod.HostAliases = convertHostAliases(pod.Spec.HostAliases)
-	kokiPod.HostMode = convertHostMode(pod.Spec)
-	kokiPod.Hostname = convertHostname(pod.Spec)
-	kokiPod.Registries = convertRegistries(pod.Spec.ImagePullSecrets)
-
-	restartPolicy, err := convertRestartPolicy(pod.Spec.RestartPolicy)
-	if err != nil {
-		return nil, err
-	}
-	kokiPod.RestartPolicy = restartPolicy
-
-	kokiPod.SchedulerName = pod.Spec.SchedulerName
-	kokiPod.Account = pod.Spec.ServiceAccountName
-
-	if pod.Spec.AutomountServiceAccountToken != nil && *pod.Spec.AutomountServiceAccountToken {
-		kokiPod.Account = fmt.Sprintf("%s:auto", kokiPod.Account)
-	}
-
-	tolerations, err := convertTolerations(pod.Spec.Tolerations)
-	if err != nil {
-		return nil, err
-	}
-	kokiPod.Tolerations = tolerations
-
-	kokiPod.TerminationGracePeriod = pod.Spec.TerminationGracePeriodSeconds
-	kokiPod.ActiveDeadline = pod.Spec.ActiveDeadlineSeconds
-	kokiPod.Node = pod.Spec.NodeName
-	kokiPod.Priority = convertPriority(pod.Spec)
-
-	if pod.Spec.SecurityContext != nil {
-		securityContext := pod.Spec.SecurityContext
-		kokiPod.GIDs = securityContext.SupplementalGroups
-		kokiPod.FSGID = securityContext.FSGroup
-		for i := range kokiPod.Containers {
-			container := kokiPod.Containers[i]
-			if container.SELinux == nil {
-				container.SELinux = convertSELinux(securityContext.SELinuxOptions)
-			}
-			if container.UID == nil {
-				container.UID = securityContext.RunAsUser
-			}
-			if container.ForceNonRoot == nil {
-				container.ForceNonRoot = securityContext.RunAsNonRoot
-			}
-		}
-	}
+	kokiPod.PodTemplate = *template
 
 	kokiPod.Msg = pod.Status.Message
 	kokiPod.Reason = pod.Status.Reason
@@ -139,6 +56,107 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	}
 
 	return &types.PodWrapper{Pod: *kokiPod}, nil
+}
+
+func convertPodObjectMeta(kubeMeta metav1.ObjectMeta) types.PodTemplateMeta {
+	return types.PodTemplateMeta{
+		Name:        kubeMeta.Name,
+		Namespace:   kubeMeta.Namespace,
+		Cluster:     kubeMeta.ClusterName,
+		Labels:      kubeMeta.Labels,
+		Annotations: kubeMeta.Annotations,
+	}
+}
+
+func convertPodSpec(kubeSpec v1.PodSpec) (*types.PodTemplate, error) {
+	var err error
+	kokiPod := &types.PodTemplate{}
+	kokiPod.Volumes, err = convertVolumes(kubeSpec.Volumes)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "pod volumes")
+	}
+	affinity, err := convertAffinity(kubeSpec)
+	if err != nil {
+		return nil, err
+	}
+	kokiPod.Affinity = affinity
+
+	var initContainers []types.Container
+	for i := range kubeSpec.InitContainers {
+		container := kubeSpec.InitContainers[i]
+		kokiContainer, err := convertContainer(&container)
+		if err != nil {
+			return nil, err
+		}
+		initContainers = append(initContainers, *kokiContainer)
+	}
+	kokiPod.InitContainers = initContainers
+
+	var kokiContainers []types.Container
+	for i := range kubeSpec.Containers {
+		container := kubeSpec.Containers[i]
+		kokiContainer, err := convertContainer(&container)
+		if err != nil {
+			return nil, err
+		}
+		kokiContainers = append(kokiContainers, *kokiContainer)
+	}
+	kokiPod.Containers = kokiContainers
+
+	dnsPolicy, err := convertDNSPolicy(kubeSpec.DNSPolicy)
+	if err != nil {
+		return nil, err
+	}
+	kokiPod.DNSPolicy = dnsPolicy
+
+	kokiPod.HostAliases = convertHostAliases(kubeSpec.HostAliases)
+	kokiPod.HostMode = convertHostMode(kubeSpec)
+	kokiPod.Hostname = convertHostname(kubeSpec)
+	kokiPod.Registries = convertRegistries(kubeSpec.ImagePullSecrets)
+
+	restartPolicy, err := convertRestartPolicy(kubeSpec.RestartPolicy)
+	if err != nil {
+		return nil, err
+	}
+	kokiPod.RestartPolicy = restartPolicy
+
+	kokiPod.SchedulerName = kubeSpec.SchedulerName
+	kokiPod.Account = kubeSpec.ServiceAccountName
+
+	if kubeSpec.AutomountServiceAccountToken != nil && *kubeSpec.AutomountServiceAccountToken {
+		kokiPod.Account = fmt.Sprintf("%s:auto", kokiPod.Account)
+	}
+
+	tolerations, err := convertTolerations(kubeSpec.Tolerations)
+	if err != nil {
+		return nil, err
+	}
+	kokiPod.Tolerations = tolerations
+
+	kokiPod.TerminationGracePeriod = kubeSpec.TerminationGracePeriodSeconds
+	kokiPod.ActiveDeadline = kubeSpec.ActiveDeadlineSeconds
+	kokiPod.Node = kubeSpec.NodeName
+	kokiPod.Priority = convertPriority(kubeSpec)
+
+	if kubeSpec.SecurityContext != nil {
+		securityContext := kubeSpec.SecurityContext
+		kokiPod.GIDs = securityContext.SupplementalGroups
+		kokiPod.FSGID = securityContext.FSGroup
+		for i := range kokiPod.Containers {
+			container := kokiPod.Containers[i]
+			if container.SELinux == nil {
+				container.SELinux = convertSELinux(securityContext.SELinuxOptions)
+			}
+			if container.UID == nil {
+				container.UID = securityContext.RunAsUser
+			}
+			if container.ForceNonRoot == nil {
+				container.ForceNonRoot = securityContext.RunAsNonRoot
+			}
+		}
+	}
+
+	return kokiPod, nil
 }
 
 func convertVolumes(kubeVolumes []v1.Volume) (map[string]types.Volume, error) {

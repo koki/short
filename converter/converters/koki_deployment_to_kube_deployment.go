@@ -66,7 +66,7 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 	kubeSpec.Replicas = kokiDeployment.Replicas
 
 	// Setting the Selector and Template is identical to ReplicaSet
-
+	// Get the right Selector and Template Labels.
 	var templateLabelsOverride map[string]string
 	var kokiTemplateLabels map[string]string
 	if kokiDeployment.TemplateMetadata != nil {
@@ -76,15 +76,17 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 	if err != nil {
 		return nil, err
 	}
+	// Set the right Labels before we fill in the Pod template with this metadata.
+	kokiDeployment.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, kokiDeployment.TemplateMetadata)
 
-	kubeTemplate, err := revertTemplate(kokiDeployment.GetTemplate())
+	// Fill in the rest of the Pod template.
+	kubeTemplate, err := revertTemplate(kokiDeployment.TemplateMetadata, kokiDeployment.PodTemplate)
 	if err != nil {
-		return nil, err
+		return nil, util.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
 		return nil, util.InvalidInstanceErrorf(kokiDeployment, "missing pod template")
 	}
-	kubeTemplate.Labels = templateLabelsOverride
 	kubeSpec.Template = *kubeTemplate
 
 	// End Selector/Template section.
@@ -96,11 +98,70 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 	kubeSpec.Paused = kokiDeployment.Paused
 	kubeSpec.ProgressDeadlineSeconds = kokiDeployment.ProgressDeadlineSeconds
 
-	if kokiDeployment.Status != nil {
-		kubeDeployment.Status = *kokiDeployment.Status
+	kubeDeployment.Status, err = revertDeploymentStatus(kokiDeployment.DeploymentStatus)
+	if err != nil {
+		return nil, err
 	}
 
 	return kubeDeployment, nil
+}
+
+func revertDeploymentStatus(kokiStatus types.DeploymentStatus) (appsv1beta2.DeploymentStatus, error) {
+	conditions, err := revertDeploymentConditions(kokiStatus.Conditions)
+	if err != nil {
+		return appsv1beta2.DeploymentStatus{}, err
+	}
+	return appsv1beta2.DeploymentStatus{
+		ObservedGeneration:  kokiStatus.ObservedGeneration,
+		Replicas:            kokiStatus.Replicas.Total,
+		UpdatedReplicas:     kokiStatus.Replicas.Updated,
+		ReadyReplicas:       kokiStatus.Replicas.Ready,
+		AvailableReplicas:   kokiStatus.Replicas.Available,
+		UnavailableReplicas: kokiStatus.Replicas.Unavailable,
+		Conditions:          conditions,
+		CollisionCount:      kokiStatus.CollisionCount,
+	}, nil
+}
+
+func revertDeploymentConditions(kokiConditions []types.DeploymentCondition) ([]appsv1beta2.DeploymentCondition, error) {
+	if len(kokiConditions) == 0 {
+		return nil, nil
+	}
+
+	kubeConditions := make([]appsv1beta2.DeploymentCondition, len(kokiConditions))
+	for i, condition := range kokiConditions {
+		status, err := revertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		conditionType, err := revertDeploymentConditionType(condition.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		kubeConditions[i] = appsv1beta2.DeploymentCondition{
+			Type:               conditionType,
+			Status:             status,
+			LastUpdateTime:     condition.LastUpdateTime,
+			LastTransitionTime: condition.LastTransitionTime,
+			Reason:             condition.Reason,
+			Message:            condition.Message,
+		}
+	}
+
+	return kubeConditions, nil
+}
+
+func revertDeploymentConditionType(kokiType types.DeploymentConditionType) (appsv1beta2.DeploymentConditionType, error) {
+	switch kokiType {
+	case types.DeploymentAvailable:
+		return appsv1beta2.DeploymentAvailable, nil
+	case types.DeploymentProgressing:
+		return appsv1beta2.DeploymentProgressing, nil
+	case types.DeploymentReplicaFailure:
+		return appsv1beta2.DeploymentReplicaFailure, nil
+	default:
+		return appsv1beta2.DeploymentReplicaFailure, util.InvalidValueErrorf(kokiType, "unrecognized deployment condition type")
+	}
 }
 
 func revertDeploymentStrategy(kokiDeployment *types.Deployment) appsv1beta2.DeploymentStrategy {

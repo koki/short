@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -78,12 +77,14 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 	}
 
 	// Build a Pod from the kube Template. Use it to set the koki Template.
-	kokiPod, err := convertRSTemplate(&kubeSpec.Template)
+	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, err
+		return nil, util.ContextualizeErrorf(err, "pod template")
 	}
-	kokiPod.Labels = templateLabelsOverride
-	kokiRS.SetTemplate(kokiPod)
+	kokiRS.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
+	kokiRS.PodTemplate = template
+
+	// End Selector/Template section.
 
 	if !reflect.DeepEqual(kubeRS.Status, appsv1beta2.ReplicaSetStatus{}) {
 		kokiRS.Status = &kubeRS.Status
@@ -92,28 +93,6 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 	return &types.ReplicaSetWrapper{
 		ReplicaSet: *kokiRS,
 	}, nil
-}
-
-func convertRSTemplate(kubeTemplate *v1.PodTemplateSpec) (*types.Pod, error) {
-	if kubeTemplate == nil {
-		return nil, nil
-	}
-
-	kubePod := &v1.Pod{
-		Spec: kubeTemplate.Spec,
-	}
-
-	kubePod.Name = kubeTemplate.Name
-	kubePod.Namespace = kubeTemplate.Namespace
-	kubePod.Labels = kubeTemplate.Labels
-	kubePod.Annotations = kubeTemplate.Annotations
-
-	kokiPod, err := Convert_Kube_v1_Pod_to_Koki_Pod(kubePod)
-	if err != nil {
-		return nil, err
-	}
-
-	return &kokiPod.Pod, nil
 }
 
 func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabels map[string]string) (*types.RSSelector, map[string]string, error) {

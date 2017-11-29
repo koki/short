@@ -1,9 +1,12 @@
 package converters
 
 import (
+	"reflect"
+
 	"k8s.io/api/core/v1"
 
 	"github.com/koki/short/types"
+	"github.com/koki/short/util"
 )
 
 func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *types.ReplicationControllerWrapper) (*v1.ReplicationController, error) {
@@ -27,18 +30,26 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 	kubeSpec.Replicas = kokiRC.Replicas
 	kubeSpec.MinReadySeconds = kokiRC.MinReadySeconds
 
-	// We won't repopulate kubeSpec.Selector because it's
-	// defaulted to the Template's labels.
-	kokiPod := kokiRC.GetTemplate()
-	// Make sure there's at least one Label in the Template.
-	if len(kokiPod.Labels) == 0 {
-		kokiPod.Labels = map[string]string{
-			"koki.io/selector.name": kokiRC.Name,
-		}
-	}
-	kubeSpec.Template, err = revertTemplate(kokiPod)
+	kubeSpec.Selector = kokiRC.Selector
+	kubeSpec.Template, err = revertTemplate(kokiRC.TemplateMetadata, kokiRC.PodTemplate)
 	if err != nil {
-		return nil, err
+		return nil, util.ContextualizeErrorf(err, "pod template")
+	}
+
+	// Make sure there's at least one Label in the Template and the Selector.
+	if kubeSpec.Template != nil {
+		if len(kubeSpec.Template.Labels) == 0 {
+			if len(kubeSpec.Selector) > 0 {
+				kokiRC.TemplateMetadata.Labels = kubeSpec.Selector
+			} else {
+				kokiRC.TemplateMetadata.Labels = map[string]string{
+					"koki.io/selector.name": kokiRC.Name,
+				}
+				kokiRC.Selector = map[string]string{
+					"koki.io/selector.name": kokiRC.Name,
+				}
+			}
+		}
 	}
 
 	if kokiRC.Status != nil {
@@ -48,23 +59,26 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 	return kubeRC, nil
 }
 
-func revertTemplate(kokiPod *types.Pod) (*v1.PodTemplateSpec, error) {
-	if kokiPod == nil {
+func revertTemplate(kokiMeta *types.PodTemplateMeta, kokiSpec types.PodTemplate) (*v1.PodTemplateSpec, error) {
+	var hasMeta = kokiMeta != nil
+	var hasSpec = !reflect.DeepEqual(kokiSpec, types.PodTemplate{})
+	if !hasMeta && !hasSpec {
 		return nil, nil
 	}
 
-	kubePod, err := Convert_Koki_Pod_to_Kube_v1_Pod(&types.PodWrapper{Pod: *kokiPod})
-	if err != nil {
-		return nil, err
-	}
-	kubeTemplate := &v1.PodTemplateSpec{
-		Spec: kubePod.Spec,
+	template := v1.PodTemplateSpec{}
+
+	if hasMeta {
+		template.ObjectMeta = revertPodObjectMeta(*kokiMeta)
 	}
 
-	kubeTemplate.Name = kubePod.Name
-	kubeTemplate.Namespace = kubePod.Namespace
-	kubeTemplate.Labels = kubePod.Labels
-	kubeTemplate.Annotations = kubePod.Annotations
+	if hasSpec {
+		spec, err := revertPodSpec(kokiSpec)
+		if err != nil {
+			return nil, err
+		}
+		template.Spec = *spec
+	}
 
-	return kubeTemplate, nil
+	return &template, nil
 }

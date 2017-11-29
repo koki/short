@@ -1,6 +1,8 @@
 package converters
 
 import (
+	"reflect"
+
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	exts "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,6 +67,7 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 	kubeSpec.Replicas = kokiRS.Replicas
 	kubeSpec.MinReadySeconds = kokiRS.MinReadySeconds
 
+	// Get the right Selector and Template Labels.
 	var templateLabelsOverride map[string]string
 	var kokiTemplateLabels map[string]string
 	if kokiRS.TemplateMetadata != nil {
@@ -74,26 +77,49 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 	if err != nil {
 		return nil, err
 	}
+	// Set the right Labels before we fill in the Pod template with this metadata.
+	kokiRS.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, kokiRS.TemplateMetadata)
 
-	kubeTemplate, err := revertTemplate(kokiRS.GetTemplate())
+	//  Fill in the rest of the Pod template.
+	kubeTemplate, err := revertTemplate(kokiRS.TemplateMetadata, kokiRS.PodTemplate)
 	if err != nil {
-		return nil, err
+		return nil, util.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
 		return nil, util.InvalidInstanceErrorf(kokiRS, "missing pod template")
 	}
-	kubeTemplate.Labels = templateLabelsOverride
 	kubeSpec.Template = *kubeTemplate
 
-	// Make sure the Selector and the Template.Labels are set correctly.
-	if len(kubeSpec.Template.Labels) == 0 {
-	}
+	// End Selector/Template section.
 
 	if kokiRS.Status != nil {
 		kubeRS.Status = *kokiRS.Status
 	}
 
 	return kubeRS, nil
+}
+
+func applyTemplateLabelsOverride(labelsOverride map[string]string, kokiMeta *types.PodTemplateMeta) *types.PodTemplateMeta {
+	if kokiMeta == nil {
+		if len(labelsOverride) > 0 {
+			return &types.PodTemplateMeta{
+				Labels: labelsOverride,
+			}
+		}
+		return nil
+	} else {
+		if len(labelsOverride) > 0 {
+			kokiMeta.Labels = labelsOverride
+		} else {
+			kokiMeta.Labels = nil
+		}
+
+		if reflect.DeepEqual(kokiMeta, &types.PodTemplateMeta{}) {
+			return nil
+		}
+
+		return kokiMeta
+	}
 }
 
 func revertRSSelector(name string, selector *types.RSSelector, templateLabels map[string]string) (*metav1.LabelSelector, map[string]string, error) {
