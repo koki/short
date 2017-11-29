@@ -242,7 +242,11 @@ func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {
 			ReclaimPolicy: PersistentVolumeReclaimRecycle,
 			StorageClass:  "storageClass",
 			MountOptions:  "option 1,option 2,option 3",
-			Status:        &v1.PersistentVolumeStatus{},
+			PersistentVolumeStatus: PersistentVolumeStatus{
+				Phase:   VolumeAvailable,
+				Message: "user-friendly message about the status",
+				Reason:  "machineFriendlyReasonForStatus",
+			},
 		},
 		PersistentVolumeSource: v,
 	}

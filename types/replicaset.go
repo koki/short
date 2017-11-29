@@ -2,9 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	"reflect"
 
-	apps "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/koki/short/util"
@@ -25,50 +23,16 @@ type ReplicaSet struct {
 	Replicas        *int32 `json:"replicas,omitempty"`
 	MinReadySeconds int32  `json:"ready_seconds,omitempty"`
 
-	Status *apps.ReplicaSetStatus `json:"status,omitempty"`
-
 	// Selector in ReplicaSet can express more complex rules than just matching
 	// pod labels, so it needs its own field (unlike in ReplicationController).
 	// Leaving it blank has the same effect as omitting Selector in RC.
 	Selector *RSSelector `json:"selector,omitempty"`
 
-	// Template fields
-	TemplateMetadata       *RSTemplateMetadata `json:"pod_meta,omitempty"`
-	Volumes                map[string]Volume   `json:"volumes,omitempty"`
-	Affinity               []Affinity          `json:"affinity,omitempty"`
-	Containers             []Container         `json:"containers,omitempty"`
-	InitContainers         []Container         `json:"init_containers,omitempty"`
-	DNSPolicy              DNSPolicy           `json:"dns_policy,omitempty"`
-	HostAliases            []string            `json:"host_aliases,omitempty"`
-	HostMode               []HostMode          `json:"host_mode,omitempty"`
-	Hostname               string              `json:"hostname,omitempty"`
-	Registries             []string            `json:"registry_secrets,omitempty"`
-	RestartPolicy          RestartPolicy       `json:"restart_policy,omitempty"`
-	SchedulerName          string              `json:"scheduler_name,omitempty"`
-	Account                string              `json:"account,omitempty"`
-	Tolerations            []Toleration        `json:"tolerations,omitempty"`
-	TerminationGracePeriod *int64              `json:"termination_grace_period,omitempty"`
-	ActiveDeadline         *int64              `json:"active_deadline,omitempty"`
-	Node                   string              `json:"node,omitempty"`
-	Priority               *Priority           `json:"priority,omitempty"`
-	Conditions             []PodCondition      `json:"condition,omitempty"`
-	NodeIP                 string              `json:"node_ip,omitempty"`
-	StartTime              *metav1.Time        `json:"start_time,omitempty"`
-	Msg                    string              `json:"msg,omitempty"`
-	Phase                  PodPhase            `json:"phase,omitempty"`
-	IP                     string              `json:"ip,omitempty"`
-	QOS                    PodQOSClass         `json:"qos,omitempty"`
-	Reason                 string              `json:"reason,omitempty"`
-	FSGID                  *int64              `json:"fs_gid,omitempty"`
-	GIDs                   []int64             `json:"gids,omitempty"`
-}
+	TemplateMetadata *PodTemplateMeta `json:"pod_meta,omitempty"`
+	PodTemplate      `json:",inline"`
 
-type RSTemplateMetadata struct {
-	Cluster     string            `json:"cluster,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	Namespace   string            `json:"namespace,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	// Status
+	ReplicaSetStatus `json:",inline"`
 }
 
 type RSSelector struct {
@@ -76,94 +40,32 @@ type RSSelector struct {
 	Labels    map[string]string
 }
 
-func RSTemplateMetadataFromPod(pod *Pod) *RSTemplateMetadata {
-	meta := RSTemplateMetadata{}
-	meta.Cluster = pod.Cluster
-	meta.Name = pod.Name
-	meta.Namespace = pod.Namespace
-	meta.Labels = pod.Labels
-	meta.Annotations = pod.Annotations
-
-	if reflect.DeepEqual(meta, RSTemplateMetadata{}) {
-		return nil
-	}
-
-	return &meta
+type ReplicaSetStatus struct {
+	ObservedGeneration int64                    `json:"generation_observed,omitempty"`
+	Replicas           ReplicaSetReplicasStatus `json:"replicas_status,omitempty"`
+	Conditions         []ReplicaSetCondition    `json:"condition,omitempty"`
 }
 
-func (rs *ReplicaSet) SetTemplate(pod *Pod) {
-	rs.TemplateMetadata = RSTemplateMetadataFromPod(pod)
-	rs.Volumes = pod.Volumes
-	rs.Affinity = pod.Affinity
-	rs.Containers = pod.Containers
-	rs.InitContainers = pod.InitContainers
-	rs.DNSPolicy = pod.DNSPolicy
-	rs.HostAliases = pod.HostAliases
-	rs.HostMode = pod.HostMode
-	rs.Hostname = pod.Hostname
-	rs.Registries = pod.Registries
-	rs.RestartPolicy = pod.RestartPolicy
-	rs.SchedulerName = pod.SchedulerName
-	rs.Account = pod.Account
-	rs.Tolerations = pod.Tolerations
-	rs.TerminationGracePeriod = pod.TerminationGracePeriod
-
-	rs.ActiveDeadline = pod.ActiveDeadline
-	rs.Node = pod.Node
-	rs.Priority = pod.Priority
-	rs.Conditions = pod.Conditions
-	rs.NodeIP = pod.NodeIP
-	rs.StartTime = pod.StartTime
-	rs.Msg = pod.Msg
-	rs.Phase = pod.Phase
-	rs.IP = pod.IP
-	rs.QOS = pod.QOS
-	rs.Reason = pod.Reason
-	rs.FSGID = pod.FSGID
-	rs.GIDs = pod.GIDs
+type ReplicaSetReplicasStatus struct {
+	Total        int32 `json:"total,omitempty"`
+	FullyLabeled int32 `json:"fully_labeled,omitempty"`
+	Ready        int32 `json:"ready,omitempty"`
+	Available    int32 `json:"available,omitempty"`
 }
 
-func (rs *ReplicaSet) GetTemplate() *Pod {
-	pod := Pod{}
+type ReplicaSetConditionType string
 
-	if rs.TemplateMetadata != nil {
-		pod.Cluster = rs.TemplateMetadata.Cluster
-		pod.Name = rs.TemplateMetadata.Name
-		pod.Namespace = rs.TemplateMetadata.Namespace
-		pod.Labels = rs.TemplateMetadata.Labels
-		pod.Annotations = rs.TemplateMetadata.Annotations
-	}
+const (
+	ReplicaSetReplicaFailure ReplicaSetConditionType = "replica-failure"
+)
 
-	pod.Volumes = rs.Volumes
-	pod.Affinity = rs.Affinity
-	pod.Containers = rs.Containers
-	pod.InitContainers = rs.InitContainers
-	pod.DNSPolicy = rs.DNSPolicy
-	pod.HostAliases = rs.HostAliases
-	pod.HostMode = rs.HostMode
-	pod.Hostname = rs.Hostname
-	pod.Registries = rs.Registries
-	pod.RestartPolicy = rs.RestartPolicy
-	pod.SchedulerName = rs.SchedulerName
-	pod.Account = rs.Account
-	pod.Tolerations = rs.Tolerations
-	pod.TerminationGracePeriod = rs.TerminationGracePeriod
-
-	pod.ActiveDeadline = rs.ActiveDeadline
-	pod.Node = rs.Node
-	pod.Priority = rs.Priority
-	pod.Conditions = rs.Conditions
-	pod.NodeIP = rs.NodeIP
-	pod.StartTime = rs.StartTime
-	pod.Msg = rs.Msg
-	pod.Phase = rs.Phase
-	pod.IP = rs.IP
-	pod.QOS = rs.QOS
-	pod.Reason = rs.Reason
-	pod.FSGID = rs.FSGID
-	pod.GIDs = rs.GIDs
-
-	return &pod
+// ReplicaSetCondition describes the state of a replica set at a certain point.
+type ReplicaSetCondition struct {
+	Type               ReplicaSetConditionType `json:"type"`
+	Status             ConditionStatus         `json:"status"`
+	LastTransitionTime metav1.Time             `json:"last_change,omitempty"`
+	Reason             string                  `json:"reason,omitempty"`
+	Message            string                  `json:"message,omitempty"`
 }
 
 func (s *RSSelector) UnmarshalJSON(data []byte) error {

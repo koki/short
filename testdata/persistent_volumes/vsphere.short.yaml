@@ -16,9 +16,9 @@ persistent_volume:
     id: policy-id
     name: policy-name
   reclaim: recycle
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_id: '[datastore1] volumes/myDisk'
   vol_type: vsphere
+

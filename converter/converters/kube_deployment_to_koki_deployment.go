@@ -1,8 +1,6 @@
 package converters
 
 import (
-	"reflect"
-
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	"k8s.io/apimachinery/pkg/runtime"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
@@ -76,12 +74,12 @@ func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *appsv1be
 	}
 
 	// Build a Pod from the kube Template. Use it to set the koki Template.
-	kokiPod, err := convertRSTemplate(&kubeSpec.Template)
+	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, err
+		return nil, util.ContextualizeErrorf(err, "pod template")
 	}
-	kokiPod.Labels = templateLabelsOverride
-	kokiDeployment.SetTemplate(kokiPod)
+	kokiDeployment.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
+	kokiDeployment.PodTemplate = template
 
 	// End Selector/Template section.
 
@@ -92,13 +90,74 @@ func Convert_Kube_v1beta2_Deployment_to_Koki_Deployment(kubeDeployment *appsv1be
 	kokiDeployment.Paused = kubeSpec.Paused
 	kokiDeployment.ProgressDeadlineSeconds = kubeSpec.ProgressDeadlineSeconds
 
-	if !reflect.DeepEqual(kubeDeployment.Status, appsv1beta2.DeploymentStatus{}) {
-		kokiDeployment.Status = &kubeDeployment.Status
+	kokiDeployment.DeploymentStatus, err = convertDeploymentStatus(kubeDeployment.Status)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.DeploymentWrapper{
 		Deployment: *kokiDeployment,
 	}, nil
+}
+
+func convertDeploymentStatus(kubeStatus appsv1beta2.DeploymentStatus) (types.DeploymentStatus, error) {
+	conditions, err := convertDeploymentConditions(kubeStatus.Conditions)
+	if err != nil {
+		return types.DeploymentStatus{}, err
+	}
+	return types.DeploymentStatus{
+		ObservedGeneration: kubeStatus.ObservedGeneration,
+		Replicas: types.DeploymentReplicasStatus{
+			Total:       kubeStatus.Replicas,
+			Updated:     kubeStatus.UpdatedReplicas,
+			Ready:       kubeStatus.ReadyReplicas,
+			Available:   kubeStatus.AvailableReplicas,
+			Unavailable: kubeStatus.UnavailableReplicas,
+		},
+		Conditions:     conditions,
+		CollisionCount: kubeStatus.CollisionCount,
+	}, nil
+}
+
+func convertDeploymentConditions(kubeConditions []appsv1beta2.DeploymentCondition) ([]types.DeploymentCondition, error) {
+	if len(kubeConditions) == 0 {
+		return nil, nil
+	}
+
+	kokiConditions := make([]types.DeploymentCondition, len(kubeConditions))
+	for i, condition := range kubeConditions {
+		status, err := convertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		conditionType, err := convertDeploymentConditionType(condition.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+		}
+		kokiConditions[i] = types.DeploymentCondition{
+			Type:               conditionType,
+			Status:             status,
+			LastUpdateTime:     condition.LastUpdateTime,
+			LastTransitionTime: condition.LastTransitionTime,
+			Reason:             condition.Reason,
+			Message:            condition.Message,
+		}
+	}
+
+	return kokiConditions, nil
+}
+
+func convertDeploymentConditionType(kubeType appsv1beta2.DeploymentConditionType) (types.DeploymentConditionType, error) {
+	switch kubeType {
+	case appsv1beta2.DeploymentAvailable:
+		return types.DeploymentAvailable, nil
+	case appsv1beta2.DeploymentProgressing:
+		return types.DeploymentProgressing, nil
+	case appsv1beta2.DeploymentReplicaFailure:
+		return types.DeploymentReplicaFailure, nil
+	default:
+		return types.DeploymentReplicaFailure, util.InvalidValueErrorf(kubeType, "unrecognized deployment condition type")
+	}
 }
 
 func convertDeploymentStrategy(kubeStrategy appsv1beta2.DeploymentStrategy) (isRecreate bool, maxUnavailable, maxSurge *intstr.IntOrString) {

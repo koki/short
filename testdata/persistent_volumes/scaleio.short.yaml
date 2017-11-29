@@ -18,7 +18,6 @@ persistent_volume:
   ro: true
   secret: secret-namespace:secret-name
   ssl: true
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   storage_mode: ThickProvisioned
@@ -27,3 +26,4 @@ persistent_volume:
   version: v1
   vol_id: vol-0
   vol_type: scaleio
+

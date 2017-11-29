@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -78,15 +77,18 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 	}
 
 	// Build a Pod from the kube Template. Use it to set the koki Template.
-	kokiPod, err := convertRSTemplate(&kubeSpec.Template)
+	meta, template, err := convertTemplate(kubeSpec.Template)
+	if err != nil {
+		return nil, util.ContextualizeErrorf(err, "pod template")
+	}
+	kokiRS.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
+	kokiRS.PodTemplate = template
+
+	// End Selector/Template section.
+
+	kokiRS.ReplicaSetStatus, err = convertReplicaSetStatus(kubeRS.Status)
 	if err != nil {
 		return nil, err
-	}
-	kokiPod.Labels = templateLabelsOverride
-	kokiRS.SetTemplate(kokiPod)
-
-	if !reflect.DeepEqual(kubeRS.Status, appsv1beta2.ReplicaSetStatus{}) {
-		kokiRS.Status = &kubeRS.Status
 	}
 
 	return &types.ReplicaSetWrapper{
@@ -94,26 +96,57 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 	}, nil
 }
 
-func convertRSTemplate(kubeTemplate *v1.PodTemplateSpec) (*types.Pod, error) {
-	if kubeTemplate == nil {
+func convertReplicaSetStatus(kubeStatus appsv1beta2.ReplicaSetStatus) (types.ReplicaSetStatus, error) {
+	conditions, err := convertReplicaSetConditions(kubeStatus.Conditions)
+	if err != nil {
+		return types.ReplicaSetStatus{}, err
+	}
+	return types.ReplicaSetStatus{
+		ObservedGeneration: kubeStatus.ObservedGeneration,
+		Replicas: types.ReplicaSetReplicasStatus{
+			Total:        kubeStatus.Replicas,
+			FullyLabeled: kubeStatus.FullyLabeledReplicas,
+			Ready:        kubeStatus.ReadyReplicas,
+			Available:    kubeStatus.AvailableReplicas,
+		},
+		Conditions: conditions,
+	}, nil
+}
+
+func convertReplicaSetConditions(kubeConditions []appsv1beta2.ReplicaSetCondition) ([]types.ReplicaSetCondition, error) {
+	if len(kubeConditions) == 0 {
 		return nil, nil
 	}
 
-	kubePod := &v1.Pod{
-		Spec: kubeTemplate.Spec,
+	kokiConditions := make([]types.ReplicaSetCondition, len(kubeConditions))
+	for i, condition := range kubeConditions {
+		status, err := convertConditionStatus(condition.Status)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+		}
+		conditionType, err := convertReplicaSetConditionType(condition.Type)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+		}
+		kokiConditions[i] = types.ReplicaSetCondition{
+			Type:               conditionType,
+			Status:             status,
+			LastTransitionTime: condition.LastTransitionTime,
+			Reason:             condition.Reason,
+			Message:            condition.Message,
+		}
 	}
 
-	kubePod.Name = kubeTemplate.Name
-	kubePod.Namespace = kubeTemplate.Namespace
-	kubePod.Labels = kubeTemplate.Labels
-	kubePod.Annotations = kubeTemplate.Annotations
+	return kokiConditions, nil
+}
 
-	kokiPod, err := Convert_Kube_v1_Pod_to_Koki_Pod(kubePod)
-	if err != nil {
-		return nil, err
+func convertReplicaSetConditionType(kubeType appsv1beta2.ReplicaSetConditionType) (types.ReplicaSetConditionType, error) {
+	switch kubeType {
+	case appsv1beta2.ReplicaSetReplicaFailure:
+		return types.ReplicaSetReplicaFailure, nil
+	default:
+		return types.ReplicaSetReplicaFailure, util.InvalidValueErrorf(kubeType, "unrecognized replica-set condition type")
 	}
-
-	return &kokiPod.Pod, nil
 }
 
 func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabels map[string]string) (*types.RSSelector, map[string]string, error) {

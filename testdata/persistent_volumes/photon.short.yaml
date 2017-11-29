@@ -12,9 +12,9 @@ persistent_volume:
   name: vol-name
   namespace: namespace
   reclaim: recycle
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_id: some-pdid:ext4
   vol_type: photon
+

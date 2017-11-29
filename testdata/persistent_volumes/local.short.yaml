@@ -13,8 +13,8 @@ persistent_volume:
   namespace: namespace
   path: /some/path
   reclaim: recycle
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_type: local
+

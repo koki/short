@@ -5,7 +5,6 @@ persistent_volume:
     name: claimName
     namespace: claimNamespace
   cluster: cluster
-  fs: ext4
   labels:
     labelKey: labelValue
   lun: 2
@@ -15,7 +14,6 @@ persistent_volume:
   namespace: namespace
   reclaim: recycle
   ro: true
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
@@ -26,3 +24,4 @@ persistent_volume:
   wwn:
   - 500a0982991b8dc5
   - 500a0982891b8dc5
+

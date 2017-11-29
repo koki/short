@@ -9,39 +9,49 @@ type PodWrapper struct {
 }
 
 type Pod struct {
-	Version                string            `json:"version,omitempty"`
-	Cluster                string            `json:"cluster,omitempty"`
-	Name                   string            `json:"name,omitempty"`
-	Namespace              string            `json:"namespace,omitempty"`
-	Labels                 map[string]string `json:"labels,omitempty"`
-	Annotations            map[string]string `json:"annotations,omitempty"`
+	Version string `json:"version,omitempty"`
+
+	Conditions []PodCondition `json:"condition,omitempty"`
+	NodeIP     string         `json:"node_ip,omitempty"`
+	StartTime  *metav1.Time   `json:"start_time,omitempty"`
+	Msg        string         `json:"msg,omitempty"`
+	Phase      PodPhase       `json:"phase,omitempty"`
+	IP         string         `json:"ip,omitempty"`
+	QOS        PodQOSClass    `json:"qos,omitempty"`
+	Reason     string         `json:"reason,omitempty"`
+
+	PodTemplateMeta `json:",inline"`
+	PodTemplate     `json:",inline"`
+}
+
+type PodTemplateMeta struct {
+	Cluster     string            `json:"cluster,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Namespace   string            `json:"namespace,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+type PodTemplate struct {
 	Volumes                map[string]Volume `json:"volumes,omitempty"`
-	Affinity               []Affinity        `json:"affinity,omitempty"`
-	Containers             []Container       `json:"containers,omitempty"`
 	InitContainers         []Container       `json:"init_containers,omitempty"`
-	DNSPolicy              DNSPolicy         `json:"dns_policy,omitempty"`
-	HostAliases            []string          `json:"host_aliases,omitempty"`
-	HostMode               []HostMode        `json:"host_mode,omitempty"`
-	Hostname               string            `json:"hostname,omitempty"`
-	Registries             []string          `json:"registry_secrets,omitempty"`
+	Containers             []Container       `json:"containers,omitempty"`
 	RestartPolicy          RestartPolicy     `json:"restart_policy,omitempty"`
-	SchedulerName          string            `json:"scheduler_name,omitempty"`
-	Account                string            `json:"account,omitempty"`
-	Tolerations            []Toleration      `json:"tolerations,omitempty"`
 	TerminationGracePeriod *int64            `json:"termination_grace_period,omitempty"`
 	ActiveDeadline         *int64            `json:"active_deadline,omitempty"`
+	DNSPolicy              DNSPolicy         `json:"dns_policy,omitempty"`
+	Account                string            `json:"account,omitempty"`
 	Node                   string            `json:"node,omitempty"`
-	Priority               *Priority         `json:"priority,omitempty"`
-	Conditions             []PodCondition    `json:"condition,omitempty"`
-	NodeIP                 string            `json:"node_ip,omitempty"`
-	StartTime              *metav1.Time      `json:"start_time,omitempty"`
-	Msg                    string            `json:"msg,omitempty"`
-	Phase                  PodPhase          `json:"phase,omitempty"`
-	IP                     string            `json:"ip,omitempty"`
-	QOS                    PodQOSClass       `json:"qos,omitempty"`
-	Reason                 string            `json:"reason,omitempty"`
+	HostMode               []HostMode        `json:"host_mode,omitempty"`
 	FSGID                  *int64            `json:"fs_gid,omitempty"`
 	GIDs                   []int64           `json:"gids,omitempty"`
+	Registries             []string          `json:"registry_secrets,omitempty"`
+	Hostname               string            `json:"hostname,omitempty"`
+	Affinity               []Affinity        `json:"affinity,omitempty"`
+	SchedulerName          string            `json:"scheduler_name,omitempty"`
+	Tolerations            []Toleration      `json:"tolerations,omitempty"`
+	HostAliases            []string          `json:"host_aliases,omitempty"`
+	Priority               *Priority         `json:"priority,omitempty"`
 }
 
 type Priority struct {

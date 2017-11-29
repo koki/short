@@ -43,11 +43,41 @@ func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.Persist
 		kubeSpec.MountOptions = strings.Split(kokiPV.MountOptions, ",")
 	}
 
-	if kokiPV.Status != nil {
-		kubePV.Status = *kokiPV.Status
+	kubePV.Status, err = revertPersistentVolumeStatus(kokiPV.PersistentVolumeStatus)
+	if err != nil {
+		return nil, err
 	}
 
 	return kubePV, nil
+}
+
+func revertPersistentVolumeStatus(kokiStatus types.PersistentVolumeStatus) (v1.PersistentVolumeStatus, error) {
+	phase, err := revertPersistentVolumePhase(kokiStatus.Phase)
+	if err != nil {
+		return v1.PersistentVolumeStatus{}, err
+	}
+	return v1.PersistentVolumeStatus{
+		Phase:   phase,
+		Message: kokiStatus.Message,
+		Reason:  kokiStatus.Reason,
+	}, nil
+}
+
+func revertPersistentVolumePhase(kokiPhase types.PersistentVolumePhase) (v1.PersistentVolumePhase, error) {
+	switch kokiPhase {
+	case types.VolumePending:
+		return v1.VolumePending, nil
+	case types.VolumeAvailable:
+		return v1.VolumeAvailable, nil
+	case types.VolumeBound:
+		return v1.VolumeBound, nil
+	case types.VolumeReleased:
+		return v1.VolumeReleased, nil
+	case types.VolumeFailed:
+		return v1.VolumeFailed, nil
+	default:
+		return v1.VolumeFailed, util.InvalidValueErrorf(kokiPhase, "unrecognized status (phase) for persistent volume")
+	}
 }
 
 func revertSecretReference(kokiRef *types.SecretReference) *v1.SecretReference {

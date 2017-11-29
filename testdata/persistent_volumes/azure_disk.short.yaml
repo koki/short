@@ -18,8 +18,8 @@ persistent_volume:
   namespace: namespace
   reclaim: recycle
   ro: true
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   version: v1
   vol_type: azure_disk
+

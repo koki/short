@@ -21,9 +21,9 @@ persistent_volume:
   reclaim: recycle
   ro: true
   secret: secret-namespace:secret-name
-  status: {}
   storage: 10Gi
   storage_class: storageClass
   user: admin
   version: v1
   vol_type: rbd
+
