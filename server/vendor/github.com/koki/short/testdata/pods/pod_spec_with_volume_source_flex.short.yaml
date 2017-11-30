@@ -1,0 +1,20 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      fs: xfs
+      options:
+        key: value
+        key2: value2
+      ro: true
+      secret: secret_name
+      vol_id: flex-driver
+      vol_type: flex
+

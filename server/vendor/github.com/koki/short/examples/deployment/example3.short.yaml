@@ -1,0 +1,15 @@
+deployment:
+  containers:
+  - expose:
+    - 80
+    image: example/example:latest
+    name: example-app
+  labels:
+    app: example
+  max_extra: 2
+  max_unavailable: 2
+  name: example-deployment
+  replicas: 3
+  status:
+    replicas: 1
+  version: apps/v1beta2

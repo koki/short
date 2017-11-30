@@ -1,0 +1,27 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  labels:
+    labelKey: labelValue
+  lun: 2
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  reclaim: recycle
+  ro: true
+  storage: 10Gi
+  storage_class: storageClass
+  version: v1
+  vol_type: fc
+  wwid:
+  - actually, WWIDs should not be specified here
+  - either wwids or (targetwwns + lun), not both
+  wwn:
+  - 500a0982991b8dc5
+  - 500a0982891b8dc5
+

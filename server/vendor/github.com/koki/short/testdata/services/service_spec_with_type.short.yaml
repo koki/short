@@ -1,0 +1,11 @@
+service:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  type: node-port
+  version: v1
+

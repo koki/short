@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    annotationKey: annotationValue
+  clusterName: cluster
+  creationTimestamp: null
+  labels:
+    labelKey: labelValue
+  name: vol-name
+  namespace: namespace
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  claimRef:
+    name: claimName
+    namespace: claimNamespace
+  fc:
+    fsType: ext4
+    lun: 2
+    readOnly: true
+    targetWWNs:
+    - 500a0982991b8dc5
+    - 500a0982891b8dc5
+    wwids:
+    - actually, WWIDs should not be specified here
+    - either wwids or (targetwwns + lun), not both
+  mountOptions:
+  - option 1
+  - option 2
+  - option 3
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: storageClass
+status: {}
+

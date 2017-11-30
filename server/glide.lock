@@ -1,0 +1,194 @@
+hash: 93be7fc5877495b5545be63f2bc04ede180497a75562dff26f039d4508e8e14b
+updated: 2017-11-29T22:08:08.957000982-08:00
+imports:
+- name: github.com/davecgh/go-spew
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
+  subpackages:
+  - spew
+- name: github.com/emicklei/go-restful
+  version: ff4f55a206334ef123e4f79bbf348980da81ca46
+  subpackages:
+  - log
+- name: github.com/ghodss/yaml
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/go-openapi/jsonpointer
+  version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
+- name: github.com/go-openapi/jsonreference
+  version: 13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272
+- name: github.com/go-openapi/spec
+  version: 7abd5745472fff5eb3685386d5fb8bf38683154d
+- name: github.com/go-openapi/swag
+  version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
+- name: github.com/gogo/protobuf
+  version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
+  subpackages:
+  - proto
+  - sortkeys
+- name: github.com/golang/glog
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+- name: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  subpackages:
+  - proto
+- name: github.com/google/go-github
+  version: a89ea1cdf79929726a9416663609269ada774da0
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
+- name: github.com/google/gofuzz
+  version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/securecookie
+  version: e59506cc896acb7f7bf732d4fdf5e25f7ccd8983
+- name: github.com/gorilla/sessions
+  version: a3acf13e802c358d65f249324d14ed24aac11370
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/json-iterator/go
+  version: 36b14963da70d11297d313183d7e6388c8510e1e
+- name: github.com/koki/short
+  version: a70d8f52ef596b4c7709fbffe373e64f55f57229
+  subpackages:
+  - client
+  - converter
+  - converter/converters
+  - converter/converters/affinity
+  - parser
+  - parser/expressions
+  - types
+  - util
+  - util/floatstr
+  - util/intbool
+- name: github.com/kr/pretty
+  version: cfb55aafdaf3ec08f0db22699ab822c50091b1c4
+- name: github.com/kr/text
+  version: 7cafcd837844e784b526369c9bce262804aebc60
+- name: github.com/mailru/easyjson
+  version: 2f5df55504ebc322e4d52d34df6a1f5b503bf26d
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
+- name: github.com/PuerkitoBio/purell
+  version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
+- name: github.com/PuerkitoBio/urlesc
+  version: 5bd2802263f21d8788851d5305584c82a5c75d7e
+- name: github.com/rs/cors
+  version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
+- name: github.com/spf13/cobra
+  version: 2da4a54c5ceefcee7ca5dd0eea1e18a3b6366489
+- name: github.com/spf13/pflag
+  version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
+- name: golang.org/x/net
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  subpackages:
+  - context
+  - context/ctxhttp
+  - http2
+  - http2/hpack
+  - idna
+  - lex/httplex
+- name: golang.org/x/oauth2
+  version: f95fa95eaa936d9d87489b15d1d18b97c1ba9c28
+  subpackages:
+  - internal
+- name: golang.org/x/text
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
+  subpackages:
+  - cases
+  - internal
+  - internal/tag
+  - language
+  - runes
+  - secure/bidirule
+  - secure/precis
+  - transform
+  - unicode/bidi
+  - unicode/norm
+  - width
+- name: google.golang.org/appengine
+  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
+  subpackages:
+  - internal
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+- name: gopkg.in/inf.v0
+  version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
+- name: gopkg.in/yaml.v2
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+- name: k8s.io/api
+  version: 218912509d74a117d05a718bb926d0948e531c20
+  subpackages:
+  - admissionregistration/v1alpha1
+  - apps/v1
+  - apps/v1beta1
+  - apps/v1beta2
+  - authentication/v1
+  - authentication/v1beta1
+  - authorization/v1
+  - authorization/v1beta1
+  - autoscaling/v1
+  - autoscaling/v2beta1
+  - batch/v1
+  - batch/v1beta1
+  - batch/v2alpha1
+  - certificates/v1beta1
+  - core/v1
+  - extensions/v1beta1
+  - networking/v1
+  - policy/v1beta1
+  - rbac/v1
+  - rbac/v1alpha1
+  - rbac/v1beta1
+  - scheduling/v1alpha1
+  - settings/v1alpha1
+  - storage/v1
+  - storage/v1beta1
+- name: k8s.io/apimachinery
+  version: 18a564baac720819100827c16fdebcadb05b2d0d
+  subpackages:
+  - pkg/api/equality
+  - pkg/api/resource
+  - pkg/apis/meta/v1
+  - pkg/apis/meta/v1/unstructured
+  - pkg/conversion
+  - pkg/conversion/queryparams
+  - pkg/conversion/unstructured
+  - pkg/fields
+  - pkg/labels
+  - pkg/runtime
+  - pkg/runtime/schema
+  - pkg/runtime/serializer
+  - pkg/runtime/serializer/json
+  - pkg/runtime/serializer/protobuf
+  - pkg/runtime/serializer/recognizer
+  - pkg/runtime/serializer/versioning
+  - pkg/selection
+  - pkg/types
+  - pkg/util/diff
+  - pkg/util/errors
+  - pkg/util/framer
+  - pkg/util/intstr
+  - pkg/util/json
+  - pkg/util/net
+  - pkg/util/runtime
+  - pkg/util/sets
+  - pkg/util/validation
+  - pkg/util/validation/field
+  - pkg/util/wait
+  - pkg/util/yaml
+  - pkg/watch
+  - third_party/forked/golang/reflect
+- name: k8s.io/kube-openapi
+  version: 61b46af70dfed79c6d24530cd23b41440a7f22a5
+  subpackages:
+  - pkg/common
+testImports: []

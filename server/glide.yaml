@@ -1,0 +1,16 @@
+package: github.com/koki/short/server
+import:
+- package: github.com/golang/glog
+- package: github.com/google/go-github
+  subpackages:
+  - github
+- package: github.com/gorilla/context
+- package: github.com/gorilla/sessions
+- package: github.com/koki/short
+  subpackages:
+  - client
+  - converter
+  - parser
+- package: github.com/rs/cors
+- package: github.com/spf13/cobra
+- package: golang.org/x/oauth2

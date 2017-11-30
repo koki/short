@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: meta_test
+  labels:
+    app: meta_test
+  annotations:
+    meta: _test 
+  namespace: test
+  clusterName: test_cluster
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+          - key: failure-domain
+            operator: In
+            values:
+            - us-east1
+        weight: 10
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: k8s.io/hostname
+            operator: In
+            values:
+            - docs.koki.io
+        - matchExpressions:
+          - key: failure-domain
+            operator: In
+            values:
+            - us-east1
+          - key: instance-type
+            operator: In
+            values:
+            - t2.large
+        - matchExpressions:
+          - key: failure-domain
+            operator: In
+            values:
+            - us-east1
+            - us-east2
+        - matchExpressions:
+          - key: failure-domain
+            operator: In
+            values:
+            - us-east1
+            - us-east2
+          - key: instance-type
+            operator: In
+            values:
+            - t2.large
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+        weight: 1
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+        weight: 10
+      - podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - front-end
+              - back-end
+            matchLabels:
+              name: react
+        weight: 10
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+          topologyKey: k8s.io/hostname
+        weight: 1
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+          namespaces:
+          - default
+          - kube-system
+          topologyKey: k8s.io/hostname
+        weight: 10
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: front-end
+      - labelSelector:
+          matchLabels:
+            app: front-end
+        topologyKey: k8s.io/failure-domain
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+        weight: 1
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: front-end
+              name: react
+        weight: 10
+      - podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - front-end
+              - back-end
+            matchLabels:
+              name: react
+        weight: 10
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: front-end
+

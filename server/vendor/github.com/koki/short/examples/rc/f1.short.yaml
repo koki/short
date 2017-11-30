@@ -1,0 +1,35 @@
+replication_controller:
+  containers:
+  - cap_add:
+    - IPC_LOCK
+    env:
+    - val: KUBERNETES_CA_CERTIFICATE_FILE=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    - from: metadata.namespace
+      val: NAMESPACE
+    - val: CLUSTER_NAME=myesdb
+    - val: DISCOVERY_SERVICE=elasticsearch
+    - val: NODE_MASTER=true
+    - val: NODE_DATA=true
+    - val: HTTP_ENABLE=true
+    expose:
+    - name: http
+      port_map: "9200"
+      protocol: TCP
+    - name: transport
+      port_map: "9300"
+      protocol: TCP
+    image: quay.io/pires/docker-elasticsearch-kubernetes:1.7.1-4
+    name: es
+    volume:
+    - mount: /data
+      store: storage
+  labels:
+    component: elasticsearch
+  name: es
+  replicas: 1
+  selector:
+    component: elasticsearch
+  version: v1
+  volumes:
+  - emptyDir: {}
+    name: storage

@@ -1,0 +1,16 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_id: 3094ejer
+      vol_type: portworx
+

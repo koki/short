@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    annotationKey: annotationValue
+  clusterName: cluster
+  creationTimestamp: null
+  labels:
+    labelKey: labelValue
+  name: vol-name
+  namespace: namespace
+spec:
+  accessModes:
+  - ReadWriteOnce
+  azureDisk:
+    cachingMode: ReadWrite
+    diskName: test.vhd
+    diskURI: https://someaccount.blob.microsoft.net/vhds/test.vhd
+    fsType: ext4
+    kind: Shared
+    readOnly: true
+  capacity:
+    storage: 10Gi
+  claimRef:
+    name: claimName
+    namespace: claimNamespace
+  mountOptions:
+  - option 1
+  - option 2
+  - option 3
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: storageClass
+status: {}
+

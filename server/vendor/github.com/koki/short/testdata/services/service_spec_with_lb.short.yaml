@@ -1,0 +1,12 @@
+service:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  lb_ip: 78.11.24.19
+  name: meta_test
+  namespace: test
+  type: load-balancer
+  version: v1
+

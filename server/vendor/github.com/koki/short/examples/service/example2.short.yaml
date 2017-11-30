@@ -1,0 +1,11 @@
+service:
+  cluster_ip: 1.1.1.10
+  external_ips:
+  - 1.1.1.1
+  name: example
+  port: 80:8080
+  selector:
+    labelKey: labelValue
+  type: cluster-ip
+  stickiness: true
+  version: v1

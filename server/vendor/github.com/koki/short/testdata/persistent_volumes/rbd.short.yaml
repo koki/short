@@ -1,0 +1,29 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  fs: ext4
+  image: foo
+  keyring: /etc/ceph/keyring
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  monitors:
+  - 1.2.3.4:6789
+  - 1.2.3.5:6789
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  pool: kube
+  reclaim: recycle
+  ro: true
+  secret: secret-namespace:secret-name
+  storage: 10Gi
+  storage_class: storageClass
+  user: admin
+  version: v1
+  vol_type: rbd
+

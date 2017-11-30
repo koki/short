@@ -1,0 +1,22 @@
+deployment:
+ name: doctor
+ version: extensions/v1beta1
+ replicas: 1
+ labels:
+   app: docs.koki.io
+ containers:
+  - name: doctor
+    env: 
+     - IS_DOCKER=true
+     - DATABASE_URL=postgresql://postgres:postgres@posgres/posgres?pool=5
+     - RAILS_ENV=prod
+    image: minio/doctor
+    args: 
+     - bundle
+     - exec
+     - rails
+     - s
+     - -p
+     - 3000
+     - -foo
+     - 3000.01
