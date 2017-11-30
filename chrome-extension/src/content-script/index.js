@@ -2,6 +2,7 @@ import githubInjection from 'github-injection';
 import ghPageType from 'github-page-type';
 import $ from 'jquery';
 import _ from 'lodash';
+import hljs from 'highlight.js';
 
 githubInjection(window, err => {
     if (!err &&
@@ -50,6 +51,8 @@ function main() {
     });
 }
 
+
+
 function isKubeYaml(lines) {
     var hasApiVersion, hasKind;
     _.forEach(lines, (line) => {
@@ -74,7 +77,14 @@ function buildRowsForContent(content) {
     if (!_.last(lines)) {
         lines.pop();
     }
-    return _.map(lines, (line, lineIndex) => buildRowForLine(lineIndex + 1, line));
+
+    var hlState; // Syntax highlighter state, preserved between lines.
+    return _.map(lines, (line, lineIndex) => {
+        // Highlight each line and build a row for it.
+        var hlResult = hljs.highlight('yaml', line, true, hlState);
+        hlState = hlResult.top;
+        return buildRowForLine(lineIndex + 1, hlResult.value);
+    });
 }
 
 function getFileRows() {
