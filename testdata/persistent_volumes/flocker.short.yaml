@@ -17,4 +17,3 @@ persistent_volume:
   version: v1
   vol_id: flocker_uuid
   vol_type: flocker
-

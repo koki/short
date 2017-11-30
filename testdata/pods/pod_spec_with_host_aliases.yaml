@@ -19,4 +19,3 @@ spec:
     - local.printer
   - ip: 10.11.1.11
     hostnames:
-

@@ -21,4 +21,3 @@ persistent_volume:
   version: v1
   vol_id: '[datastore1] volumes/myDisk'
   vol_type: vsphere
-

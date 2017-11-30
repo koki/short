@@ -28,4 +28,3 @@ spec:
     volumeID: volume-id
   storageClassName: storageClass
 status: {}
-

@@ -17,4 +17,3 @@ pod:
       secret: file:/path/to/secret
       user: username
       vol_type: cephfs
-

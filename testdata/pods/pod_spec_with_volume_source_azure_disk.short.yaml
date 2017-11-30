@@ -15,4 +15,3 @@ pod:
       fs: xfs
       kind: dedicated
       vol_type: azure_disk
-

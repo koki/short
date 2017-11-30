@@ -8,4 +8,3 @@ replica_set:
   namespace: test
   selector: null
   version: extensions/v1beta1
-

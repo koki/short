@@ -23,4 +23,3 @@ persistent_volume:
   user: admin
   version: v1
   vol_type: cephfs
-

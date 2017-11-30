@@ -9,4 +9,3 @@ pod:
   version: v1
   volumes:
     azure_file_test_volume: azure_file:azure_file_secret_name:azure_file_share_name:ro
-

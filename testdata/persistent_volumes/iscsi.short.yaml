@@ -29,4 +29,3 @@ persistent_volume:
   target_portal: 1.2.3.4:3260
   version: v1
   vol_type: iscsi
-

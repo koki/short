@@ -21,4 +21,3 @@ persistent_volume:
   vol_id: vol-0
   vol_namespace: namespace-0
   vol_type: storageos
-

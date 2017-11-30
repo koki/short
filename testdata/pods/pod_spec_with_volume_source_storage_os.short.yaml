@@ -15,4 +15,3 @@ pod:
       vol_id: storageOS.VolName
       vol_namespace: storageOS.VolNamespace
       vol_type: storageos
-

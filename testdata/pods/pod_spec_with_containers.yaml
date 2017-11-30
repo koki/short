@@ -147,4 +147,3 @@ spec:
       runAsRoot: true
       readOnlyFileSystem: true
       allowPrivilegeEscalation: true
-

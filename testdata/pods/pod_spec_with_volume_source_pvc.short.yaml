@@ -9,4 +9,3 @@ pod:
   version: v1
   volumes:
     test_volume: pvc:pvc_name:ro
-

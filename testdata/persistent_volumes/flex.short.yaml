@@ -24,4 +24,3 @@ persistent_volume:
   version: v1
   vol_id: kubernetes.io/lvm
   vol_type: flex
-

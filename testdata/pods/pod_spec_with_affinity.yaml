@@ -130,4 +130,3 @@ spec:
       - labelSelector:
           matchLabels:
             app: front-end
-

@@ -9,4 +9,3 @@ pod:
   version: v1
   volumes:
     test_volume: host_path:/path/to/dir:block-dev
-

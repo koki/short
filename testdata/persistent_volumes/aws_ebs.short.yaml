@@ -20,4 +20,3 @@ persistent_volume:
   version: v1
   vol_id: volume-id
   vol_type: aws_ebs
-

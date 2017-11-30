@@ -20,4 +20,3 @@ pod:
       secret: secret-name
       user: admin
       vol_type: rbd
-

@@ -13,4 +13,3 @@ pod:
       ro: true
       vol_id: cinderID
       vol_type: cinder
-

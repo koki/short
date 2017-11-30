@@ -20,4 +20,3 @@ pod:
       system: system
       vol_id: volName
       vol_type: scaleio
-

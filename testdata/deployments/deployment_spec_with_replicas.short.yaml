@@ -9,4 +9,3 @@ deployment:
   replicas: 3
   selector: null
   version: apps/v1beta1
-

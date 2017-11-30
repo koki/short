@@ -7,4 +7,3 @@ pod:
   name: meta_test
   namespace: test
   version: v1
-

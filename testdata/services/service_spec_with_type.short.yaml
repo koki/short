@@ -8,4 +8,3 @@ service:
   namespace: test
   type: node-port
   version: v1
-

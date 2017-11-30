@@ -29,4 +29,3 @@ spec:
     storagePolicyName: policy-name
     volumePath: '[datastore1] volumes/myDisk'
 status: {}
-

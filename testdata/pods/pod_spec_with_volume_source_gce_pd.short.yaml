@@ -14,4 +14,3 @@ pod:
       ro: true
       vol_id: name_of_pd
       vol_type: gce_pd
-

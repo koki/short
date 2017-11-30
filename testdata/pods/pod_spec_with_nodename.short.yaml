@@ -8,4 +8,3 @@ pod:
   namespace: test
   node: node_name
   version: v1
-

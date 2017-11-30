@@ -15,4 +15,3 @@ pod:
         name: policy
       vol_id: /path/to/vsphere/volume
       vol_type: vsphere
-

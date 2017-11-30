@@ -9,4 +9,3 @@ service:
   namespace: test
   type: load-balancer
   version: v1
-

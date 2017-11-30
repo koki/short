@@ -17,4 +17,3 @@ persistent_volume:
   version: v1
   vol_id: some-pdid:ext4
   vol_type: photon
-

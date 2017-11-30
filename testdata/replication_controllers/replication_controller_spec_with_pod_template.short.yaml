@@ -14,4 +14,3 @@ replication_controller:
   selector:
     app: redis
   version: v1
-

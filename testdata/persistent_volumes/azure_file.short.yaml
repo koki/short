@@ -19,4 +19,3 @@ persistent_volume:
   storage_class: storageClass
   version: v1
   vol_type: azure_file
-
