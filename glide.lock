@@ -1,5 +1,5 @@
 hash: f4b2153cb55db74cf50e0e023885aa058592b0e48be47f791c82228463125ea9
-updated: 2017-11-14T19:52:45.474208271-08:00
+updated: 2017-11-29T23:30:43.343227568-08:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
@@ -146,4 +146,6 @@ imports:
   version: 61b46af70dfed79c6d24530cd23b41440a7f22a5
   subpackages:
   - pkg/common
-testImports: []
+testImports:
+- name: github.com/udhos/equalfile
+  version: c92b0e41854b49e567ba269dcc572ada60e48e7b

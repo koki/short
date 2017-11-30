@@ -19,4 +19,3 @@ persistent_volume:
   version: v1
   vol_id: bd82f7e2-wece-4c01-a505-4acf60b07f4a
   vol_type: cinder
-

@@ -10,4 +10,3 @@ pod:
   - Selector: =value:NoSchedule
   - Selector: key:NoSchedule
   version: v1
-

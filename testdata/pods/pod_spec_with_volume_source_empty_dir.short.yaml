@@ -12,4 +12,3 @@ pod:
       max_size: 500G
       medium: huge-pages
       vol_type: empty_dir
-

@@ -9,4 +9,3 @@ service:
   selector:
     app: MyApp
   version: v1
-

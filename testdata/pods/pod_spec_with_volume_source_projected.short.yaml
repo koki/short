@@ -23,4 +23,3 @@ pod:
           path/to/file1:
             resource: container-name:limits.cpu:1m
       vol_type: projected
-

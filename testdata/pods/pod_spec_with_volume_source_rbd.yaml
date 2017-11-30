@@ -24,4 +24,3 @@ spec:
         name: secret-name
         namespace: secret-namespace
       user: admin
-

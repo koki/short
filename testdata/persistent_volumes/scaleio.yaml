@@ -37,4 +37,3 @@ spec:
     volumeName: vol-0
   storageClassName: storageClass
 status: {}
-

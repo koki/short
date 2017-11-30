@@ -32,4 +32,3 @@ spec:
     volumeName: vol-0
     volumeNamespace: namespace-0
 status: {}
-

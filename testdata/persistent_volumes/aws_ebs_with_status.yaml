@@ -32,4 +32,3 @@ status:
   message: the volume is available
   phase: Available
   reason: reasonForCurrentStatus
-

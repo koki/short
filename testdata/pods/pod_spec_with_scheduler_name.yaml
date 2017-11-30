@@ -10,4 +10,3 @@ metadata:
   clusterName: test_cluster
 spec:
   schedulerName: scheduler.name
-

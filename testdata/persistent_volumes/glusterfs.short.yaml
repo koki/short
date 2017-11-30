@@ -19,4 +19,3 @@ persistent_volume:
   version: v1
   vol_id: kube_vol
   vol_type: glusterfs
-

@@ -13,4 +13,3 @@ deployment:
   selector:
     app: redis
   version: apps/v1beta1
-

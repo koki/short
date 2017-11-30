@@ -30,4 +30,3 @@ spec:
     volume: testVolume
   storageClassName: storageClass
 status: {}
-

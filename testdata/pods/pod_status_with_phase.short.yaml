@@ -108,4 +108,3 @@ pod:
     pd_name: gce_pd_test_volume
     read_only: true
     type: gce-persistent-disk
-

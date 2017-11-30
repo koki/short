@@ -26,4 +26,3 @@ persistent_volume:
   version: v1
   vol_id: vol-0
   vol_type: scaleio
-

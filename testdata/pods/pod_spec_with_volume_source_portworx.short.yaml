@@ -13,4 +13,3 @@ pod:
       ro: true
       vol_id: 3094ejer
       vol_type: portworx
-

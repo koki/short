@@ -8,4 +8,3 @@ service:
   namespace: test
   unready_endpoints: true
   version: v1
-

@@ -17,4 +17,3 @@ persistent_volume:
   version: v1
   vol_id: hostname:/path:ro
   vol_type: nfs
-

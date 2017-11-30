@@ -27,4 +27,3 @@ spec:
     pdID: some-pdid
   storageClassName: storageClass
 status: {}
-

@@ -20,4 +20,3 @@ persistent_volume:
   version: v1
   vol_id: data-disk
   vol_type: gce_pd
-

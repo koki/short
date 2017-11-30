@@ -15,4 +15,3 @@ pod:
       user: quobyte.user
       vol_id: volume.quobyte
       vol_type: quobyte
-

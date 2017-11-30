@@ -21,4 +21,3 @@ persistent_volume:
   version: v1
   vol_id: testVolume
   vol_type: quobyte
-

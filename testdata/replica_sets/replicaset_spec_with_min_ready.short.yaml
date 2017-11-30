@@ -9,4 +9,3 @@ replica_set:
   ready_seconds: 32
   selector: null
   version: apps/v1beta2
-

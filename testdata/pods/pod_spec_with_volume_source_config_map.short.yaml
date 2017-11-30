@@ -15,4 +15,3 @@ pod:
       required: false
       vol_id: config_map_name
       vol_type: config-map
-

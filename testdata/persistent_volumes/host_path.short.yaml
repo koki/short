@@ -17,4 +17,3 @@ persistent_volume:
   version: v1
   vol_id: /path:dir-or-create
   vol_type: host_path
-

@@ -12,4 +12,3 @@ deployment:
   progress_deadline: 32
   selector: null
   version: apps/v1beta1
-

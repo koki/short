@@ -39,4 +39,3 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: storageClass
 status: {}
-

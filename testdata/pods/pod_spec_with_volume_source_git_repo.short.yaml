@@ -13,4 +13,3 @@ pod:
       revision: master
       vol_id: github.com/koki
       vol_type: git
-
