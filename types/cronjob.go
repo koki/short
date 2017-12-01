@@ -36,9 +36,9 @@ type CronJob struct {
 type ConcurrencyPolicy string
 
 const (
-	AllowConcurrent   ConcurrencyPolicy = "Allow"
-	ForbidConcurrent  ConcurrencyPolicy = "Forbid"
-	ReplaceConcurrent ConcurrencyPolicy = "Replace"
+	AllowConcurrent   ConcurrencyPolicy = "allow"
+	ForbidConcurrent  ConcurrencyPolicy = "forbid"
+	ReplaceConcurrent ConcurrencyPolicy = "replace"
 )
 
 type CronJobStatus struct {

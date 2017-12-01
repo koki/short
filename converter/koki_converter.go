@@ -17,6 +17,8 @@ import (
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.PersistentVolumeClaimWrapper:
+		return converters.Convert_Koki_PVC_to_Kube_PVC(kokiObj)
 	case *types.CronJobWrapper:
 		return converters.Convert_Koki_CronJob_to_Kube_CronJob(kokiObj)
 	case *types.DaemonSetWrapper:
@@ -44,6 +46,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *v1.PersistentVolumeClaim:
+		return converters.Convert_Kube_PVC_to_Koki_PVC(kubeObj)
 	case *batchv1beta1.CronJob:
 		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
 	case *batchv2alpha1.CronJob:
