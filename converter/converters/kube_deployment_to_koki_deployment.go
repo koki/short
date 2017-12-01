@@ -41,8 +41,6 @@ func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (
 
 		kokiDeployment.Version = groupVersionString
 
-		// Perform version-specific initialization here.
-
 		return kokiWrapper, nil
 	}
 

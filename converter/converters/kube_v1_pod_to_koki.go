@@ -20,7 +20,9 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 
 	kokiPod.Version = pod.APIVersion
 
-	kokiPod.PodTemplateMeta = convertPodObjectMeta(pod.ObjectMeta)
+	templateMeta := convertPodObjectMeta(pod.ObjectMeta)
+	kokiPod.PodTemplateMeta = *templateMeta
+
 	template, err := convertPodSpec(pod.Spec)
 	if err != nil {
 		return nil, err
@@ -58,8 +60,8 @@ func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
 	return &types.PodWrapper{Pod: *kokiPod}, nil
 }
 
-func convertPodObjectMeta(kubeMeta metav1.ObjectMeta) types.PodTemplateMeta {
-	return types.PodTemplateMeta{
+func convertPodObjectMeta(kubeMeta metav1.ObjectMeta) *types.PodTemplateMeta {
+	return &types.PodTemplateMeta{
 		Name:        kubeMeta.Name,
 		Namespace:   kubeMeta.Namespace,
 		Cluster:     kubeMeta.ClusterName,

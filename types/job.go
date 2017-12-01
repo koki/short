@@ -9,13 +9,14 @@ type JobWrapper struct {
 }
 
 type Job struct {
-	Version     string            `json:"version,omitempty"`
-	Cluster     string            `json:"cluster,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	Namespace   string            `json:"namespace,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Version string `json:"version,omitempty"`
 
+	PodTemplateMeta `json:",inline"`
+	JobTemplate     `json:",inline"`
+	JobStatus       `json:",inline"`
+}
+
+type JobTemplate struct {
 	Parallelism *int32 `json:"parallelism,omitempty"`
 	Completions *int32 `json:"completions,omitempty"`
 	MaxRetries  *int32 `json:"max_retries,omitempty"`
@@ -31,9 +32,6 @@ type Job struct {
 
 	TemplateMetadata *PodTemplateMeta `json:"pod_meta,omitempty"`
 	PodTemplate      `json:",inline"`
-
-	// Status
-	JobStatus `json:",inline"`
 }
 
 type JobStatus struct {

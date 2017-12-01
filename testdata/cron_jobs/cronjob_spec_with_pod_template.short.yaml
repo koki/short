@@ -1,0 +1,13 @@
+cron_job:
+  containers:
+  - args:
+    - /bin/sh
+    - -c
+    - date; echo Hello from the Kubernetes cluster
+    image: busybox
+    name: hello
+  job_meta: {}
+  name: hello
+  restart_policy: on-failure
+  schedule: '*/1 * * * *'
+  version: batch/v1beta1

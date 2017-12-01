@@ -10,19 +10,33 @@ func Convert_Kube_Job_to_Koki_Job(kubeJob *batchv1.Job) (*types.JobWrapper, erro
 	kokiObj := &types.JobWrapper{}
 	kokiJob := types.Job{}
 
+	kokiJob.Version = kubeJob.APIVersion
 	kokiJob.Name = kubeJob.Name
 	kokiJob.Namespace = kubeJob.Namespace
-	kokiJob.Version = kubeJob.APIVersion
 	kokiJob.Cluster = kubeJob.ClusterName
 	kokiJob.Labels = kubeJob.Labels
 	kokiJob.Annotations = kubeJob.Annotations
 
-	kubeSpec := &kubeJob.Spec
+	jobSpec, err := convertJobSpec(kubeJob.Spec)
+	if err != nil {
+		return nil, err
+	}
+	kokiJob.JobTemplate = *jobSpec
 
-	// Setting the Selector and Template is identical to ReplicaSet
+	status, err := convertJobStatus(kubeJob.Status)
+	if err != nil {
+		return nil, err
+	}
+	kokiJob.JobStatus = status
 
-	// Fill out the Selector and Template.Labels.
-	// If kubeJob only has Template.Labels, we pull it up to Selector.
+	kokiObj.Job = kokiJob
+
+	return kokiObj, nil
+}
+
+func convertJobSpec(kubeSpec batchv1.JobSpec) (*types.JobTemplate, error) {
+	kokiJob := &types.JobTemplate{}
+
 	selector, templateLabelsOverride, err := convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
 	if err != nil {
 		return nil, err
@@ -46,15 +60,7 @@ func Convert_Kube_Job_to_Koki_Job(kubeJob *batchv1.Job) (*types.JobWrapper, erro
 	kokiJob.ActiveDeadlineSeconds = kubeSpec.ActiveDeadlineSeconds
 	kokiJob.ManualSelector = kubeSpec.ManualSelector
 
-	status, err := convertJobStatus(kubeJob.Status)
-	if err != nil {
-		return nil, err
-	}
-	kokiJob.JobStatus = status
-
-	kokiObj.Job = kokiJob
-
-	return kokiObj, nil
+	return kokiJob, nil
 }
 
 func convertJobStatus(kubeStatus batchv1.JobStatus) (types.JobStatus, error) {
