@@ -222,8 +222,7 @@ func checkSubscription(sesh *sessions.Session) bool {
 func login(rw http.ResponseWriter, r *http.Request) {
 	sesh, err := store.Get(r, "user")
 	if err != nil {
-		http.Error(rw, "invalid cookie", http.StatusUnauthorized)
-		return
+		glog.Info("invalid cookie, setting up a new one for login")
 	}
 
 	b := make([]byte, 16)

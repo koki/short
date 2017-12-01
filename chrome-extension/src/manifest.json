@@ -26,6 +26,6 @@
         "https://github.com/*",
         "https://*.githubusercontent.com/*",
         "https://koki.io/short/*",
-        "<all_urls>"
+        HOST_PLACEHOLDER
     ]
 }
