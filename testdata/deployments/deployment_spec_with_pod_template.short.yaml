@@ -10,6 +10,7 @@ deployment:
   name: meta_test
   namespace: test
   replicas: 1
+  replicas_status: {}
   selector:
     app: redis
   version: apps/v1beta1

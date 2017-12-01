@@ -10,5 +10,6 @@ deployment:
   namespace: test
   paused: true
   progress_deadline: 32
+  replicas_status: {}
   selector: null
   version: apps/v1beta1

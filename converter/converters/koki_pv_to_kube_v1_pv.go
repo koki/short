@@ -64,6 +64,9 @@ func revertPersistentVolumeStatus(kokiStatus types.PersistentVolumeStatus) (v1.P
 }
 
 func revertPersistentVolumePhase(kokiPhase types.PersistentVolumePhase) (v1.PersistentVolumePhase, error) {
+	if kokiPhase == "" {
+		return "", nil
+	}
 	switch kokiPhase {
 	case types.VolumePending:
 		return v1.VolumePending, nil

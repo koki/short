@@ -59,7 +59,7 @@ func TestReplicationControllers(t *testing.T) {
 }
 
 func TestServices(t *testing.T) {
-	err := testResource("replication_controllers", testFuncGenerator(t))
+	err := testResource("services", testFuncGenerator(t))
 	if err != nil {
 		t.Fatal(err)
 	}

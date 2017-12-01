@@ -6,5 +6,6 @@ replica_set:
     app: meta_test
   name: meta_test
   namespace: test
+  replicas_status: {}
   selector: null
   version: extensions/v1beta1

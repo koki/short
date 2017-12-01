@@ -1439,9 +1439,9 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 			return nil, util.InvalidInstanceErrorf(action.Net, "unexpected HostPort %s", action.Net.URL)
 		}
 
-		if urlStruct.Scheme == "HTTP" || urlStruct.Scheme == "HTTPS" {
+		if strings.ToUpper(urlStruct.Scheme) == "HTTP" || strings.ToUpper(urlStruct.Scheme) == "HTTPS" {
 			var scheme v1.URIScheme
-			if urlStruct.Scheme == "HTTP" {
+			if strings.ToUpper(urlStruct.Scheme) == "HTTP" {
 				scheme = v1.URISchemeHTTP
 			} else {
 				scheme = v1.URISchemeHTTPS
@@ -1470,7 +1470,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 				Host:        host,
 				HTTPHeaders: headers,
 			}
-		} else if urlStruct.Scheme == "TCP" {
+		} else if strings.ToUpper(urlStruct.Scheme) == "TCP" {
 			handler.TCPSocket = &v1.TCPSocketAction{
 				Host: host,
 				Port: port,
@@ -1499,7 +1499,7 @@ func revertVolumeMounts(mounts []types.VolumeMount) []v1.VolumeMount {
 			if fields[1] == "ro" {
 				kubeMount.ReadOnly = true
 			} else {
-				kubeMount.SubPath = fields[2]
+				kubeMount.SubPath = fields[1]
 			}
 		} else if len(fields) == 3 {
 			kubeMount.Name = fields[0]
@@ -1569,7 +1569,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 		if err != nil {
 			return nil, util.InvalidInstanceErrorf(probe, "couldn't parse URL: %s", err.Error())
 		}
-		if urlStruct.Scheme == "TCP" {
+		if strings.ToUpper(urlStruct.Scheme) == "TCP" {
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")
 			if len(fields) != 2 && len(fields) != 1 {
@@ -1586,7 +1586,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 					StrVal: port,
 				},
 			}
-		} else if urlStruct.Scheme == "HTTP" || urlStruct.Scheme == "HTTPS" {
+		} else if strings.ToUpper(urlStruct.Scheme) == "HTTP" || strings.ToUpper(urlStruct.Scheme) == "HTTPS" {
 
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")

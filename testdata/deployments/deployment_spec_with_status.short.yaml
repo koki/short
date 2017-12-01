@@ -20,10 +20,10 @@ deployment:
   paused: true
   progress_deadline: 32
   replicas_status:
+    available: 1
+    ready: 1
     total: 1
     updated: 1
-    ready: 1
-    available: 1
-    unavailable: 0
-  selector: koki.io/selector.name=meta_test
+  selector:
+    koki.io/selector.name: meta_test
   version: apps/v1beta1

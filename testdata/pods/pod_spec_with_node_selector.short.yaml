@@ -1,6 +1,6 @@
 pod:
   affinity:
-  - node: node:node=node_name
+  - node: node=node_name
   annotations:
     meta: _test
   cluster: test_cluster

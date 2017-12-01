@@ -99,16 +99,14 @@ pod:
   reason: reason
   version: v1
   volumes:
-  - name: host_path_test_volume
-    path: /path/to/host/vol
-    type: host-path.directory
-  - medium: Memory
-    name: empty_dir_test_volume
-    size_limit: 100m
-    type: empty-dir
-  - fs_type: ext4
-    name: gce_pd_test_volume
-    partition: 1
-    pd_name: gce_pd_test_volume
-    read_only: true
-    type: gce-persistent-disk
+    empty_dir_test_volume:
+      max_size: 100m
+      medium: memory
+      vol_type: empty_dir
+    gce_pd_test_volume:
+      fs: ext4
+      partition: 1
+      ro: true
+      vol_id: gce_pd_test_volume
+      vol_type: gce_pd
+    host_path_test_volume: host_path:/path/to/host/vol:dir
