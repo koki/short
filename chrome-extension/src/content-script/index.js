@@ -51,8 +51,6 @@ function main() {
     });
 }
 
-
-
 function isKubeYaml(lines) {
     var hasApiVersion, hasKind;
     _.forEach(lines, (line) => {

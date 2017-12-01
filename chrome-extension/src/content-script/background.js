@@ -35,8 +35,40 @@ chrome.runtime.onConnect.addListener(function(port) {
 
     port.onMessage.addListener(function(info) {
         if (info.fileLines) {
-            let body = info.fileLines.join('\n');
-            sendRequest(body);
+            doConversion(info.fileLines);
         }
     });
+
+    function doConversion(fileLines) {
+        checkCookies(doSendRequest, () => githubSignIn(doSendRequest));
+
+        function doSendRequest() {
+            sendRequest(fileLines.join('\n'));
+        }
+    }
+
+    function checkCookies(onSuccess, onFailure) {
+        chrome.cookies.get({
+            url: 'http://localhost:8080',
+            name: 'user'
+        }, (result) => {
+            console.log(result);
+            if (result) {
+                onSuccess();
+            } else {
+                onFailure && onFailure();
+            }
+        });
+    }
+
+    function githubSignIn(onSuccess) {
+        let loginWindow = window.open('http://localhost:8080/login');
+        let checkWindowClosed = setInterval(() => {
+            if (!loginWindow || loginWindow.closed) {
+                clearInterval(checkWindowClosed);
+                checkCookies(onSuccess);
+            }
+        }, 200);
+    }
+
 });

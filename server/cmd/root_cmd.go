@@ -80,7 +80,8 @@ func init() {
 func serve(c *cobra.Command, args []string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/convert", convert)
-	//mux.HandleFunc("/oauth/github-callback", githubCallback)
+	mux.HandleFunc("/login", login)
+	mux.HandleFunc("/oauth/github-callback", githubCallback)
 
 	s := http.Server{
 		Addr:    fmt.Sprintf("%s:%d", ip, port),
@@ -112,26 +113,24 @@ func login(rw http.ResponseWriter, r *http.Request) {
 
 func convert(rw http.ResponseWriter, r *http.Request) {
 	defer context.Clear(r)
-	/*
-			sesh, err := store.Get(r, "user")
-			if err != nil {
-				http.Error(rw, "invalid cookie", http.StatusUnauthorized)
-				return
-			}
+	sesh, err := store.Get(r, "user")
+	if err != nil {
+		http.Error(rw, "invalid cookie", http.StatusUnauthorized)
+		return
+	}
 
-			id, ok := sesh.Values["id"]
+	id, ok := sesh.Values["id"]
 
-			if sesh.IsNew || !ok {
-				http.Error(rw, "unauthorized", http.StatusUnauthorized)
-				return
-			}
+	if sesh.IsNew || !ok {
+		http.Error(rw, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-		eligible := checkEligibility(id.(int))
-		if !eligible {
-			http.Error(rw, err.Error(), http.StatusUnauthorized)
-			return
-		}
-	*/
+	eligible := checkEligibility(id.(int))
+	if !eligible {
+		http.Error(rw, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
 	if r.Method != http.MethodPost {
 		http.Error(rw, "", http.StatusMethodNotAllowed)
@@ -167,6 +166,12 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+const closingPage = `
+<html>
+<script type="text/javascript">parent.close()</script>
+</html>
+`
 
 func githubCallback(rw http.ResponseWriter, r *http.Request) {
 	defer context.Clear(r)
@@ -209,7 +214,7 @@ func githubCallback(rw http.ResponseWriter, r *http.Request) {
 	session.Values["accessToken"] = tkn.AccessToken
 	session.Save(r, rw)
 
-	http.Redirect(rw, r, "/convert", 302)
+	fmt.Fprint(rw, closingPage)
 }
 
 func checkEligibility(id int) bool {

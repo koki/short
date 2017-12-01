@@ -64,7 +64,7 @@ gulp.task('build-content-script-css', () => {
 gulp.task('build-manifest', () => {
     return gulp
         .src(`${sourceDir}/manifest.json`)
-        .pipe(jsonminify())
+        //.pipe(jsonminify())
         .pipe(gulp.dest(buildDir));
 });
 
