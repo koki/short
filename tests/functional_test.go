@@ -79,6 +79,20 @@ func TestDaemonSets(t *testing.T) {
 	}
 }
 
+func TestCronJobs(t *testing.T) {
+	err := testResource("cron_jobs", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPVCs(t *testing.T) {
+	err := testResource("pvcs", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File

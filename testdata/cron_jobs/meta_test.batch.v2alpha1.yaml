@@ -1,0 +1,5 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  # Unique key of the CronJob instance
+  name: cronjob-example

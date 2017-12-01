@@ -90,6 +90,20 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, daemonSet, err.Error())
 			}
 			return daemonSet, nil
+		case "cron_job":
+			cronJob := &types.CronJobWrapper{}
+			err := json.Unmarshal(bytes, cronJob)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, cronJob, err.Error())
+			}
+			return cronJob, nil
+		case "pvc":
+			pvc := &types.PersistentVolumeClaimWrapper{}
+			err := json.Unmarshal(bytes, pvc)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, pvc, err.Error())
+			}
+			return pvc, nil
 		}
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}

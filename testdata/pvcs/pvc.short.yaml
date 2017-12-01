@@ -1,0 +1,8 @@
+pvc:
+  access_modes:
+  - rw_once
+  name: myclaim
+  selector: release=stable&environment=dev
+  storage: 8Gi
+  storage_class: slow
+  version: v1

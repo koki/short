@@ -103,5 +103,5 @@ func convertTemplate(kubeTemplate v1.PodTemplateSpec) (*types.PodTemplateMeta, t
 		return nil, types.PodTemplate{}, err
 	}
 
-	return &meta, *spec, nil
+	return meta, *spec, nil
 }

@@ -18,7 +18,7 @@ func Convert_Koki_Job_to_Kube_Job(job *types.JobWrapper) (interface{}, error) {
 	kubeJob.Labels = kokiJob.Labels
 	kubeJob.Annotations = kokiJob.Annotations
 
-	spec, err := revertJobSpec(kokiJob)
+	spec, err := revertJobSpec(kokiJob.Name, kokiJob.JobTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func Convert_Koki_Job_to_Kube_Job(job *types.JobWrapper) (interface{}, error) {
 	return kubeJob, nil
 }
 
-func revertJobSpec(kokiJob types.Job) (batchv1.JobSpec, error) {
+func revertJobSpec(name string, kokiJob types.JobTemplate) (batchv1.JobSpec, error) {
 	kubeSpec := batchv1.JobSpec{}
 
 	// Setting the Selector and Template is identical to ReplicaSet
@@ -44,7 +44,7 @@ func revertJobSpec(kokiJob types.Job) (batchv1.JobSpec, error) {
 		kokiTemplateLabels = kokiJob.TemplateMetadata.Labels
 	}
 	var err error
-	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(kokiJob.Name, kokiJob.Selector, kokiTemplateLabels)
+	kubeSpec.Selector, templateLabelsOverride, err = revertRSSelector(name, kokiJob.Selector, kokiTemplateLabels)
 	if err != nil {
 		return batchv1.JobSpec{}, err
 	}

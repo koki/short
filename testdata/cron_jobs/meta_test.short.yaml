@@ -1,0 +1,4 @@
+cron_job:
+  job_meta: {}
+  name: cronjob-example
+  version: batch/v1beta1

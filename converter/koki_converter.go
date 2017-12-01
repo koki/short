@@ -8,6 +8,8 @@ import (
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,6 +17,10 @@ import (
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.PersistentVolumeClaimWrapper:
+		return converters.Convert_Koki_PVC_to_Kube_PVC(kokiObj)
+	case *types.CronJobWrapper:
+		return converters.Convert_Koki_CronJob_to_Kube_CronJob(kokiObj)
 	case *types.DaemonSetWrapper:
 		return converters.Convert_Koki_DaemonSet_to_Kube_DaemonSet(kokiObj)
 	case *types.JobWrapper:
@@ -40,6 +46,12 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *v1.PersistentVolumeClaim:
+		return converters.Convert_Kube_PVC_to_Koki_PVC(kubeObj)
+	case *batchv1beta1.CronJob:
+		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
+	case *batchv2alpha1.CronJob:
+		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
 	case *appsv1beta2.DaemonSet:
 		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
 	case *exts.DaemonSet:
