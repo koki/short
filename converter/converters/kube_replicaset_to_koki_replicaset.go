@@ -53,7 +53,6 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 }
 
 func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.ReplicaSet) (*types.ReplicaSetWrapper, error) {
-	var err error
 	kokiRS := &types.ReplicaSet{}
 
 	kokiRS.Name = kubeRS.Name
@@ -70,10 +69,13 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 
 	// Fill out the Selector and Template.Labels.
 	// If kubeRS only has Template.Labels, we pull it up to Selector.
-	var templateLabelsOverride map[string]string
-	kokiRS.Selector, templateLabelsOverride, err = convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
+	selector, templateLabelsOverride, err := convertRSLabelSelector(kubeSpec.Selector, kubeSpec.Template.Labels)
 	if err != nil {
 		return nil, err
+	}
+
+	if selector != nil && (selector.Labels != nil && selector.Shorthand != "") {
+		kokiRS.Selector = selector
 	}
 
 	// Build a Pod from the kube Template. Use it to set the koki Template.

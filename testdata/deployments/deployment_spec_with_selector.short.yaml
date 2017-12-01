@@ -7,5 +7,5 @@ deployment:
   name: meta_test
   namespace: test
   replicas_status: {}
-  selector: null
+  selector: koki.io/selector.name=meta_test
   version: apps/v1beta1
