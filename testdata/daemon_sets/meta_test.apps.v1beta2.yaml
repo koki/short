@@ -1,0 +1,5 @@
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  # Unique key of the DaemonSet instance
+  name: daemonset-example

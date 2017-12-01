@@ -15,6 +15,8 @@ import (
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.DaemonSetWrapper:
+		return converters.Convert_Koki_DaemonSet_to_Kube_DaemonSet(kokiObj)
 	case *types.JobWrapper:
 		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
 	case *types.DeploymentWrapper:
@@ -38,6 +40,10 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *appsv1beta2.DaemonSet:
+		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
+	case *exts.DaemonSet:
+		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
 	case *batchv1.Job:
 		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
 	case *appsv1beta1.Deployment:

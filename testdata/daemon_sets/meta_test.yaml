@@ -1,0 +1,5 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  # Unique key of the DaemonSet instance
+  name: daemonset-example

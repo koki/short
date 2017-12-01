@@ -1,0 +1,3 @@
+daemon_set:
+  name: daemonset-example
+  version: apps/v1beta2
