@@ -1,0 +1,15 @@
+job:
+  containers:
+  - args:
+    - -Mbignum=bpi
+    - -wle
+    - print bpi(2000)
+    command:
+    - perl
+    image: perl
+    name: pi
+  name: example-job
+  pod_meta:
+    name: example-job
+  restart_policy: never
+  version: batch/v1

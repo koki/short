@@ -1,0 +1,3 @@
+job:
+  name: example-job
+  version: batch/v1

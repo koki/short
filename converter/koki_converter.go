@@ -7,6 +7,7 @@ import (
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,6 +15,8 @@ import (
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.JobWrapper:
+		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
 	case *types.DeploymentWrapper:
 		return converters.Convert_Koki_Deployment_to_Kube_Deployment(kokiObj)
 	case *types.PersistentVolumeWrapper:
@@ -35,6 +38,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *batchv1.Job:
+		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
 	case *appsv1beta1.Deployment:
 		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
 	case *appsv1beta2.Deployment:

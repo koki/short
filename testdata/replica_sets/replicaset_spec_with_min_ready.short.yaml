@@ -8,5 +8,4 @@ replica_set:
   namespace: test
   ready_seconds: 32
   replicas_status: {}
-  selector: null
   version: apps/v1beta2

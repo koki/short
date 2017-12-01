@@ -65,6 +65,13 @@ func TestServices(t *testing.T) {
 	}
 }
 
+func TestJobs(t *testing.T) {
+	err := testResource("jobs", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File

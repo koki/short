@@ -10,4 +10,8 @@ metadata:
   clusterName: test_cluster
 spec:
   selector:
-    app: web
+    matchExpressions:
+    - key: koki.io/selector.name
+      operator: In
+      values: 
+      - meta_test
