@@ -72,6 +72,13 @@ func TestJobs(t *testing.T) {
 	}
 }
 
+func TestDaemonSets(t *testing.T) {
+	err := testResource("daemon_sets", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File

@@ -1,0 +1,13 @@
+daemon_set:
+  containers:
+  - args:
+    - -c
+    - while [ true ]; do echo "DaemonSet running on $(hostname)" ; sleep 10 ; done
+    command:
+    - /bin/sh
+    image: ubuntu:trusty
+    name: daemonset-example
+  name: daemonset-example
+  selector:
+    app: daemonset-example
+  version: extensions/v1beta1

@@ -83,8 +83,14 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, job, err.Error())
 			}
 			return job, nil
+		case "daemon_set":
+			daemonSet := &types.DaemonSetWrapper{}
+			err := json.Unmarshal(bytes, daemonSet)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, daemonSet, err.Error())
+			}
+			return daemonSet, nil
 		}
-
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}
 
