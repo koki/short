@@ -1,5 +1,7 @@
 # Koki Short
 
+<img src="https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiaFdaQUJleFNQRkI3NXdKcllWSVJ0THREYkl2WEJBTkZCRkhrWERoeUYxbjFsUTZNSEZ4WGxWZnNmcWxvenlMallELytyNTI0VSsxZ0JEV3FrOS9JYzVzPSIsIml2UGFyYW1ldGVyU3BlYyI6InFKYXBITkJ0Z3NsTkhWN0UiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master"/>
+
 Manageable Kubernetes manifests through composable, reusable syntax
 
 ## Motivation

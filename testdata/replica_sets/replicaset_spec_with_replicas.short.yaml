@@ -7,5 +7,6 @@ replica_set:
   name: meta_test
   namespace: test
   replicas: 3
+  replicas_status: {}
   selector: null
   version: apps/v1beta2

@@ -1255,7 +1255,7 @@ func convertAffinity(spec v1.PodSpec) ([]types.Affinity, error) {
 	for k, v := range spec.NodeSelector {
 		expr := fmt.Sprintf("%s=%s", k, v)
 		if affinityString == "" {
-			affinityString = fmt.Sprintf("node:%s", expr)
+			affinityString = fmt.Sprintf("%s", expr)
 			continue
 		}
 		affinityString = fmt.Sprintf("%s&%s", affinityString, expr)
@@ -1603,7 +1603,7 @@ func convertHostname(spec v1.PodSpec) string {
 	}
 	// TODO: verify that .subdomain is a valid input. i.e. without hostname
 	if spec.Subdomain != "" {
-		hostName = fmt.Sprintf("%s.%s", hostName, spec.Subdomain)
+		hostName = fmt.Sprintf("%s.%s", spec.Subdomain, hostName)
 	}
 	return hostName
 }

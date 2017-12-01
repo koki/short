@@ -16,13 +16,14 @@ replication_controller:
     app: meta_test
   name: meta_test
   namespace: test
+  pod_meta:
+    labels:
+      app: redis
   ready_seconds: 32
   replicas: 1
   replicas_status:
-    total: 1
+    available: 1
     fully_labeled: 1
     ready: 1
-    available: 1
-  selector:
-    app: redis
+    total: 1
   version: v1
