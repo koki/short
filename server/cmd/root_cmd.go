@@ -111,7 +111,6 @@ func login(rw http.ResponseWriter, r *http.Request) {
 }
 
 func convert(rw http.ResponseWriter, r *http.Request) {
-	glog.Infof("RECEIVED A REQUEST")
 	defer context.Clear(r)
 	/*
 			sesh, err := store.Get(r, "user")
@@ -146,7 +145,6 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	glog.Infof("%#v", objs)
 
 	kokiObjs, err := converter.ConvertToKokiNative(objs)
 	if err != nil {
