@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    component: example
+  name: example
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        koki.io/selector.name: example
+    spec:
+      containers:
+      - image: gcr.io/kuard-demo/kuard-amd64:1
+        name: kuard
+        resources: {}

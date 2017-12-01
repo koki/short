@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: example
+spec:
+  externalName: externalDnsName
+  type: ExternalName
+status:
+  loadBalancer: {}

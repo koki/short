@@ -1,0 +1,19 @@
+pod:
+  affinity:
+  - pod: app=frontend:soft
+    topology: kubernetes.io/hostname
+  - anti_pod: app=backend
+    topology: kubernetes.io/hostname
+  containers:
+  - image: busybox:latest
+    name: busybox
+    stdin: true
+    tty: true
+  - expose: asdfasdfcdf
+    image: busybox:latest
+    name: busybox1
+    stdin: true
+    tty: true
+  labels:
+    app: backend
+  name: backend

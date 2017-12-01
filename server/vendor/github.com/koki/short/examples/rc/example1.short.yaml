@@ -1,0 +1,13 @@
+replication_controller:
+  containers:
+  - image: gcr.io/kuard-demo/kuard-amd64:1
+    name: kuard
+  labels:
+    component: example
+  name: example
+  replicas: 1
+  selector:
+    key0: value0
+    key1: value1
+  version: v1
+

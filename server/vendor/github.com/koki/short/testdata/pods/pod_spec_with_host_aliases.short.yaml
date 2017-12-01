@@ -1,0 +1,13 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  host_aliases:
+  - 127.0.0.1 localhost localhost.wlan0
+  - 10.1.10.1 local.printer
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+

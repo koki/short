@@ -1,0 +1,19 @@
+service:
+  cluster_ip: 1.1.1.10
+  endpoints:
+  - ingressHostname
+  - 1.2.3.4
+  external_ips:
+  - 1.1.1.1
+  lb_client_ips:
+  - 0.0.0.0/0
+  lb_ip: 100.1.1.1
+  name: example
+  ports:
+  - http: 80:8080
+    node_port: 999
+  route_policy: node-local
+  selector:
+    labelKey: labelValue
+  type: load-balancer
+  version: v1

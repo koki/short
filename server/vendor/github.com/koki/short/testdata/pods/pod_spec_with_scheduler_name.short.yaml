@@ -1,0 +1,11 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  scheduler_name: scheduler.name
+  version: v1
+

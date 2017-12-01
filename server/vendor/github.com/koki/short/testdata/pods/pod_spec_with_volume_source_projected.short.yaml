@@ -1,0 +1,26 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      sources:
+      - items:
+          path/to/key: key:0644
+        secret: secret_name
+      - config: config_map_name
+        items:
+          path/to/key1: key:0644
+      - items:
+          path/to/file:
+            field: metadata.annotation
+            mode: "0644"
+          path/to/file1:
+            resource: container-name:limits.cpu:1m
+      vol_type: projected
+

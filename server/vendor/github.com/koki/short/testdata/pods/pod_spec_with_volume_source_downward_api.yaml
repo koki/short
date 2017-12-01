@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: meta_test
+  labels:
+    app: meta_test
+  annotations:
+    meta: _test 
+  namespace: test
+  clusterName: test_cluster
+spec:
+  volumes:
+  - name: test_volume
+    downwardAPI:
+      defaultMode: 0644
+      items: 
+      - path: path/to/file
+        fieldRef: 
+          fieldPath: metadata.annotation
+        mode: 0644 
+      - path: path/to/file1
+        resourceFieldRef:
+          containerName: container-name
+          resource: limits.cpu
+          divisor: 1m
+        mode: 0644 

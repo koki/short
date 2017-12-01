@@ -1,0 +1,28 @@
+replication_controller:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  condition:
+  - last_change: 2017-01-01T00:00:00Z
+    message: some message about this condition
+    reason: reasonForCondition
+    status: "true"
+    type: replica-failure
+  containers:
+  - image: redis
+    name: redis
+  generation_observed: 1
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  ready_seconds: 32
+  replicas: 1
+  replicas_status:
+    total: 1
+    fully_labeled: 1
+    ready: 1
+    available: 1
+  selector:
+    app: redis
+  version: v1

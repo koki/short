@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: example
+spec:
+  clusterIP: 1.1.1.10
+  externalIPs:
+  - 1.1.1.1
+  ports:
+  - name: http
+    nodePort: 999
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    labelKey: labelValue
+  sessionAffinity: ClientIP
+  type: NodePort
+status:
+  loadBalancer: {}

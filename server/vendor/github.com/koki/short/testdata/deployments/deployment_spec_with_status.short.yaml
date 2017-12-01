@@ -1,0 +1,29 @@
+deployment:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  condition:
+  - last_change: 2017-01-01T00:00:00Z
+    message: some message about this condition
+    reason: reasonForCondition
+    status: "true"
+    timestamp: 2017-01-01T00:00:00Z
+    type: available
+  generation_observed: 1
+  hash_collisions: 1
+  labels:
+    app: meta_test
+  max_revs: 32
+  min_ready: 32
+  name: meta_test
+  namespace: test
+  paused: true
+  progress_deadline: 32
+  replicas_status:
+    total: 1
+    updated: 1
+    ready: 1
+    available: 1
+    unavailable: 0
+  selector: koki.io/selector.name=meta_test
+  version: apps/v1beta1

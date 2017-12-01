@@ -1,0 +1,25 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  cache: rw
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  disk_name: test.vhd
+  disk_uri: https://someaccount.blob.microsoft.net/vhds/test.vhd
+  fs: ext4
+  kind: shared
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  mount_options: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  reclaim: recycle
+  ro: true
+  storage: 10Gi
+  storage_class: storageClass
+  version: v1
+  vol_type: azure_disk
+

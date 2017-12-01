@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: example
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: example
+    spec:
+      containers:
+      - image: gcr.io/kuard-demo/kuard-amd64:1
+        imagePullPolicy: IfNotPresent
+        name: kuard
+        resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never

@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: example-deployment
+  labels:
+    app: example
+selector:
+  koki.io/selector.name: example-deployment
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  template:
+    metadata:
+      labels:
+        koki.io/selector.name: example-deployment
+    spec:
+      containers:
+      - name: example-app
+        image: example/example:latest
+        ports:
+        - containerPort: 80
+status:
+  replicas: 1

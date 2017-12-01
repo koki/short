@@ -1,0 +1,13 @@
+service:
+  cluster_ip: 1.1.1.10
+  external_ips:
+  - 1.1.1.1
+  name: example
+  ports:
+  - http: 80:8080
+    node_port: 999
+  selector:
+    labelKey: labelValue
+  stickiness: true
+  type: node-port
+  version: v1

@@ -1,0 +1,21 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      lun: 3
+      ro: true
+      vol_type: fc
+      wwid:
+      - wwid1
+      - wwid2
+      wwn:
+      - wwn1
+      - wwn2
+
