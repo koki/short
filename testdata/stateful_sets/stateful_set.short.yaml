@@ -1,0 +1,22 @@
+stateful_set:
+  containers:
+  - expose:
+    - web: 80
+    image: gcr.io/google_containers/nginx-slim:0.8
+    name: nginx
+    volume:
+    - mount: /usr/share/nginx/html
+      store: www
+  name: web
+  pvcs:
+  - access_modes:
+    - rw_once
+    name: www
+    storage: 1Gi
+    storage_class: my-storage-class
+  replicas: 3
+  selector:
+    app: nginx
+  service: nginx
+  termination_grace_period: 10
+  version: apps/v1beta2
