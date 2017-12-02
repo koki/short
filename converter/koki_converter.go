@@ -19,6 +19,8 @@ import (
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.SecretWrapper:
+		return converters.Convert_Koki_Secret_to_Kube_v1_Secret(kokiObj)
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
 	case *types.StorageClassWrapper:
@@ -54,6 +56,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *v1.Secret:
+		return converters.Convert_Kube_v1_Secret_to_Koki_Secret(kubeObj)
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
 	case *storagev1.StorageClass:

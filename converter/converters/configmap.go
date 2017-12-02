@@ -39,5 +39,4 @@ func Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiConfigMapWrapper *types.Con
 	kubeConfigMap.Data = kokiConfigMap.Data
 
 	return kubeConfigMap, nil
-
 }
