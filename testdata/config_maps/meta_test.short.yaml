@@ -1,0 +1,4 @@
+config_map:
+  name: game-config
+  namespace: default
+  version: v1
