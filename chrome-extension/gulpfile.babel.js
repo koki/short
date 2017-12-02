@@ -3,6 +3,7 @@ import jsonminify from 'gulp-jsonminify';
 import less from 'gulp-less';
 import minifyCSS from 'gulp-minify-css';
 import rename from 'gulp-rename';
+import replace from 'gulp-replace';
 import uglify from 'gulp-uglify';
 import watch from 'gulp-watch';
 import browserify from 'browserify';
@@ -12,9 +13,14 @@ import buffer from 'vinyl-buffer';
 import del from 'del';
 import runSequence from 'run-sequence';
 import sourcemaps from 'gulp-sourcemaps';
+import gutil from 'gulp-util';
 
 const sourceDir = 'src';
-const buildDir = 'dist';
+
+const localURL = 'http://localhost:8080';
+const prodURL = 'https://short-server.koki.io';
+const isProd = process.env.NODE_ENV === 'production';
+const buildDir = isProd ? 'prod-dist' : 'dist';
 
 gulp.task('clean', done => {
     del(buildDir).then(() => done()).catch(err => done(err));
@@ -26,13 +32,13 @@ gulp.task('build-content-script-js', () => {
         .bundle()
         .pipe(source('content-script.js')) // Convert from Browserify stream to vinyl stream.
         .pipe(buffer()) // Convert from streaming mode to buffered mode.
-        .pipe(sourcemaps.init({
+        .pipe(isProd ? gutil.noop() : sourcemaps.init({
             loadMaps: true
         }))
         .pipe(uglify({
             mangle: false
         }))
-        .pipe(sourcemaps.write('./maps'))
+        .pipe(isProd ? gutil.noop() : sourcemaps.write('./maps'))
         .pipe(gulp.dest(buildDir));
 });
 
@@ -42,13 +48,14 @@ gulp.task('build-background-script-js', () => {
         .bundle()
         .pipe(source('background.js')) // Convert from Browserify stream to vinyl stream.
         .pipe(buffer()) // Convert from streaming mode to buffered mode.
-        .pipe(sourcemaps.init({
+        .pipe(replace('KOKI_SHORT_SERVER_URL', isProd ? prodURL : localURL))
+        .pipe(isProd ? gutil.noop() : sourcemaps.init({
             loadMaps: true
         }))
         .pipe(uglify({
             mangle: false
         }))
-        .pipe(sourcemaps.write('./maps'))
+        .pipe(isProd ? gutil.noop() : sourcemaps.write('./maps'))
         .pipe(gulp.dest(buildDir));
 });
 
@@ -64,7 +71,8 @@ gulp.task('build-content-script-css', () => {
 gulp.task('build-manifest', () => {
     return gulp
         .src(`${sourceDir}/manifest.json`)
-        .pipe(jsonminify())
+        .pipe(replace('HOST_PLACEHOLDER', isProd ? `"${prodURL}/*"` : '"<all_urls>"'))
+        .pipe(isProd ? jsonminify() : gutil.noop())
         .pipe(gulp.dest(buildDir));
 });
 

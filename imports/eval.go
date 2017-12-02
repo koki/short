@@ -47,6 +47,20 @@ func (c *EvalContext) EvaluateModule(module *Module, params map[string]interface
 		return nil
 	}
 
+	// Fill in default values for missing params.
+	if params == nil {
+		params = map[string]interface{}{}
+	}
+	for paramName, paramDef := range module.Params {
+		if paramDef.Default != nil {
+			if _, ok := params[paramName]; ok {
+				continue
+			}
+
+			params[paramName] = paramDef.Default
+		}
+	}
+
 	for _, export := range module.Exports {
 		err := c.EvaluateExport(module, params, export)
 		if err != nil {

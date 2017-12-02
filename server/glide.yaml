@@ -14,3 +14,5 @@ import:
 - package: github.com/rs/cors
 - package: github.com/spf13/cobra
 - package: golang.org/x/oauth2
+- package: github.com/stripe/stripe-go
+  version: v28.6.1

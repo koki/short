@@ -1,5 +1,5 @@
-hash: 93be7fc5877495b5545be63f2bc04ede180497a75562dff26f039d4508e8e14b
-updated: 2017-11-29T22:08:08.957000982-08:00
+hash: ad8420da154bcd0c8f9ccc7e11d15124b67ca10e63ca29a97af79ed1e45b41ff
+updated: 2017-11-30T23:18:18.442793674-08:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
@@ -83,6 +83,12 @@ imports:
   version: 2da4a54c5ceefcee7ca5dd0eea1e18a3b6366489
 - name: github.com/spf13/pflag
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
+- name: github.com/stripe/stripe-go
+  version: a705fb222df92bba0cbc4c190bcbebf7dfe0b0cc
+  subpackages:
+  - form
+  - orderitem
+  - sub
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:

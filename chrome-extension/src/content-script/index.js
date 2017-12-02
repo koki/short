@@ -15,11 +15,11 @@ githubInjection(window, err => {
 });
 
 function main() {
-    let toggleButton = renderYAMLToggleButton();
-    let kubeRows = getFileRows();
-    let kubeLines = getLinesFromRows(kubeRows);
+    const toggleButton = renderYAMLToggleButton();
+    const kubeRows = getFileRows();
+    const kubeLines = getLinesFromRows(kubeRows);
 
-    let kokiRows = new Promise((resolve, reject) => {
+    const kokiRows = new Promise((resolve, reject) => {
         sendFileContents(kubeLines, (content) => {
             resolve(buildRowsForContent(content));
         }, reject);
@@ -31,7 +31,7 @@ function main() {
         console.error(error);
     });
 
-    var toggleDisabled = false;
+    let toggleDisabled = false;
     toggleButton.click(() => {
         if (toggleDisabled) {
             return;
@@ -51,10 +51,8 @@ function main() {
     });
 }
 
-
-
 function isKubeYaml(lines) {
-    var hasApiVersion, hasKind;
+    let hasApiVersion, hasKind;
     _.forEach(lines, (line) => {
         hasApiVersion |= line.startsWith('apiVersion:');
         hasKind |= line.startsWith('kind:');
@@ -71,17 +69,17 @@ function buildRowForLine(lineNumber, line) {
 }
 
 function buildRowsForContent(content) {
-    let lines = content.split('\n');
+    const lines = content.split('\n');
 
     // Strip the last line if it's empty.
     if (!_.last(lines)) {
         lines.pop();
     }
 
-    var hlState; // Syntax highlighter state, preserved between lines.
+    let hlState; // Syntax highlighter state, preserved between lines.
     return _.map(lines, (line, lineIndex) => {
         // Highlight each line and build a row for it.
-        var hlResult = hljs.highlight('yaml', line, true, hlState);
+        let hlResult = hljs.highlight('yaml', line, true, hlState);
         hlState = hlResult.top;
         return buildRowForLine(lineIndex + 1, hlResult.value);
     });
@@ -92,8 +90,8 @@ function getFileRows() {
 }
 
 function replaceFileRows(rows) {
-    let tbody = $('.file .blob-wrapper table tbody');
-    let oldRows = tbody.find('tr');
+    const tbody = $('.file .blob-wrapper table tbody');
+    const oldRows = tbody.find('tr');
     oldRows.detach();
     tbody.append(rows);
 
@@ -110,7 +108,7 @@ function updateFileWithInfo(fileInfo, fileData) {
 }
 
 function sendFileContents(lines, onSuccess, onError) {
-    let port = chrome.runtime.connect();
+    const port = chrome.runtime.connect();
     port.postMessage({
         fileLines: lines
     });
@@ -125,9 +123,9 @@ function sendFileContents(lines, onSuccess, onError) {
 }
 
 function renderYAMLToggleButton() {
-    let rawButton = $('#raw-url');
+    const rawButton = $('#raw-url');
 
-    let toggleButton = rawButton
+    const toggleButton = rawButton
         .clone()
         .text('Pretty YAML')
         .attr('href', '#')
