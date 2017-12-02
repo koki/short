@@ -111,10 +111,30 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, statefulSet, err.Error())
 			}
 			return statefulSet, nil
+		case "storage_class":
+			storageClass := &types.StorageClassWrapper{}
+			err := json.Unmarshal(bytes, storageClass)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, storageClass, err.Error())
+			}
+			return storageClass, nil
+		case "config_map":
+			configMap := &types.ConfigMapWrapper{}
+			err := json.Unmarshal(bytes, configMap)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, configMap, err.Error())
+			}
+			return configMap, nil
+		case "secret":
+			secret := &types.SecretWrapper{}
+			err := json.Unmarshal(bytes, secret)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, secret, err.Error())
+			}
+			return secret, nil
 		}
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}
-
 	return nil, nil
 }
 
