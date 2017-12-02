@@ -1,0 +1,11 @@
+storage_class:
+  allow_expansion: true
+  name: gluster-vol-default
+  params:
+    resturl: http://192.168.10.100:8080
+    restuser: ""
+    secretName: ""
+    secretNamespace: ""
+  provisioner: kubernetes.io/glusterfs
+  version: storage.k8s.io/v1
+

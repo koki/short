@@ -12,11 +12,15 @@ import (
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
+	storagev1 "k8s.io/api/storage/v1"
+	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.StorageClassWrapper:
+		return converters.Convert_Koki_StorageClass_to_Kube_StorageClass(kokiObj)
 	case *types.StatefulSetWrapper:
 		return converters.Convert_Koki_StatefulSet_to_Kube_StatefulSet(kokiObj)
 	case *types.PersistentVolumeClaimWrapper:
@@ -48,6 +52,10 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *storagev1.StorageClass:
+		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
+	case *storagev1beta1.StorageClass:
+		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
 	case *appsv1beta1.StatefulSet:
 		return converters.Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeObj)
 	case *appsv1beta2.StatefulSet:
