@@ -104,6 +104,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, pvc, err.Error())
 			}
 			return pvc, nil
+		case "stateful_set":
+			statefulSet := &types.StatefulSetWrapper{}
+			err := json.Unmarshal(bytes, statefulSet)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, statefulSet, err.Error())
+			}
+			return statefulSet, nil
 		}
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}

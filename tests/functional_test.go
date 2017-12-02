@@ -93,6 +93,13 @@ func TestPVCs(t *testing.T) {
 	}
 }
 
+func TestStatefulSets(t *testing.T) {
+	err := testResource("stateful_sets", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File
