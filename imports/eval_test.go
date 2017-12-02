@@ -48,6 +48,14 @@ exports:
 - export2: third export
   value: something
 `,
+	"module5": `
+params:
+- param0: a param with a default value
+  default: x
+exports:
+- default: testing params with default values
+  value: ${param0}
+`,
 }
 
 var evalResults = map[string]interface{}{
@@ -65,6 +73,9 @@ var evalResults = map[string]interface{}{
 		},
 		"export1": float64(1234),
 		"export2": "something",
+	},
+	"module5": map[string]interface{}{
+		"default": "x",
 	},
 }
 
@@ -96,6 +107,7 @@ func TestEval(t *testing.T) {
 	doTestEval("module2", t, false)
 	doTestEval("module3", t, true)
 	doTestEval("module4", t, false)
+	doTestEval("module5", t, false)
 }
 
 func doTestEval(modulePath string, t *testing.T, expectEvalError bool) {

@@ -1,0 +1,29 @@
+imports:
+- env: ./env.short.yaml
+params:
+- name: for selector/labels and name
+  default: koki-short-server
+exports:
+- default: a koki short server deployment
+  value:
+    deployment:
+      name: ${name}
+      labels:
+        app: ${name}
+      replicas: 3
+      selector:
+        app: ${name}
+      affinity:
+      - anti_pod: app=${name}
+        topology: kubernetes.io/hostname
+      containers:
+      - image: ublubu/testserver:v0.0.1
+        name: ${name}
+        pull: always
+        ports:
+        - 8080
+        env:
+        - COOKIE_AUTH_KEY=${env.cookie_auth_key}
+        - STRIPE_KEY=${env.stripe_key}
+        - GITHUB_CLIENT_ID=${env.github_client_id}
+        - GITHUB_CLIENT_SECRET=${env.github_client_secret}

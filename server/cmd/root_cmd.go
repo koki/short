@@ -299,7 +299,10 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 
 const closingPage = `
 <html>
-<script type="text/javascript">parent.close()</script>
+<script type="text/javascript">
+  parent.close();
+  window.location = "https://docs.koki.io/short/";
+</script>
 </html>
 `
 
