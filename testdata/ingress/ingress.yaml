@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    test_annotation: test_value
+  creationTimestamp: null
+  labels:
+    app: test_app
+  name: test_ingress
+  namespace: test_ns
+spec:
+  backend:
+    serviceName: backend_service
+    servicePort: backend_service_port
+  rules:
+  - host: fqdn_host0
+    http:
+      paths:
+      - backend:
+          serviceName: service_name_0
+          servicePort: service_port_0
+        path: /a/path/regex/*
+      - backend:
+          serviceName: service_name_1
+          servicePort: 80
+        path: /another/path/regex
+  tls:
+  - hosts:
+    - host0_in_tls_cert
+    - host1_in_tls_cert
+    - host2_in_tls_cert
+    secretName: secret_name
+  - secretName: secret_name_for_wildcard_host
+  - hosts:
+    - sni_hostname_no_secret
+status:
+  loadBalancer:
+    ingress:
+    - hostname: some_host_name
+    - ip: 1.2.3.4
+

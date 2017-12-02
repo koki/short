@@ -1,0 +1,31 @@
+ingress:
+  annotations:
+    test_annotation: test_value
+  backend: backend_service
+  backend_port: backend_service_port
+  endpoints:
+  - some_host_name
+  - 1.2.3.4
+  labels:
+    app: test_app
+  name: test_ingress
+  namespace: test_ns
+  rules:
+  - host: fqdn_host0
+    paths:
+    - path: /a/path/regex/*
+      port: service_port_0
+      service: service_name_0
+    - path: /another/path/regex
+      port: 80
+      service: service_name_1
+  tls:
+  - hosts:
+    - host0_in_tls_cert
+    - host1_in_tls_cert
+    - host2_in_tls_cert
+    secret: secret_name
+  - secret: secret_name_for_wildcard_host
+  - hosts:
+    - sni_hostname_no_secret
+  version: extensions/v1beta1

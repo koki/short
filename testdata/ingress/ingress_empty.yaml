@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    test_annotation: test_value
+  creationTimestamp: null
+  labels:
+    app: test_app
+  name: test_ingress
+  namespace: test_ns
+spec: {}
+status:
+  loadBalancer: {}
+

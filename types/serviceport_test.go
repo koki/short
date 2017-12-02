@@ -68,13 +68,13 @@ func tryServicePort(s string, t *testing.T) {
 	}
 }
 
-func TestIngress(t *testing.T) {
-	tryIngress("127.0.0.1", t)
-	tryIngress("imahostname", t)
+func TestLoadBalancerIngress(t *testing.T) {
+	tryLoadBalancerIngress("127.0.0.1", t)
+	tryLoadBalancerIngress("imahostname", t)
 }
 
-func tryIngress(s string, t *testing.T) {
-	i := Ingress{}
+func tryLoadBalancerIngress(s string, t *testing.T) {
+	i := LoadBalancerIngress{}
 	i.InitFromString(s)
 
 	ss := i.String()

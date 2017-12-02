@@ -114,6 +114,13 @@ func TestConfigMap(t *testing.T) {
 	}
 }
 
+func TestIngress(t *testing.T) {
+	err := testResource("ingress", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File
