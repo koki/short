@@ -8,6 +8,8 @@ metadata:
     meta: _test 
   namespace: test
   clusterName: test_cluster
+spec:
+  type: LoadBalancer
 status:
   loadBalancer:
     ingress:

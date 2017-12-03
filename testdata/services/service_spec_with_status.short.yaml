@@ -2,8 +2,11 @@ service:
   annotations:
     meta: _test
   cluster: test_cluster
+  endpoints:
+  - 10.10.1.10
   labels:
     app: meta_test
   name: meta_test
   namespace: test
+  type: load-balancer
   version: v1
