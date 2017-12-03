@@ -81,12 +81,12 @@ func convertServiceType(kubeType v1.ServiceType) (types.ClusterIPServiceType, er
 	}
 }
 
-func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, error) {
+func convertLoadBalancerIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.LoadBalancerIngress, error) {
 	if len(kubeIngress) == 0 {
 		return nil, nil
 	}
 
-	kokiIngress := make([]types.Ingress, len(kubeIngress))
+	kokiIngress := make([]types.LoadBalancerIngress, len(kubeIngress))
 	for index, singleKubeIngress := range kubeIngress {
 		if len(singleKubeIngress.IP) > 0 {
 			ip := net.ParseIP(singleKubeIngress.IP)
@@ -94,9 +94,9 @@ func convertIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.Ingress, erro
 				return nil, util.InvalidInstanceErrorf(singleKubeIngress, "invalid IP")
 			}
 
-			kokiIngress[index] = types.Ingress{IP: ip}
+			kokiIngress[index] = types.LoadBalancerIngress{IP: ip}
 		} else {
-			kokiIngress[index] = types.Ingress{
+			kokiIngress[index] = types.LoadBalancerIngress{
 				Hostname: singleKubeIngress.Hostname,
 			}
 		}
@@ -118,7 +118,7 @@ func convertLoadBalancer(kubeService *v1.Service) (*types.LoadBalancer, error) {
 	var err error
 	kokiLB := &types.LoadBalancer{}
 	kokiLB.IP = types.IPAddr(kubeService.Spec.LoadBalancerIP)
-	kokiLB.Ingress, err = convertIngress(kubeService.Status.LoadBalancer.Ingress)
+	kokiLB.Ingress, err = convertLoadBalancerIngress(kubeService.Status.LoadBalancer.Ingress)
 	if err != nil {
 		return nil, err
 	}

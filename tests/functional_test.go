@@ -114,6 +114,13 @@ func TestConfigMap(t *testing.T) {
 	}
 }
 
+func TestIngress(t *testing.T) {
+	err := testResource("ingress", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec *os.File
 	kokiSpec *os.File
@@ -198,14 +205,15 @@ func testFuncGenerator(t *testing.T) func(string, filePair) error {
 			t.Fatalf("\nconverted(%d)=\n%s\nunconverted(%d)=\n%s \n", len(cb), cb, len(ucb), ucb)
 		}*/
 
-		equal, err := cmp.CompareReader(convertedKokiObj, unconvertedKokiObj)
+		convertedKokiObjString := convertedKokiObj.String()
+		equal, err := cmp.CompareReader(bytes.NewBufferString(convertedKokiObjString), unconvertedKokiObj)
 		if err != nil {
 			t.Errorf("path %s err %v", path, err)
 			return err
 		}
 
 		if !equal {
-			t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s", path)
+			t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s\n%s", path, convertedKokiObjString)
 			return nil
 		}
 		return nil

@@ -57,7 +57,7 @@ func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1
 		kubeService.Spec.HealthCheckNodePort = kokiService.HealthCheckNodePort
 		kubeService.Spec.LoadBalancerIP = string(kokiService.LoadBalancerIP)
 		kubeService.Spec.LoadBalancerSourceRanges = revertLoadBalancerSources(kokiService.Allowed)
-		kubeService.Status.LoadBalancer.Ingress = revertIngress(kokiService.Ingress)
+		kubeService.Status.LoadBalancer.Ingress = revertLoadBalancerIngress(kokiService.Ingress)
 	}
 
 	return kubeService, nil
@@ -136,7 +136,7 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	}
 }
 
-func revertIngress(kokiIngress []types.Ingress) []v1.LoadBalancerIngress {
+func revertLoadBalancerIngress(kokiIngress []types.LoadBalancerIngress) []v1.LoadBalancerIngress {
 	if len(kokiIngress) == 0 {
 		return nil
 	}

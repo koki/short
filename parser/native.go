@@ -27,6 +27,27 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 
 	for k := range objMap {
 		switch k {
+		case "config_map":
+			configMap := &types.ConfigMapWrapper{}
+			err := json.Unmarshal(bytes, configMap)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, configMap, err.Error())
+			}
+			return configMap, nil
+		case "cron_job":
+			cronJob := &types.CronJobWrapper{}
+			err := json.Unmarshal(bytes, cronJob)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, cronJob, err.Error())
+			}
+			return cronJob, nil
+		case "daemon_set":
+			daemonSet := &types.DaemonSetWrapper{}
+			err := json.Unmarshal(bytes, daemonSet)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, daemonSet, err.Error())
+			}
+			return daemonSet, nil
 		case "deployment":
 			deployment := &types.DeploymentWrapper{}
 			err := json.Unmarshal(bytes, deployment)
@@ -34,6 +55,20 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, deployment, err.Error())
 			}
 			return deployment, nil
+		case "ingress":
+			ingress := &types.IngressWrapper{}
+			err := json.Unmarshal(bytes, ingress)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, ingress, err.Error())
+			}
+			return ingress, nil
+		case "job":
+			job := &types.JobWrapper{}
+			err := json.Unmarshal(bytes, job)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, job, err.Error())
+			}
+			return job, nil
 		case "persistent_volume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)
@@ -48,6 +83,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, pod, err.Error())
 			}
 			return pod, nil
+		case "pvc":
+			pvc := &types.PersistentVolumeClaimWrapper{}
+			err := json.Unmarshal(bytes, pvc)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, pvc, err.Error())
+			}
+			return pvc, nil
 		case "replica_set":
 			replicaSet := &types.ReplicaSetWrapper{}
 			err := json.Unmarshal(bytes, replicaSet)
@@ -62,6 +104,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, replicationController, err.Error())
 			}
 			return replicationController, nil
+		case "secret":
+			secret := &types.SecretWrapper{}
+			err := json.Unmarshal(bytes, secret)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, secret, err.Error())
+			}
+			return secret, nil
 		case "service":
 			service := &types.ServiceWrapper{}
 			err := json.Unmarshal(bytes, service)
@@ -69,41 +118,6 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, service, err.Error())
 			}
 			return service, nil
-		case "volume":
-			volume := &types.VolumeWrapper{}
-			err := json.Unmarshal(bytes, volume)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, volume, err.Error())
-			}
-			return volume, nil
-		case "job":
-			job := &types.JobWrapper{}
-			err := json.Unmarshal(bytes, job)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, job, err.Error())
-			}
-			return job, nil
-		case "daemon_set":
-			daemonSet := &types.DaemonSetWrapper{}
-			err := json.Unmarshal(bytes, daemonSet)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, daemonSet, err.Error())
-			}
-			return daemonSet, nil
-		case "cron_job":
-			cronJob := &types.CronJobWrapper{}
-			err := json.Unmarshal(bytes, cronJob)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, cronJob, err.Error())
-			}
-			return cronJob, nil
-		case "pvc":
-			pvc := &types.PersistentVolumeClaimWrapper{}
-			err := json.Unmarshal(bytes, pvc)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, pvc, err.Error())
-			}
-			return pvc, nil
 		case "stateful_set":
 			statefulSet := &types.StatefulSetWrapper{}
 			err := json.Unmarshal(bytes, statefulSet)
@@ -118,20 +132,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, storageClass, err.Error())
 			}
 			return storageClass, nil
-		case "config_map":
-			configMap := &types.ConfigMapWrapper{}
-			err := json.Unmarshal(bytes, configMap)
+		case "volume":
+			volume := &types.VolumeWrapper{}
+			err := json.Unmarshal(bytes, volume)
 			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, configMap, err.Error())
+				return nil, util.InvalidValueForTypeErrorf(objMap, volume, err.Error())
 			}
-			return configMap, nil
-		case "secret":
-			secret := &types.SecretWrapper{}
-			err := json.Unmarshal(bytes, secret)
-			if err != nil {
-				return nil, util.InvalidValueForTypeErrorf(objMap, secret, err.Error())
-			}
-			return secret, nil
+			return volume, nil
 		}
 		return nil, util.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}

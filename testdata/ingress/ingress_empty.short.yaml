@@ -1,0 +1,8 @@
+ingress:
+  annotations:
+    test_annotation: test_value
+  labels:
+    app: test_app
+  name: test_ingress
+  namespace: test_ns
+  version: extensions/v1beta1

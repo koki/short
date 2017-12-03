@@ -85,9 +85,9 @@ var s3 = &types.ServiceWrapper{
 		Allowed: []types.CIDR{
 			"0.0.0.0/0",
 		},
-		Ingress: []types.Ingress{
-			types.Ingress{Hostname: "ingressHostname"},
-			types.Ingress{IP: net.ParseIP("1.2.3.4")},
+		Ingress: []types.LoadBalancerIngress{
+			types.LoadBalancerIngress{Hostname: "ingressHostname"},
+			types.LoadBalancerIngress{IP: net.ParseIP("1.2.3.4")},
 		},
 	}}
 

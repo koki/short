@@ -40,10 +40,10 @@ type Service struct {
 	ClientIPAffinity         *intbool.IntOrBool    `json:"stickiness,omitempty"`
 
 	// LoadBalancer services:
-	LoadBalancerIP      IPAddr    `json:"lb_ip,omitempty"`
-	Allowed             []CIDR    `json:"lb_client_ips,omitempty"`
-	HealthCheckNodePort int32     `json:"healthcheck_port,omitempty"`
-	Ingress             []Ingress `json:"endpoints,omitempty"`
+	LoadBalancerIP      IPAddr                `json:"lb_ip,omitempty"`
+	Allowed             []CIDR                `json:"lb_client_ips,omitempty"`
+	HealthCheckNodePort int32                 `json:"healthcheck_port,omitempty"`
+	Ingress             []LoadBalancerIngress `json:"endpoints,omitempty"`
 }
 
 // LoadBalancer helper type.
@@ -51,7 +51,7 @@ type LoadBalancer struct {
 	IP                  IPAddr
 	Allowed             []CIDR
 	HealthCheckNodePort int32
-	Ingress             []Ingress
+	Ingress             []LoadBalancerIngress
 }
 
 type ClusterIPServiceType string
@@ -76,7 +76,7 @@ func ClusterIPAddr(a IPAddr) ClusterIP {
 	return ClusterIP(string(a))
 }
 
-type Ingress struct {
+type LoadBalancerIngress struct {
 	IP       net.IP
 	Hostname string
 }
@@ -89,7 +89,7 @@ const (
 	ExternalTrafficPolicyCluster ExternalTrafficPolicy = "cluster-wide"
 )
 
-func (i *Ingress) InitFromString(s string) {
+func (i *LoadBalancerIngress) InitFromString(s string) {
 	ip := net.ParseIP(s)
 	if ip != nil {
 		i.IP = ip
@@ -99,18 +99,18 @@ func (i *Ingress) InitFromString(s string) {
 	i.Hostname = s
 }
 
-func (i *Ingress) UnmarshalJSON(data []byte) error {
+func (i *LoadBalancerIngress) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return util.InvalidValueErrorf(string(data), "expected a string for Ingress")
+		return util.InvalidValueErrorf(string(data), "expected a string for LoadBalancerIngress")
 	}
 
 	i.InitFromString(s)
 	return nil
 }
 
-func (i Ingress) String() string {
+func (i LoadBalancerIngress) String() string {
 	if i.IP != nil {
 		return i.IP.String()
 	}
@@ -118,7 +118,7 @@ func (i Ingress) String() string {
 	return i.Hostname
 }
 
-func (i Ingress) MarshalJSON() ([]byte, error) {
+func (i LoadBalancerIngress) MarshalJSON() ([]byte, error) {
 	str := i.String()
 	b, err := json.Marshal(str)
 	if err != nil {
