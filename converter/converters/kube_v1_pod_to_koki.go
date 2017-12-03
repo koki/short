@@ -1640,7 +1640,7 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 }
 
 func convertPriority(spec v1.PodSpec) *types.Priority {
-	if spec.PriorityClassName == "" || spec.Priority == nil {
+	if spec.PriorityClassName == "" && spec.Priority == nil {
 		return nil
 	}
 	return &types.Priority{
