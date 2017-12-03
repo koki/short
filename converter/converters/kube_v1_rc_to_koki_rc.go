@@ -1,6 +1,8 @@
 package converters
 
 import (
+	"reflect"
+
 	"k8s.io/api/core/v1"
 
 	"github.com/koki/short/types"
@@ -47,15 +49,21 @@ func convertReplicationControllerStatus(kubeStatus v1.ReplicationControllerStatu
 	if err != nil {
 		return types.ReplicationControllerStatus{}, err
 	}
+
+	replicasStatus := &types.ReplicationControllerReplicasStatus{
+		Total:        kubeStatus.Replicas,
+		FullyLabeled: kubeStatus.FullyLabeledReplicas,
+		Ready:        kubeStatus.ReadyReplicas,
+		Available:    kubeStatus.AvailableReplicas,
+	}
+	if reflect.DeepEqual(replicasStatus, &types.ReplicationControllerReplicasStatus{}) {
+		replicasStatus = nil
+	}
+
 	return types.ReplicationControllerStatus{
 		ObservedGeneration: kubeStatus.ObservedGeneration,
-		Replicas: types.ReplicationControllerReplicasStatus{
-			Total:        kubeStatus.Replicas,
-			FullyLabeled: kubeStatus.FullyLabeledReplicas,
-			Ready:        kubeStatus.ReadyReplicas,
-			Available:    kubeStatus.AvailableReplicas,
-		},
-		Conditions: conditions,
+		Replicas:           replicasStatus,
+		Conditions:         conditions,
 	}, nil
 }
 

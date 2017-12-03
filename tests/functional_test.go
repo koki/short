@@ -208,7 +208,7 @@ func testFuncGenerator(t *testing.T) func(string, filePair) error {
 		convertedKokiObjString := convertedKokiObj.String()
 		equal, err := cmp.CompareReader(bytes.NewBufferString(convertedKokiObjString), unconvertedKokiObj)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("path %s err %v\n%s", path, err, convertedKokiObjString)
 			return err
 		}
 

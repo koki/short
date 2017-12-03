@@ -32,9 +32,9 @@ type ReplicationController struct {
 }
 
 type ReplicationControllerStatus struct {
-	ObservedGeneration int64                               `json:"generation_observed,omitempty"`
-	Replicas           ReplicationControllerReplicasStatus `json:"replicas_status,omitempty"`
-	Conditions         []ReplicationControllerCondition    `json:"condition,omitempty"`
+	ObservedGeneration int64                                `json:"generation_observed,omitempty"`
+	Replicas           *ReplicationControllerReplicasStatus `json:"replicas_status,omitempty"`
+	Conditions         []ReplicationControllerCondition     `json:"condition,omitempty"`
 }
 
 type ReplicationControllerReplicasStatus struct {

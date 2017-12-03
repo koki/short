@@ -65,12 +65,16 @@ func revertReplicationControllerStatus(kokiStatus types.ReplicationControllerSta
 	if err != nil {
 		return v1.ReplicationControllerStatus{}, err
 	}
+	replicasStatus := types.ReplicationControllerReplicasStatus{}
+	if kokiStatus.Replicas != nil {
+		replicasStatus = *kokiStatus.Replicas
+	}
 	return v1.ReplicationControllerStatus{
 		ObservedGeneration:   kokiStatus.ObservedGeneration,
-		Replicas:             kokiStatus.Replicas.Total,
-		FullyLabeledReplicas: kokiStatus.Replicas.FullyLabeled,
-		ReadyReplicas:        kokiStatus.Replicas.Ready,
-		AvailableReplicas:    kokiStatus.Replicas.Available,
+		Replicas:             replicasStatus.Total,
+		FullyLabeledReplicas: replicasStatus.FullyLabeled,
+		ReadyReplicas:        replicasStatus.Ready,
+		AvailableReplicas:    replicasStatus.Available,
 		Conditions:           conditions,
 	}, nil
 }
