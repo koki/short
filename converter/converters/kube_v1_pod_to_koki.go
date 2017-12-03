@@ -1621,7 +1621,7 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 		tol.ExpiryAfter = toleration.TolerationSeconds
 		tolExpr := ""
 		if toleration.Operator == v1.TolerationOpEqual {
-			tolExpr = fmt.Sprintf("%s=%s", tolExpr, toleration.Value)
+			tolExpr = fmt.Sprintf("%s=%s", toleration.Key, toleration.Value)
 		} else if toleration.Operator == v1.TolerationOpExists {
 			tolExpr = fmt.Sprintf("%s", toleration.Key)
 		} else {
