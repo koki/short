@@ -3,6 +3,7 @@ package converters
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -1253,17 +1254,10 @@ func convertMountPropagation(p v1.MountPropagationMode) (types.MountPropagation,
 
 func convertAffinity(spec v1.PodSpec) ([]types.Affinity, error) {
 	var affinity []types.Affinity
-	affinityString := ""
-	for k, v := range spec.NodeSelector {
-		expr := fmt.Sprintf("%s=%s", k, v)
-		if affinityString == "" {
-			affinityString = fmt.Sprintf("%s", expr)
-			continue
-		}
-		affinityString = fmt.Sprintf("%s&%s", affinityString, expr)
-	}
 
-	if affinityString != "" {
+	affinityExprs := convertMatchLabelsToExprs(spec.NodeSelector)
+	if len(affinityExprs) > 0 {
+		affinityString := strings.Join(affinityExprs, "&")
 		affinity = append(affinity, types.Affinity{NodeAffinity: affinityString})
 	}
 
@@ -1307,7 +1301,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 		nodeHardAffinity := nodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
 		for i := range nodeHardAffinity.NodeSelectorTerms {
 			selectorTerm := nodeHardAffinity.NodeSelectorTerms[i]
-			affinityString := ""
+			affinityExprs := []string{}
 			for i := range selectorTerm.MatchExpressions {
 
 				expr := selectorTerm.MatchExpressions[i]
@@ -1323,13 +1317,10 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				if expr.Operator == v1.NodeSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
+				affinityExprs = append(affinityExprs, kokiExpr)
 			}
-			if len(affinityString) > 0 {
+			if len(affinityExprs) > 0 {
+				affinityString := strings.Join(affinityExprs, "&")
 				affinity = append(affinity, types.Affinity{NodeAffinity: affinityString})
 			}
 		}
@@ -1340,7 +1331,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 		nodeSoftAffinity := nodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution
 		for i := range nodeSoftAffinity {
 			selectorTerm := nodeSoftAffinity[i]
-			affinityString := ""
+			affinityExprs := []string{}
 			weight := selectorTerm.Weight
 			for i := range selectorTerm.Preference.MatchExpressions {
 				expr := selectorTerm.Preference.MatchExpressions[i]
@@ -1356,13 +1347,10 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				if expr.Operator == v1.NodeSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
+				affinityExprs = append(affinityExprs, kokiExpr)
 			}
-			if len(affinityString) > 0 {
+			if len(affinityExprs) > 0 {
+				affinityString := strings.Join(affinityExprs, "&")
 				affinityString = fmt.Sprintf("%s:soft", affinityString)
 				// The default value for Weight is 1. 0 means "unspecified".
 				if weight != 0 {
@@ -1417,17 +1405,10 @@ func convertPodWeightedAffinityTerms(isAntiAffinity bool, podSoftAffinity []v1.W
 	for i := range podSoftAffinity {
 		selectorTerm := podSoftAffinity[i]
 		weight := selectorTerm.Weight
-		affinityString := ""
+		affinityExprs := []string{}
 		if selectorTerm.PodAffinityTerm.LabelSelector != nil {
 			// parse through match labels first
-			for k, v := range selectorTerm.PodAffinityTerm.LabelSelector.MatchLabels {
-				kokiExpr := fmt.Sprintf("%s=%s", k, v)
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
-			}
+			affinityExprs = append(affinityExprs, convertMatchLabelsToExprs(selectorTerm.PodAffinityTerm.LabelSelector.MatchLabels)...)
 
 			// parse through match expressions now
 			for i := range selectorTerm.PodAffinityTerm.LabelSelector.MatchExpressions {
@@ -1444,14 +1425,11 @@ func convertPodWeightedAffinityTerms(isAntiAffinity bool, podSoftAffinity []v1.W
 				if expr.Operator == metav1.LabelSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
+				affinityExprs = append(affinityExprs, kokiExpr)
 			}
 		}
-		if len(affinityString) > 0 {
+		if len(affinityExprs) > 0 {
+			affinityString := strings.Join(affinityExprs, "&")
 			affinityString = fmt.Sprintf("%s:soft", affinityString)
 			if weight != 0 {
 				affinityString = fmt.Sprintf("%s:%d", affinityString, weight)
@@ -1476,18 +1454,11 @@ func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffini
 	// Pod hard affinity
 	for i := range podHardAffinity {
 		selectorTerm := podHardAffinity[i]
-		affinityString := ""
+		affinityExprs := []string{}
 
 		if selectorTerm.LabelSelector != nil {
 			// parse through match labels first
-			for k, v := range selectorTerm.LabelSelector.MatchLabels {
-				kokiExpr := fmt.Sprintf("%s=%s", k, v)
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
-			}
+			affinityExprs = append(affinityExprs, convertMatchLabelsToExprs(selectorTerm.LabelSelector.MatchLabels)...)
 
 			// parse through match expressions now
 			for i := range selectorTerm.LabelSelector.MatchExpressions {
@@ -1504,15 +1475,12 @@ func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffini
 				if expr.Operator == metav1.LabelSelectorOpDoesNotExist {
 					kokiExpr = fmt.Sprintf("!%s", expr.Key)
 				}
-				if len(affinityString) == 0 {
-					affinityString = kokiExpr
-					continue
-				}
-				affinityString = fmt.Sprintf("%s&%s", affinityString, kokiExpr)
+				affinityExprs = append(affinityExprs, kokiExpr)
 			}
 		}
 
-		if len(affinityString) > 0 {
+		if len(affinityExprs) > 0 {
+			affinityString := strings.Join(affinityExprs, "&")
 			a := types.Affinity{
 				PodAffinity: affinityString,
 				Namespaces:  selectorTerm.Namespaces,
@@ -1526,6 +1494,16 @@ func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffini
 		}
 	}
 	return affinity, nil
+}
+
+// sorts the resulting expressions because of inconsistent iteration order for map entries.
+func convertMatchLabelsToExprs(matchLabels map[string]string) []string {
+	exprs := []string{}
+	for key, val := range matchLabels {
+		exprs = append(exprs, fmt.Sprintf("%s=%s", key, val))
+	}
+	sort.Strings(exprs)
+	return exprs
 }
 
 func convertOperator(op v1.NodeSelectorOperator) (string, error) {
