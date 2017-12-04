@@ -14,5 +14,4 @@ replication_controller:
       app: redis
   ready_seconds: 32
   replicas: 1
-  replicas_status: {}
   version: v1
