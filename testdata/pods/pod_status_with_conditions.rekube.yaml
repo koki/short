@@ -1,0 +1,152 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    meta: _test
+  clusterName: test_cluster
+  creationTimestamp: null
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+spec:
+  containers:
+  - args:
+    - set
+    - of
+    - args
+    command:
+    - set
+    - of
+    - commands
+    env:
+    - name: key
+      value: value
+    - name: key
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: key
+      valueFrom:
+        resourceFieldRef:
+          divisor: "0"
+          resource: requests.cpu
+    - name: key
+      valueFrom:
+        configMapKeyRef:
+          key: key.in.map
+          name: configMapName
+          optional: false
+    - name: key
+    envFrom:
+    - configMapRef:
+        name: configMapName
+        optional: false
+      prefix: FROM_CONFIG_
+    - prefix: FROM_SECRET_
+      secretRef:
+        name: secretName
+    image: container_image
+    imagePullPolicy: Always
+    lifecycle:
+      postStart:
+        httpGet:
+          host: localhost
+          httpHeaders:
+          - name: X-Custom-Header
+            value: Awesome
+          path: /healthz
+          port: "8080"
+          scheme: HTTP
+      preStop:
+        exec:
+          command:
+          - cat
+          - /tmp/healthy
+    livenessProbe:
+      httpGet:
+        host: localhost
+        httpHeaders:
+        - name: X-Custom-Header
+          value: Awesome
+        path: /healthz
+        port: 0
+        scheme: HTTP
+      initialDelaySeconds: 3
+      periodSeconds: 3
+    name: container_name
+    ports:
+    - containerPort: 80
+      hostPort: 8080
+      name: port_name
+      protocol: TCP
+    readinessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      tcpSocket:
+        port: 0
+    resources:
+      limits:
+        cpu: "1"
+        memory: 256M
+      requests:
+        cpu: 250m
+        memory: 64M
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities:
+        add:
+        - NET_ADMIN
+        - PID
+        drop:
+        - NET_ADMIN
+        - WALK
+      privileged: true
+      runAsUser: 8
+      seLinuxOptions:
+        level: level
+        role: role
+        type: type
+        user: user
+    stdin: true
+    stdinOnce: true
+    terminationMessagePath: /path/to/termination
+    terminationMessagePolicy: File
+    tty: true
+    volumeMounts:
+    - mountPath: /var/lib/vol
+      mountPropagation: Bidirectional
+      name: host_path_test_volume
+      readOnly: true
+      subPath: /var/lib/sub/path
+    - mountPath: /var/lib/vol
+      mountPropagation: HostToContainer
+      name: empty_dir_test_volume
+      subPath: /var/lib/sub/path
+    - mountPath: /var/lib/vol
+      mountPropagation: HostToContainer
+      name: gce_pd_test_volume
+      subPath: /var/lib/sub/path
+    workingDir: /path/to/wd
+  volumes:
+  - emptyDir:
+      medium: Memory
+      sizeLimit: 100m
+    name: empty_dir_test_volume
+  - gcePersistentDisk:
+      fsType: ext4
+      partition: 1
+      pdName: gce_pd_test_volume
+      readOnly: true
+    name: gce_pd_test_volume
+  - hostPath:
+      path: /path/to/host/vol
+      type: Directory
+    name: host_path_test_volume
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: null
+    status: "False"
+    type: Ready
+

@@ -14,4 +14,4 @@ status:
   loadBalancer:
     ingress:
     - ip: 10.10.1.10
-      hostname: my.hostname
+    - hostname: my.hostname

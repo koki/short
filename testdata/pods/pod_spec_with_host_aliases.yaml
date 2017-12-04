@@ -17,5 +17,3 @@ spec:
   - ip: 10.1.10.1
     hostnames:
     - local.printer
-  - ip: 10.11.1.11
-    hostnames:

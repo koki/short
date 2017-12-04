@@ -486,6 +486,7 @@ func convertFibreChannelVolume(source *v1.FCVolumeSource) *types.FibreChannelVol
 		Lun:        source.Lun,
 		ReadOnly:   source.ReadOnly,
 		WWIDs:      source.WWIDs,
+		FSType:     source.FSType,
 	}
 }
 

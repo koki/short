@@ -1,0 +1,23 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  creationTimestamp: null
+  name: cronjob-example
+spec:
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      selector:
+        matchLabels:
+          koki.io/selector.name: cronjob-example
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            koki.io/selector.name: cronjob-example
+        spec:
+          containers: null
+  schedule: ""
+status: {}
+

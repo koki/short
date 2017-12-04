@@ -10,6 +10,9 @@ metadata:
   clusterName: test_cluster
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: redis
   template:
     metadata:
       labels:

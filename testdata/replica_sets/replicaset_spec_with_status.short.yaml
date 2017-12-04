@@ -22,4 +22,7 @@ replica_set:
     fully_labeled: 1
     ready: 1
     total: 1
+  selector:
+    app: redis
   version: apps/v1beta2
+

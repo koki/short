@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: web
+spec:
+  selector:
+    matchLabels:
+      koki.io/selector.name: web
+  serviceName: ""
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        koki.io/selector.name: web
+    spec:
+      containers: null
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+status:
+  replicas: 0
+

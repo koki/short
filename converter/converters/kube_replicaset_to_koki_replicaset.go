@@ -74,7 +74,7 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 		return nil, err
 	}
 
-	if selector != nil && (selector.Labels != nil && selector.Shorthand != "") {
+	if selector != nil && (selector.Labels != nil || selector.Shorthand != "") {
 		kokiRS.Selector = selector
 	}
 
@@ -160,14 +160,12 @@ func convertRSLabelSelector(kubeSelector *metav1.LabelSelector, kubeTemplateLabe
 	}
 
 	if len(kubeSelector.MatchExpressions) == 0 {
-		// We have Labels for both Selector and Template.
-		// If they're equal, we only need one.
 		if reflect.DeepEqual(kubeSelector.MatchLabels, kubeTemplateLabels) {
+			// Selector and template labels are identical. Just keep the selector.
 			return &types.RSSelector{
 				Labels: kubeSelector.MatchLabels,
 			}, nil, nil
 		}
-
 		return &types.RSSelector{
 			Labels: kubeSelector.MatchLabels,
 		}, kubeTemplateLabels, nil

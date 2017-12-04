@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+  annotations:
+    meta: _test
+  clusterName: test_cluster
+  creationTimestamp: null
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      koki.io/selector.name: meta_test
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        koki.io/selector.name: meta_test
+    spec:
+      containers: null
+status:
+  replicas: 0
+
