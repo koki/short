@@ -55,6 +55,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, util.InvalidValueForTypeErrorf(objMap, deployment, err.Error())
 			}
 			return deployment, nil
+		case "endpoints":
+			endpoints := &types.EndpointsWrapper{}
+			err := json.Unmarshal(bytes, endpoints)
+			if err != nil {
+				return nil, util.InvalidValueForTypeErrorf(objMap, endpoints, err.Error())
+			}
+			return endpoints, nil
 		case "ingress":
 			ingress := &types.IngressWrapper{}
 			err := json.Unmarshal(bytes, ingress)
