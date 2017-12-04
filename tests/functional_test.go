@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	_ "io/ioutil"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/kr/pretty"
+	"github.com/udhos/equalfile"
 
 	"github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
-	"github.com/udhos/equalfile"
 )
 
 var cmp *equalfile.Cmp
@@ -126,98 +129,135 @@ type filePair struct {
 	kokiSpec *os.File
 }
 
+func objectDiffString(a, b interface{}) string {
+	return strings.Join(pretty.Diff(a, b), "\n")
+}
+
 func testFuncGenerator(t *testing.T) func(string, filePair) error {
 	return func(path string, fp filePair) error {
 		if fp.kubeSpec == nil || fp.kokiSpec == nil {
 			return nil
 		}
 
-		unconvertedKokiObj := &bytes.Buffer{}
-		unconvertedKokiStream := TeeReader(fp.kokiSpec, unconvertedKokiObj)
-
-		unconvertedKubeObj := &bytes.Buffer{}
-		unconvertedKubeStream := TeeReader(fp.kubeSpec, unconvertedKubeObj)
-
-		// convert kube to koki
-		streams := []io.ReadCloser{unconvertedKubeStream}
-		objs, err := parser.ParseStreams(streams)
+		unconvertedKoki, err := ioutil.ReadAll(fp.kokiSpec)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed to read koki at %s", path)
+			return err
+		}
+		unconvertedKube, err := ioutil.ReadAll(fp.kubeSpec)
+		if err != nil {
+			t.Errorf("failed to read kube at %s", path)
 			return err
 		}
 
-		kokiObjs, err := converter.ConvertToKokiNative(objs)
+		err = testKubeToKoki(path, unconvertedKube, unconvertedKoki, t)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed kube -> koki")
 			return err
 		}
 
-		convertedKokiObj := &bytes.Buffer{}
-
-		err = client.WriteObjsToYamlStream(kokiObjs, convertedKokiObj)
+		err = testKokiToKube(path, unconvertedKoki, unconvertedKube, t)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed koki -> kube")
 			return err
 		}
 
-		// convert koki to kube
-		streams = []io.ReadCloser{unconvertedKokiStream}
-		objs, err = parser.ParseStreams(streams)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		kubeObjs, err := converter.ConvertToKubeNative(objs)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		convertedKubeObj := &bytes.Buffer{}
-
-		err = client.WriteObjsToYamlStream(kubeObjs, convertedKubeObj)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		//cb, _ := ioutil.ReadAll(convertedKubeObj)
-		//ucb, _ := ioutil.ReadAll(unconvertedKubeObj)
-
-		//t.Fatalf("converted=%s \n unconverted=%s \n", string(cb), string(ucb))
-
-		/*equal, err := cmp.CompareReader(convertedKubeObj, unconvertedKubeObj)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		if !equal {
-			t.Errorf("Failed to translate from Koki To Kube types. Resource Path=%s", path)
-			return nil
-		}*/
-
-		/*if path == "../testdata/pods/pod_spec_with_affinity" {
-			cb, _ := ioutil.ReadAll(convertedKokiObj)
-			ucb, _ := ioutil.ReadAll(unconvertedKokiObj)
-
-			t.Fatalf("\nconverted(%d)=\n%s\nunconverted(%d)=\n%s \n", len(cb), cb, len(ucb), ucb)
-		}*/
-
-		convertedKokiObjString := convertedKokiObj.String()
-		equal, err := cmp.CompareReader(bytes.NewBufferString(convertedKokiObjString), unconvertedKokiObj)
-		if err != nil {
-			t.Errorf("path %s err %v\n%s", path, err, convertedKokiObjString)
-			return err
-		}
-
-		if !equal {
-			t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s\n%s", path, convertedKokiObjString)
-			return nil
-		}
 		return nil
 	}
+}
+
+func testKubeToKoki(path string, unconvertedKube, unconvertedKoki []byte, t *testing.T) error {
+	// convert kube to koki
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedKube))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	kokiObjs, err := converter.ConvertToKokiNative(objs)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	convertedKoki := &bytes.Buffer{}
+
+	err = client.WriteObjsToYamlStream(kokiObjs, convertedKoki)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	// Extract the converted contents so we can output it if there's an error.
+	convertedKokiString := convertedKoki.String()
+
+	equal, err := cmp.CompareReader(bytes.NewBufferString(convertedKokiString), bytes.NewReader(unconvertedKoki))
+	if err != nil {
+		t.Errorf("path %s err %v\n%s\n\n%s", path, err, convertedKokiString, string(unconvertedKoki))
+		return err
+	}
+
+	if !equal {
+		t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s\n%s\n\n%s", path, convertedKokiString, string(unconvertedKoki))
+		return nil
+	}
+	return nil
+}
+
+func testKokiToKube(path string, unconvertedKoki, unconvertedKube []byte, t *testing.T) error {
+	// convert koki to kube
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedKoki))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	kubeObjs, err := converter.ConvertToKubeNative(objs)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	/*
+		convertedKube := &bytes.Buffer{}
+
+		err = client.WriteObjsToYamlStream(kubeObjs, convertedKube)
+		if err != nil {
+			t.Errorf("path %s err %v", path, err)
+			return err
+		}
+
+		// Extract the converted contents so we can output it if there's an error.
+		convertedKubeString := convertedKube.String()
+	*/
+
+	expectedStreams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedKube))}
+	expectedObjs, err := parser.ParseStreams(expectedStreams)
+	if err != nil {
+		t.Errorf("error parsing expected kube objects")
+		return err
+	}
+	if len(expectedObjs) != len(kubeObjs) {
+		t.Errorf("different number of converted objects than expected: %d instead of %d", len(kubeObjs), len(expectedObjs))
+		return nil
+	}
+	for i, obj := range expectedObjs {
+		expectedKubeObj, err := parser.ParseSingleKubeNative(obj)
+		if err != nil {
+			t.Errorf("error parsing expected kube objects")
+			return err
+		}
+
+		kubeObj := kubeObjs[i]
+		if !reflect.DeepEqual(kubeObj, expectedKubeObj) {
+			t.Errorf("Failed to translate from Koki To Kube types. Resource Path=%s\n%s", path, objectDiffString(kubeObj, expectedKubeObj))
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func testResource(resource string, test func(string, filePair) error) error {
