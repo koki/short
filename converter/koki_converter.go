@@ -27,6 +27,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_DaemonSet_to_Kube_DaemonSet(kokiObj)
 	case *types.DeploymentWrapper:
 		return converters.Convert_Koki_Deployment_to_Kube_Deployment(kokiObj)
+	case *types.EndpointsWrapper:
+		return converters.Convert_Koki_Endpoints_to_Kube_v1_Endpoints(kokiObj)
 	case *types.IngressWrapper:
 		return converters.Convert_Koki_Ingress_to_Kube_Ingress(kokiObj)
 	case *types.JobWrapper:
@@ -74,6 +76,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
 	case *exts.Deployment:
 		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
+	case *v1.Endpoints:
+		return converters.Convert_Kube_v1_Endpoints_to_Koki_Endpoints(kubeObj)
 	case *exts.Ingress:
 		return converters.Convert_Kube_Ingress_to_Koki_Ingress(kubeObj)
 	case *batchv1.Job:
