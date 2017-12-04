@@ -94,7 +94,7 @@ func revertPodObjectMeta(kokiMeta types.PodTemplateMeta) metav1.ObjectMeta {
 	}
 	var annotations map[string]string
 	if len(kokiMeta.Annotations) > 0 {
-		labels = kokiMeta.Annotations
+		annotations = kokiMeta.Annotations
 	}
 	return metav1.ObjectMeta{
 		Name:        kokiMeta.Name,
