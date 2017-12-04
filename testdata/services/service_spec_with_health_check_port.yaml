@@ -10,3 +10,4 @@ metadata:
   clusterName: test_cluster
 spec:
   healthCheckNodePort: 32
+  type: LoadBalancer
