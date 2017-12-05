@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: example-job
+spec:
+  selector:
+    matchLabels:
+      koki.io/selector.name: example-job
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        koki.io/selector.name: example-job
+      name: example-job
+    spec:
+      containers:
+      - args:
+        - -Mbignum=bpi
+        - -wle
+        - print bpi(2000)
+        command:
+        - perl
+        image: perl
+        name: pi
+        resources: {}
+      restartPolicy: Never
+status: {}
+

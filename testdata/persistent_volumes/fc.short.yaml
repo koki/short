@@ -5,6 +5,7 @@ persistent_volume:
     name: claimName
     namespace: claimNamespace
   cluster: cluster
+  fs: ext4
   labels:
     labelKey: labelValue
   lun: 2

@@ -11,4 +11,6 @@ replica_set:
   namespace: test
   replicas: 1
   replicas_status: {}
+  selector:
+    app: redis
   version: apps/v1beta2

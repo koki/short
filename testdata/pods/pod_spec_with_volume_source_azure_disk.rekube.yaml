@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    meta: _test
+  clusterName: test_cluster
+  creationTimestamp: null
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+spec:
+  containers: null
+  volumes:
+  - azureDisk:
+      cachingMode: ReadWrite
+      diskName: azure_disk_name
+      diskURI: disk://uri.azure.disk
+      fsType: xfs
+      kind: Dedicated
+    name: azure_disk_test_volume
+status: {}
+

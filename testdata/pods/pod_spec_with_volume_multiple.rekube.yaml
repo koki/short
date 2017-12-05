@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    meta: _test
+  clusterName: test_cluster
+  creationTimestamp: null
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+spec:
+  containers: null
+  volumes:
+  - emptyDir:
+      medium: Memory
+      sizeLimit: 100m
+    name: empty_dir_test_volume
+  - gcePersistentDisk:
+      fsType: ext4
+      partition: 1
+      pdName: gce_pd_test_volume
+      readOnly: true
+    name: gce_pd_test_volume
+  - hostPath:
+      path: /path/to/host/vol
+      type: Directory
+    name: host_path_test_volume
+status: {}
+

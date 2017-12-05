@@ -9,6 +9,7 @@ pod:
   version: v1
   volumes:
     test_volume:
+      fs: xfs
       lun: 3
       ro: true
       vol_type: fc

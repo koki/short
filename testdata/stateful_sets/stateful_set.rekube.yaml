@@ -1,0 +1,52 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  serviceName: nginx
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: gcr.io/google_containers/nginx-slim:0.8
+        name: nginx
+        ports:
+        - containerPort: 80
+          name: web
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          mountPropagation: ""
+          name: www
+      terminationGracePeriodSeconds: 10
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: www
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      selector:
+        matchLabels:
+          koki.io/selector.name: www
+      storageClassName: my-storage-class
+    status: {}
+status:
+  replicas: 0
+

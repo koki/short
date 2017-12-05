@@ -4,17 +4,27 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	_ "io/ioutil"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/kr/pretty"
+	"github.com/udhos/equalfile"
 
 	"github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
-	"github.com/udhos/equalfile"
 )
+
+var temporarilyIgnoredResourceIDs = map[string]bool{
+	"../testdata/pods/pod_spec_with_service_account":  true,
+	"../testdata/pods/pod_spec_with_automount":        true,
+	"../testdata/pods/pod_spec_with_volume_name":      true,
+	"../testdata/pods/pod_spec_with_security_context": true,
+}
 
 var cmp *equalfile.Cmp
 
@@ -122,133 +132,225 @@ func TestIngress(t *testing.T) {
 }
 
 type filePair struct {
-	kubeSpec *os.File
-	kokiSpec *os.File
+	kubeSpec   string
+	kokiSpec   string
+	rekubeSpec string
+}
+
+func objectsEqual(a, b interface{}, aBytes, bBytes []byte) bool {
+	if reflect.DeepEqual(a, b) {
+		return true
+	}
+
+	aString := strings.Trim(string(aBytes), "\n")
+	bString := strings.Trim(string(bBytes), "\n")
+
+	return aString == bString
+}
+
+func objectDiffString(a, b interface{}, aBytes, bBytes []byte) string {
+	diff := pretty.Diff(a, b)
+	if len(diff) > 0 {
+		return strings.Join(diff, "\n")
+	}
+
+	return fmt.Sprintf("{\n%s\n\n%s\n}", string(aBytes), string(bBytes))
 }
 
 func testFuncGenerator(t *testing.T) func(string, filePair) error {
 	return func(path string, fp filePair) error {
-		if fp.kubeSpec == nil || fp.kokiSpec == nil {
-			return nil
-		}
-
-		unconvertedKokiObj := &bytes.Buffer{}
-		unconvertedKokiStream := TeeReader(fp.kokiSpec, unconvertedKokiObj)
-
-		unconvertedKubeObj := &bytes.Buffer{}
-		unconvertedKubeStream := TeeReader(fp.kubeSpec, unconvertedKubeObj)
-
-		// convert kube to koki
-		streams := []io.ReadCloser{unconvertedKubeStream}
-		objs, err := parser.ParseStreams(streams)
+		kokiFile, err := os.Open(fp.kokiSpec)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed to open koki file for %s at %s", path, fp.kokiSpec)
+			return err
+		}
+		kubeFile, err := os.Open(fp.kubeSpec)
+		if err != nil {
+			t.Errorf("failed to open kube file for %s at %s", path, fp.kubeSpec)
 			return err
 		}
 
-		kokiObjs, err := converter.ConvertToKokiNative(objs)
+		unconvertedKoki, err := ioutil.ReadAll(kokiFile)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed to read koki at %s", path)
+			return err
+		}
+		unconvertedKube, err := ioutil.ReadAll(kubeFile)
+		if err != nil {
+			t.Errorf("failed to read kube at %s", path)
 			return err
 		}
 
-		convertedKokiObj := &bytes.Buffer{}
-
-		err = client.WriteObjsToYamlStream(kokiObjs, convertedKokiObj)
+		err = testKubeToKoki(path, unconvertedKube, unconvertedKoki, t)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed kube -> koki")
 			return err
 		}
 
-		// convert koki to kube
-		streams = []io.ReadCloser{unconvertedKokiStream}
-		objs, err = parser.ParseStreams(streams)
+		// Some test cases don't expect to round-trip exactly.
+		// Those tests have a .rekube.yaml file.
+		if len(fp.rekubeSpec) > 0 {
+			kubeFile, err := os.Open(fp.rekubeSpec)
+			if err != nil {
+				t.Errorf("failed to open rekube file for %s at %s", path, fp.rekubeSpec)
+				return err
+			}
+			unconvertedKube, err = ioutil.ReadAll(kubeFile)
+			if err != nil {
+				t.Errorf("failed to read rekube at %s", path)
+				return err
+			}
+		}
+		err = testKokiToKube(path, unconvertedKoki, unconvertedKube, t)
 		if err != nil {
-			t.Errorf("path %s err %v", path, err)
+			t.Errorf("failed koki -> kube")
 			return err
 		}
 
-		kubeObjs, err := converter.ConvertToKubeNative(objs)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		convertedKubeObj := &bytes.Buffer{}
-
-		err = client.WriteObjsToYamlStream(kubeObjs, convertedKubeObj)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		//cb, _ := ioutil.ReadAll(convertedKubeObj)
-		//ucb, _ := ioutil.ReadAll(unconvertedKubeObj)
-
-		//t.Fatalf("converted=%s \n unconverted=%s \n", string(cb), string(ucb))
-
-		/*equal, err := cmp.CompareReader(convertedKubeObj, unconvertedKubeObj)
-		if err != nil {
-			t.Errorf("path %s err %v", path, err)
-			return err
-		}
-
-		if !equal {
-			t.Errorf("Failed to translate from Koki To Kube types. Resource Path=%s", path)
-			return nil
-		}*/
-
-		/*if path == "../testdata/pods/pod_spec_with_affinity" {
-			cb, _ := ioutil.ReadAll(convertedKokiObj)
-			ucb, _ := ioutil.ReadAll(unconvertedKokiObj)
-
-			t.Fatalf("\nconverted(%d)=\n%s\nunconverted(%d)=\n%s \n", len(cb), cb, len(ucb), ucb)
-		}*/
-
-		convertedKokiObjString := convertedKokiObj.String()
-		equal, err := cmp.CompareReader(bytes.NewBufferString(convertedKokiObjString), unconvertedKokiObj)
-		if err != nil {
-			t.Errorf("path %s err %v\n%s", path, err, convertedKokiObjString)
-			return err
-		}
-
-		if !equal {
-			t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s\n%s", path, convertedKokiObjString)
-			return nil
-		}
 		return nil
 	}
 }
 
-func testResource(resource string, test func(string, filePair) error) error {
+func testKubeToKoki(path string, unconvertedKube, expectedKokiBytes []byte, t *testing.T) error {
+	expectedKokis, err := parseKokiBytes(expectedKokiBytes)
+	if err != nil {
+		t.Errorf("couldn't parse expected koki: path %s err %v", path, err)
+	}
 
+	// convert kube to koki
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedKube))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	kokis, err := converter.ConvertToKokiNative(objs)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	convertedKokiBuf := &bytes.Buffer{}
+	err = client.WriteObjsToYamlStream(kokis, convertedKokiBuf)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+	convertedKokiBytes := convertedKokiBuf.Bytes()
+
+	if !objectsEqual(kokis, expectedKokis, convertedKokiBytes, expectedKokiBytes) {
+		t.Errorf("Failed to translate from Kube To Koki types. Resource Path=%s\n%s", path,
+			objectDiffString(kokis, expectedKokis, convertedKokiBytes, expectedKokiBytes))
+		return fmt.Errorf("failed to translate")
+	}
+	return nil
+}
+
+// Parse koki objects.
+func parseKokiBytes(b []byte) ([]interface{}, error) {
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(b))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		return nil, err
+	}
+
+	kokis := make([]interface{}, len(objs))
+	for i, obj := range objs {
+		kokis[i], err = parser.ParseKokiNativeObject(obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return kokis, nil
+}
+
+// Reformat the kube-native yaml by round-tripping it.
+func roundTripKubeBytes(b []byte) ([]interface{}, []byte, error) {
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(b))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	kubes := make([]interface{}, len(objs))
+	for i, obj := range objs {
+		kubes[i], err = parser.ParseSingleKubeNative(obj)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	kubesBuf := &bytes.Buffer{}
+	err = client.WriteObjsToYamlStream(kubes, kubesBuf)
+	if err != nil {
+		return nil, nil, err
+	}
+	return kubes, kubesBuf.Bytes(), nil
+}
+
+func testKokiToKube(path string, unconvertedKoki, unconvertedKubeRaw []byte, t *testing.T) error {
+	// reformat "expected" kube yaml
+	expectedKubes, expectedKubeBytes, err := roundTripKubeBytes(unconvertedKubeRaw)
+	if err != nil {
+		t.Errorf("couldn't reformat expected kube: path %s err %v", path, err)
+	}
+
+	// convert koki to kube
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedKoki))}
+	objs, err := parser.ParseStreams(streams)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	kubes, err := converter.ConvertToKubeNative(objs)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+
+	convertedKubeBuf := &bytes.Buffer{}
+	err = client.WriteObjsToYamlStream(kubes, convertedKubeBuf)
+	if err != nil {
+		t.Errorf("path %s err %v", path, err)
+		return err
+	}
+	convertedKubeBytes := convertedKubeBuf.Bytes()
+
+	if !objectsEqual(kubes, expectedKubes, convertedKubeBytes, expectedKubeBytes) {
+		t.Errorf("Failed to translate from Koki To Kube types. Resource Path=%s\n%s", path,
+			objectDiffString(kubes, expectedKubes, convertedKubeBytes, expectedKubeBytes))
+		return fmt.Errorf("failed to translate")
+	}
+
+	return nil
+}
+
+func filePairsForResource(resource string) (map[string]filePair, error) {
 	filePairs := map[string]filePair{}
 	root := fmt.Sprintf("../testdata/%s", resource)
 
-	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if strings.HasSuffix(path, ".short.yaml") {
-			resourceId := strings.TrimSuffix(path, ".short.yaml")
-			fp := filePairs[resourceId]
-			kokiSpec, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			fp.kokiSpec = kokiSpec
-			filePairs[resourceId] = fp
-			test(resourceId, fp)
+			resourceID := strings.TrimSuffix(path, ".short.yaml")
+			fp := filePairs[resourceID]
+			fp.kokiSpec = path
+			filePairs[resourceID] = fp
+		} else if strings.HasSuffix(path, ".rekube.yaml") {
+			resourceID := strings.TrimSuffix(path, ".rekube.yaml")
+			fp := filePairs[resourceID]
+			fp.rekubeSpec = path
+			filePairs[resourceID] = fp
 		} else if strings.HasSuffix(path, ".yaml") {
-			resourceId := strings.TrimSuffix(path, ".yaml")
-			fp := filePairs[resourceId]
-			kubeSpec, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			fp.kubeSpec = kubeSpec
-			filePairs[resourceId] = fp
-			test(resourceId, fp)
+			resourceID := strings.TrimSuffix(path, ".yaml")
+			fp := filePairs[resourceID]
+			fp.kubeSpec = path
+			filePairs[resourceID] = fp
 		} else if path == root {
 			return nil
 		} else {
@@ -256,32 +358,33 @@ func testResource(resource string, test func(string, filePair) error) error {
 		}
 		return nil
 	})
+
+	return filePairs, err
 }
 
-// TeeReader returns a Reader that writes to w what it reads from r.
-// All reads from r performed through it are matched with
-// corresponding writes to w. There is no internal buffering -
-// the write must complete before the read completes.
-// Any error encountered while writing is reported as a read error.
-func TeeReader(r io.ReadCloser, w io.Writer) io.ReadCloser {
-	return &teeReader{r, w}
-}
+func testResource(resource string, test func(string, filePair) error) error {
+	filePairs, err := filePairsForResource(resource)
+	if err != nil {
+		return err
+	}
 
-type teeReader struct {
-	r io.ReadCloser
-	w io.Writer
-}
+	failCount := 0
+	var lastError error
+	for resourceID, files := range filePairs {
+		if _, ok := temporarilyIgnoredResourceIDs[resourceID]; ok {
+			continue
+		}
 
-func (t *teeReader) Read(p []byte) (n int, err error) {
-	n, err = t.r.Read(p)
-	if n > 0 {
-		if n, err := t.w.Write(p[:n]); err != nil {
-			return n, err
+		err := test(resourceID, files)
+		if err != nil {
+			failCount++
+			lastError = err
 		}
 	}
-	return
-}
 
-func (t *teeReader) Close() error {
-	return t.r.Close()
+	if lastError != nil {
+		return fmt.Errorf("\n\nerror #%d: %s\n\n", failCount, lastError.Error())
+	}
+
+	return nil
 }

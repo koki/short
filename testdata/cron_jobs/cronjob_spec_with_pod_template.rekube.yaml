@@ -1,0 +1,31 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  creationTimestamp: null
+  name: hello
+spec:
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      selector:
+        matchLabels:
+          koki.io/selector.name: hello
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            koki.io/selector.name: hello
+        spec:
+          containers:
+          - args:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+            image: busybox
+            name: hello
+            resources: {}
+          restartPolicy: OnFailure
+  schedule: '*/1 * * * *'
+status: {}
+

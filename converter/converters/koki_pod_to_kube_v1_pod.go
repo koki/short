@@ -2,6 +2,7 @@ package converters
 
 import (
 	"net/url"
+	"sort"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -94,7 +95,7 @@ func revertPodObjectMeta(kokiMeta types.PodTemplateMeta) metav1.ObjectMeta {
 	}
 	var annotations map[string]string
 	if len(kokiMeta.Annotations) > 0 {
-		labels = kokiMeta.Annotations
+		annotations = kokiMeta.Annotations
 	}
 	return metav1.ObjectMeta{
 		Name:        kokiMeta.Name,
@@ -116,8 +117,8 @@ func revertPodSpec(kokiPod types.PodTemplate) (*v1.PodSpec, error) {
 	if len(fields) == 1 {
 		spec.Hostname = kokiPod.Hostname
 	} else {
-		spec.Hostname = fields[0]
-		spec.Subdomain = fields[1]
+		spec.Hostname = fields[1]
+		spec.Subdomain = fields[0]
 	}
 
 	var initContainers []v1.Container
@@ -209,7 +210,13 @@ func revertPodSpec(kokiPod types.PodTemplate) (*v1.PodSpec, error) {
 
 func revertVolumes(kokiVolumes map[string]types.Volume) ([]v1.Volume, error) {
 	kubeVolumes := []v1.Volume{}
-	for name, kokiVolume := range kokiVolumes {
+	names := []string{}
+	for name, _ := range kokiVolumes {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		kokiVolume := kokiVolumes[name]
 		kubeVolume, err := revertVolume(name, kokiVolume)
 		if err != nil {
 			return nil, err
@@ -366,7 +373,13 @@ func revertDownwardAPIVolumeFiles(kokiItems map[string]types.DownwardAPIVolumeFi
 	}
 
 	items := []v1.DownwardAPIVolumeFile{}
-	for path, kokiItem := range kokiItems {
+	paths := []string{}
+	for path, _ := range kokiItems {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+	for _, path := range paths {
+		kokiItem := kokiItems[path]
 		items = append(items, v1.DownwardAPIVolumeFile{
 			Path:             path,
 			FieldRef:         revertObjectFieldRef(kokiItem.FieldRef),
@@ -1090,7 +1103,26 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 			TolerationSeconds: toleration.ExpiryAfter,
 		}
 
-		fields := strings.Split(string(toleration.Selector), "=")
+		superFields := strings.Split(string(toleration.Selector), ":")
+		switch len(superFields) {
+		case 2:
+			switch superFields[1] {
+			case "NoSchedule":
+				kubeToleration.Effect = v1.TaintEffectNoSchedule
+			case "PreferNoSchedule":
+				kubeToleration.Effect = v1.TaintEffectPreferNoSchedule
+			case "NoExecute":
+				kubeToleration.Effect = v1.TaintEffectNoExecute
+			default:
+				return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
+			}
+		case 1:
+			// Do nothing
+		default:
+			return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration effect")
+		}
+
+		fields := strings.Split(superFields[0], "=")
 		if len(fields) == 1 {
 			kubeToleration.Key = fields[0]
 			kubeToleration.Operator = v1.TolerationOpExists
@@ -1100,25 +1132,6 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 			kubeToleration.Value = fields[1]
 		} else {
 			return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
-		}
-
-		if kubeToleration.Value != "" {
-			fields := strings.Split(kubeToleration.Value, ":")
-			if len(fields) == 2 {
-				kubeToleration.Value = fields[0]
-				switch fields[1] {
-				case "NoSchedule":
-					kubeToleration.Effect = v1.TaintEffectNoSchedule
-				case "PreferNoSchedule":
-					kubeToleration.Effect = v1.TaintEffectPreferNoSchedule
-				case "NoExecute":
-					kubeToleration.Effect = v1.TaintEffectNoExecute
-				default:
-					return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
-				}
-			} else if len(fields) != 1 {
-				return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration effect")
-			}
 		}
 
 		kubeTolerations = append(kubeTolerations, kubeToleration)
