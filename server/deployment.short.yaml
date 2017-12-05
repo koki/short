@@ -17,7 +17,7 @@ exports:
       - anti_pod: app=${name}
         topology: kubernetes.io/hostname
       containers:
-      - image: ublubu/testserver:v0.0.1
+      - image: ublubu/testserver:v${env.server_version}
         name: ${name}
         pull: always
         ports:

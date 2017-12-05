@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +20,8 @@ import (
 	"github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
+	"github.com/koki/short/server/logging"
+	"github.com/kr/pretty"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
 	"github.com/stripe/stripe-go"
@@ -138,6 +142,26 @@ func serve(c *cobra.Command, args []string) error {
 	return s.ListenAndServe()
 }
 
+func mkErrorLog(err error) logging.Log {
+	return logging.Log{
+		Error: logging.MkError(err),
+	}
+}
+
+func mkErrorMsgLog(msg string, args ...interface{}) logging.Log {
+	x := fmt.Sprintf(msg, args...)
+	return logging.Log{
+		Error: &x,
+	}
+}
+
+func mkInfoLog(msg string, args ...interface{}) logging.Log {
+	fullMsg := fmt.Sprintf(msg, args...)
+	return logging.Log{
+		Other: &fullMsg,
+	}
+}
+
 // TODO: What's the right way to associate a Stripe customer ID with our user?
 //       Keeping it in the sessions DB might not work.
 func getStripeCustomerID(sesh *sessions.Session) string {
@@ -146,7 +170,7 @@ func getStripeCustomerID(sesh *sessions.Session) string {
 			return id
 		}
 
-		glog.Errorf("%v contains non-string stripe_id", sesh.Values)
+		logging.WriteLog(mkErrorLog(fmt.Errorf("%v contains non-string stripe_id", sesh.Values)))
 	}
 
 	return ""
@@ -155,7 +179,7 @@ func getStripeCustomerID(sesh *sessions.Session) string {
 // TODO: Plan from env.
 func getStripeSubscription(stripeCustomerID string) *stripe.Sub {
 	if len(stripeCustomerID) == 0 {
-		glog.Info("no stripe customer ID, so no stripe subscription")
+		logging.WriteLog(mkInfoLog("no stripe customer ID, so no stripe subscription"))
 		return nil
 	}
 
@@ -166,11 +190,11 @@ func getStripeSubscription(stripeCustomerID string) *stripe.Sub {
 
 	for i.Next() {
 		s := i.Sub()
-		glog.Infof("got stripe subscription %v for %s", s, stripeCustomerID)
+		logging.WriteLog(mkInfoLog("got stripe subscription %v for %s", s, stripeCustomerID))
 		return s
 	}
 
-	glog.Infof("no stripe subscription for %s", stripeCustomerID)
+	logging.WriteLog(mkInfoLog("no stripe subscription for %s", stripeCustomerID))
 
 	return nil
 }
@@ -178,7 +202,7 @@ func getStripeSubscription(stripeCustomerID string) *stripe.Sub {
 // Returns false if subscription already ended or does not exist.
 func setExpiryFromSubscription(sesh *sessions.Session, sub *stripe.Sub) bool {
 	if sub == nil {
-		glog.Info("user doesn't have a subscription")
+		logging.WriteLog(mkInfoLog("user doesn't have a subscription"))
 		return false
 	}
 	sesh.Values["subscription_end"] = sub.PeriodEnd
@@ -193,7 +217,7 @@ func checkSubscription(sesh *sessions.Session) bool {
 			if subEnd, ok := subEnd.(int64); ok {
 				if subEnd > time.Now().Unix() {
 					// We checked the subscription earlier, and it hasn't expired yet.
-					glog.Infof("previously verified subscription for github ID %v", id)
+					logging.WriteLog(mkInfoLog("previously verified subscription for github ID %v", id))
 					return true
 				}
 			}
@@ -202,27 +226,27 @@ func checkSubscription(sesh *sessions.Session) bool {
 		// Check with Stripe.
 		customerID := getStripeCustomerID(sesh)
 		if len(customerID) == 0 {
-			glog.Infof("no stripe customer ID for github ID %v", id)
+			logging.WriteLog(mkInfoLog("no stripe customer ID for github ID %v", id))
 			return false
 		}
 
 		sub := getStripeSubscription(customerID)
 		if sub == nil {
-			glog.Infof("no subscription for stripe customer ID %s, github ID %v", customerID, id)
+			logging.WriteLog(mkInfoLog("no subscription for stripe customer ID %s, github ID %v", customerID, id))
 			return false
 		}
 
 		return setExpiryFromSubscription(sesh, sub)
 	}
 
-	glog.Info("session has no github ID, so can't look for stripe subscriptions")
+	logging.WriteLog(mkInfoLog("session has no github ID, so can't look for stripe subscriptions"))
 	return false
 }
 
 func login(rw http.ResponseWriter, r *http.Request) {
 	sesh, err := store.Get(r, "user")
 	if err != nil {
-		glog.Info("invalid cookie, setting up a new one for login")
+		logging.WriteLog(mkInfoLog("invalid cookie, setting up a new one for login"))
 	}
 
 	b := make([]byte, 16)
@@ -235,7 +259,14 @@ func login(rw http.ResponseWriter, r *http.Request) {
 
 	url := oauthCfg.AuthCodeURL(state)
 	http.Redirect(rw, r, url, 302)
-	return
+}
+
+func mkConvertLog(sessionValues map[interface{}]interface{}, unconverted string, err error) logging.Log {
+	return logging.Log{
+		Session: logging.MkSession(sessionValues),
+		Convert: logging.MkConvert(unconverted),
+		Error:   logging.MkError(err),
+	}
 }
 
 func convert(rw http.ResponseWriter, r *http.Request) {
@@ -243,12 +274,15 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 	sesh, err := store.Get(r, "user")
 	if err != nil {
 		http.Error(rw, "invalid cookie", http.StatusUnauthorized)
+		logging.WriteLog(mkConvertLog(sesh.Values, "", fmt.Errorf("unauthorized")))
 		return
 	}
+	glog.Error(pretty.Sprintf("%# v", sesh.Values))
 
 	_, hasID := sesh.Values["id"]
 	if sesh.IsNew || !hasID {
 		http.Error(rw, "unauthorized", http.StatusUnauthorized)
+		logging.WriteLog(mkConvertLog(sesh.Values, "", fmt.Errorf("unauthorized")))
 		return
 	}
 
@@ -264,19 +298,30 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(rw, "", http.StatusMethodNotAllowed)
+		logging.WriteLog(mkConvertLog(sesh.Values, "", fmt.Errorf("method not allowed")))
 		return
 	}
 
 	headers := rw.Header()
-	streams := []io.ReadCloser{r.Body}
+	unconvertedBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logging.WriteLog(mkConvertLog(sesh.Values, "", err))
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	streams := []io.ReadCloser{ioutil.NopCloser(bytes.NewReader(unconvertedBytes))}
+	unconverted := string(unconvertedBytes)
+
 	objs, err := parser.ParseStreams(streams)
 	if err != nil {
+		logging.WriteLog(mkConvertLog(sesh.Values, unconverted, err))
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	kokiObjs, err := converter.ConvertToKokiNative(objs)
 	if err != nil {
+		logging.WriteLog(mkConvertLog(sesh.Values, unconverted, err))
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -291,9 +336,19 @@ func convert(rw http.ResponseWriter, r *http.Request) {
 		err = client.WriteObjsToYamlStream(kokiObjs, rw)
 	}
 	if err != nil {
-		glog.Errorf("Error responding to request: %v", err)
 		rw.WriteHeader(http.StatusInternalServerError)
+		logging.WriteLog(mkConvertLog(sesh.Values, unconverted, err))
 		return
+	}
+
+	logging.WriteLog(mkConvertLog(sesh.Values, unconverted, nil))
+}
+
+func mkLoginLog(sessionValues map[interface{}]interface{}, err error) logging.Log {
+	return logging.Log{
+		Session: logging.MkSession(sessionValues),
+		Login:   &logging.Login{},
+		Error:   logging.MkError(err),
 	}
 }
 
@@ -310,26 +365,27 @@ func githubCallback(rw http.ResponseWriter, r *http.Request) {
 	defer context.Clear(r)
 	session, err := store.Get(r, "user")
 	if err != nil {
-		glog.Errorf("Error getting user from store %+v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		logging.WriteLog(mkLoginLog(nil, err))
 		return
 	}
 
 	if r.URL.Query().Get("state") != session.Values["state"] {
-		glog.Errorf("Error matching state %v", err)
 		http.Error(rw, "", http.StatusUnauthorized)
+		logging.WriteLog(mkLoginLog(nil, err))
 		return
 	}
 
 	tkn, err := oauthCfg.Exchange(oauth2.NoContext, r.URL.Query().Get("code"))
 	if err != nil {
-		glog.Errorf("")
 		http.Error(rw, err.Error(), http.StatusUnauthorized)
+		logging.WriteLog(mkLoginLog(nil, err))
 		return
 	}
 
 	if !tkn.Valid() {
 		http.Error(rw, "invalid token", http.StatusUnauthorized)
+		logging.WriteLog(mkLoginLog(nil, err))
 		return
 	}
 
@@ -339,13 +395,26 @@ func githubCallback(rw http.ResponseWriter, r *http.Request) {
 	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		logging.WriteLog(mkLoginLog(nil, err))
 		return
 	}
 
-	session.Values["name"] = user.Name
-	session.Values["id"] = user.ID
+	if user.ID != nil {
+		session.Values["id"] = *user.ID
+	}
+	if user.Login != nil {
+		session.Values["login"] = *user.Login
+	}
+	if user.Name != nil {
+		session.Values["name"] = *user.Name
+	}
+	if user.Email != nil {
+		session.Values["email"] = user.Email
+	}
 	session.Values["accessToken"] = tkn.AccessToken
 	session.Save(r, rw)
+
+	logging.WriteLog(mkLoginLog(session.Values, nil))
 
 	fmt.Fprint(rw, closingPage)
 }
