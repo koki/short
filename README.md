@@ -91,7 +91,7 @@ exports:
       affinity: ${affinity}  # re-use the affinity resource here
 ```
 
-For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/modules)
+For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/short/modules)
 
 ## Getting started
 
