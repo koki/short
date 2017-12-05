@@ -56,7 +56,7 @@ Our approach is to reframe Kubernetes manifests in an operator-friendly syntax w
 
 Koki Short can transform Kubernetes syntax into Short and Short syntax back into Kubernetes. No information is lost in either direction.
 
-For more information on Koki Short transformations, please refer to [Resources.](https://docs.koki.io/short/resources)
+For more information on Koki Short transformations, please refer to [Resources.](resources)
 
 ## Modular and Reusable
 
@@ -89,7 +89,7 @@ exports:
       affinity: ${affinity}  # re-use the affinity resource here
 ```
 
-For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/modules)
+For more information on Koki Modules, please refer to [Modules.](modules)
 
 ## Getting started
 
