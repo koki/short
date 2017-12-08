@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/objutil"
 )
 
 type PersistentVolumeWrapper struct {
@@ -299,7 +300,7 @@ func (v *PersistentVolumeSource) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	volType, err := util.GetStringEntry(obj, "vol_type")
+	volType, err := objutil.GetStringEntry(obj, "vol_type")
 	if err != nil {
 		return err
 	}
@@ -505,7 +506,7 @@ func (s *RBDPersistentVolume) Unmarshal(obj map[string]interface{}, selector []s
 		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeRBD)
 	}
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeRBD)
 	}
@@ -514,7 +515,7 @@ func (s *RBDPersistentVolume) Unmarshal(obj map[string]interface{}, selector []s
 }
 
 func (s RBDPersistentVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeRBD)
 	}
@@ -560,7 +561,7 @@ func (s *CephFSPersistentVolume) Unmarshal(obj map[string]interface{}, selector 
 		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeCephFS)
 	}
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeCephFS)
 	}
@@ -569,7 +570,7 @@ func (s *CephFSPersistentVolume) Unmarshal(obj map[string]interface{}, selector 
 }
 
 func (s CephFSPersistentVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeCephFS)
 	}
@@ -585,7 +586,7 @@ func (s *AzureFilePersistentVolume) Unmarshal(obj map[string]interface{}, select
 		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeAzureFile)
 	}
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeAzureFile)
 	}
@@ -594,7 +595,7 @@ func (s *AzureFilePersistentVolume) Unmarshal(obj map[string]interface{}, select
 }
 
 func (s AzureFilePersistentVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeAzureFile)
 	}
@@ -611,7 +612,7 @@ func (s *ScaleIOPersistentVolume) Unmarshal(obj map[string]interface{}, selector
 	}
 	s.VolumeName = selector[0]
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeScaleIO)
 	}
@@ -620,7 +621,7 @@ func (s *ScaleIOPersistentVolume) Unmarshal(obj map[string]interface{}, selector
 }
 
 func (s ScaleIOPersistentVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeScaleIO)
 	}
@@ -637,7 +638,7 @@ func (s *LocalVolume) Unmarshal(obj map[string]interface{}, selector []string) e
 		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeLocal)
 	}
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeLocal)
 	}
@@ -646,7 +647,7 @@ func (s *LocalVolume) Unmarshal(obj map[string]interface{}, selector []string) e
 }
 
 func (s LocalVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeLocal)
 	}
@@ -663,7 +664,7 @@ func (s *StorageOSPersistentVolume) Unmarshal(obj map[string]interface{}, select
 	}
 	s.VolumeName = selector[0]
 
-	err := util.UnmarshalMap(obj, &s)
+	err := objutil.UnmarshalMap(obj, &s)
 	if err != nil {
 		return util.ContextualizeErrorf(err, VolumeTypeStorageOS)
 	}
@@ -672,7 +673,7 @@ func (s *StorageOSPersistentVolume) Unmarshal(obj map[string]interface{}, select
 }
 
 func (s StorageOSPersistentVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := util.MarshalMap(&s)
+	obj, err := objutil.MarshalMap(&s)
 	if err != nil {
 		return nil, util.ContextualizeErrorf(err, VolumeTypeStorageOS)
 	}

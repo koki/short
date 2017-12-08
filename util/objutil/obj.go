@@ -1,16 +1,18 @@
-package util
+package objutil
 
 import (
 	"encoding/json"
 	"fmt"
 
 	"github.com/golang/glog"
+
+	"github.com/koki/short/util"
 )
 
 // GetOnlyMapEntry get the only entry from a map. Error if the map doesn't contain exactly one entry.
 func GetOnlyMapEntry(obj map[string]interface{}) (string, interface{}, error) {
 	if len(obj) != 1 {
-		return "", nil, InvalidInstanceErrorf(obj, "expected only one entry")
+		return "", nil, util.InvalidInstanceErrorf(obj, "expected only one entry")
 	}
 
 	for key, val := range obj {
@@ -27,10 +29,10 @@ func GetStringEntry(obj map[string]interface{}, key string) (string, error) {
 			return str, nil
 		}
 
-		return "", InvalidValueErrorf(obj, "entry for key (%s) is not a string", key)
+		return "", util.InvalidValueErrorf(obj, "entry for key (%s) is not a string", key)
 	}
 
-	return "", InvalidValueErrorf(obj, "no entry for key (%s)", key)
+	return "", util.InvalidValueErrorf(obj, "no entry for key (%s)", key)
 }
 
 func UnmarshalMap(data map[string]interface{}, target interface{}) error {
