@@ -1,12 +1,12 @@
 package client
 
 import (
-	"encoding/json"
 	"io"
 
 	"github.com/ghodss/yaml"
 
 	"github.com/koki/short/converter"
+	"github.com/koki/short/json"
 	"github.com/koki/short/parser"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/objutil"

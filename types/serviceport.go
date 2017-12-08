@@ -1,13 +1,13 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 

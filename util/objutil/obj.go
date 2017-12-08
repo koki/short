@@ -1,13 +1,13 @@
 package objutil
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/golang/glog"
 
 	"github.com/koki/short/util"
+	"github.com/koki/short/json"
 )
 
 // GetOnlyMapEntry get the only entry from a map. Error if the map doesn't contain exactly one entry.

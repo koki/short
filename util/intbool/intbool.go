@@ -1,12 +1,12 @@
 package intbool
 
 import (
-	"encoding/json"
 	"math"
 	"runtime/debug"
 
 	"github.com/golang/glog"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 

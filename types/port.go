@@ -1,13 +1,13 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 

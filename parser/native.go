@@ -1,12 +1,10 @@
 package parser
 
 import (
-	"encoding/json"
-
+	"github.com/koki/short/json"
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
-
-	"github.com/ghodss/yaml"
+	"github.com/koki/short/yaml"
 )
 
 func ParseKokiNativeObject(obj interface{}) (interface{}, error) {

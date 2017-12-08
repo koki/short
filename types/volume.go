@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/golang/glog"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/objutil"
 )

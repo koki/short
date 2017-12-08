@@ -1,9 +1,9 @@
 package types
 
 import (
-	"encoding/json"
 	"net"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
 )

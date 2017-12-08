@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,6 +8,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/objutil"
 )

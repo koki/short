@@ -1,10 +1,10 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 
