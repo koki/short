@@ -18,7 +18,7 @@ func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageC
 	// Serialize the "generic" kube StorageClass.
 	b, err := yaml.Marshal(kubeStorageClass)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeStorageClass, "couldn't serialize 'generic' kube StorageClass: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeStorageClass, "couldn't serialize 'generic' kube StorageClass")
 	}
 
 	// Deserialize a versioned kube StorageClass using its apiVersion.

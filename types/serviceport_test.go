@@ -5,6 +5,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/util"
 )
 
 var nsp0 = "name0: 80\n"
@@ -22,14 +24,14 @@ func tryNamedServicePort(s string, t *testing.T) {
 	err := yaml.Unmarshal([]byte(s), &nsp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)",
-			err.Error(), s))
+			util.PrettyError(err), s))
 		return
 	}
 
 	b, err := yaml.Marshal(nsp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)\n(%# v)",
-			err.Error(), s, nsp))
+			util.PrettyError(err), s, nsp))
 		return
 	}
 
@@ -51,14 +53,14 @@ func tryServicePort(s string, t *testing.T) {
 	err := yaml.Unmarshal([]byte(s), &sp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)",
-			err.Error(), s))
+			util.PrettyError(err), s))
 		return
 	}
 
 	b, err := yaml.Marshal(sp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)\n(%# v)",
-			err.Error(), s, sp))
+			util.PrettyError(err), s, sp))
 		return
 	}
 

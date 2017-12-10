@@ -16,9 +16,12 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/koki/short/util"
 )
 
 // Unmarshal parses the JSON-encoded data and stores the result
@@ -101,7 +104,17 @@ func Unmarshal(data []byte, v interface{}) error {
 	}
 
 	d.init(data)
-	return d.unmarshal(v)
+	err = d.unmarshal(v)
+	if err != nil {
+		switch err := err.(type) {
+		case *ErrorWithPath:
+			return err.WithFlattenedContext()
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Unmarshaler is the interface implemented by types
@@ -114,6 +127,20 @@ func Unmarshal(data []byte, v interface{}) error {
 // Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
 type Unmarshaler interface {
 	UnmarshalJSON([]byte) error
+}
+
+type ErrorWithPath struct {
+	BaseError error
+	Path      []string
+}
+
+func (e *ErrorWithPath) Error() string {
+	return fmt.Sprintf(`at path $.%s, %s`, strings.Join(e.Path, "."), e.BaseError.Error())
+}
+
+func (e *ErrorWithPath) WithFlattenedContext() *util.ErrorWithContext {
+	path := fmt.Sprintf(`$.%s`, strings.Join(util.ReversedStringsList(e.Path), "."))
+	return util.ContextualizeErrorf(e.BaseError, path)
 }
 
 // An UnmarshalTypeError describes a JSON value that was
@@ -131,6 +158,39 @@ func (e *UnmarshalTypeError) Error() string {
 		return "json: cannot unmarshal " + e.Value + " into Go struct field " + e.Struct + "." + e.Field + " of type " + e.Type.String()
 	}
 	return "json: cannot unmarshal " + e.Value + " into Go value of type " + e.Type.String()
+}
+
+func PushErrorStructField(err error, structName, fieldName string) error {
+	switch err := err.(type) {
+	case *UnmarshalTypeError:
+		if len(err.Struct) == 0 {
+			err.Struct = structName
+			err.Field = fieldName
+		}
+	}
+
+	return err
+}
+
+func PushErrorPathSegment(err error, pathSegment string) *ErrorWithPath {
+	switch err := err.(type) {
+	case *ErrorWithPath:
+		if err.Path == nil {
+			err.Path = []string{pathSegment}
+		} else {
+			err.Path = append(err.Path, pathSegment)
+		}
+		return err
+	default:
+		return &ErrorWithPath{
+			BaseError: err,
+			Path:      []string{pathSegment},
+		}
+	}
+}
+
+func PushErrorPathSegmentInt(err error, pathSegment int) error {
+	return PushErrorPathSegment(err, fmt.Sprintf("%d", pathSegment))
 }
 
 // An UnmarshalFieldError describes a JSON object key that
@@ -546,14 +606,14 @@ func (d *decodeState) array(v reflect.Value) error {
 			err := d.value(v.Index(i))
 			if err != nil {
 				// TODO
-				return err
+				return PushErrorPathSegmentInt(err, i)
 			}
 		} else {
 			// Ran out of fixed array: skip.
 			err := d.value(reflect.Value{})
 			if err != nil {
 				// TODO
-				return err
+				return PushErrorPathSegmentInt(err, i)
 			}
 		}
 		i++
@@ -565,7 +625,7 @@ func (d *decodeState) array(v reflect.Value) error {
 		}
 		if op != scanArrayValue {
 			// TODO
-			return errPhase
+			return PushErrorPathSegmentInt(errPhase, i)
 		}
 	}
 
@@ -688,6 +748,10 @@ func (d *decodeState) object(v reflect.Value) error {
 			return errPhase
 		}
 
+		contextualizeError := func(err error) error {
+			return PushErrorPathSegment(err, string(key))
+		}
+
 		// Figure out field corresponding to key.
 		var subv reflect.Value
 		destring := false // whether the value is wrapped in a string to be decoded first
@@ -705,6 +769,7 @@ func (d *decodeState) object(v reflect.Value) error {
 			fields := cachedTypeFields(v.Type())
 			for i := range fields {
 				ff := &fields[i]
+				// NOTE: Here's where we look for the right field.
 				if bytes.Equal(ff.nameBytes, key) {
 					f = ff
 					break
@@ -725,11 +790,15 @@ func (d *decodeState) object(v reflect.Value) error {
 					}
 					subv = subv.Field(i)
 				}
+
 				// TODO
-				/*
-					d.errorContext.Field = f.name
-					d.errorContext.Struct = v.Type().Name()
-				*/
+				contextualizeError = func(err error) error {
+					err1 := PushErrorStructField(err, v.Type().Name(), f.name)
+					return PushErrorPathSegment(err1, string(key))
+				}
+			} else {
+				// NOTE: Unrecognized key
+				// TODO
 			}
 		}
 
@@ -746,31 +815,30 @@ func (d *decodeState) object(v reflect.Value) error {
 			v, err := d.valueQuoted()
 			if err != nil {
 				// TODO
-				return err
+				return contextualizeError(err)
 			}
 			switch qv := v.(type) {
 			case nil:
 				err := d.literalStore(nullLiteral, subv, false)
 				if err != nil {
 					// TODO
-					return err
+					return contextualizeError(err)
 				}
 			case string:
 				err := d.literalStore([]byte(qv), subv, true)
 				if err != nil {
 					// TODO
-					return err
+					return contextualizeError(err)
 				}
 			default:
 				// TODO
-				//d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal unquoted value into %v", subv.Type()))
-				return fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal unquoted value into %v", subv.Type())
+				return contextualizeError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal unquoted value into %v", subv.Type()))
 			}
 		} else {
 			err := d.value(subv)
 			if err != nil {
 				// TODO
-				return err
+				return contextualizeError(err)
 			}
 		}
 
@@ -787,7 +855,7 @@ func (d *decodeState) object(v reflect.Value) error {
 				err := d.literalStore(item, kv, true)
 				if err != nil {
 					// TODO
-					return err
+					return contextualizeError(err)
 				}
 				kv = kv.Elem()
 			default:
@@ -797,7 +865,7 @@ func (d *decodeState) object(v reflect.Value) error {
 					n, err := strconv.ParseInt(s, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowInt(n) {
 						// TODO
-						return &UnmarshalTypeError{Value: "number " + s, Type: kt, Offset: int64(start + 1)}
+						return contextualizeError(&UnmarshalTypeError{Value: "number " + s, Type: kt, Offset: int64(start + 1)})
 					}
 					kv = reflect.ValueOf(n).Convert(kt)
 				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
@@ -805,7 +873,7 @@ func (d *decodeState) object(v reflect.Value) error {
 					n, err := strconv.ParseUint(s, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowUint(n) {
 						// TODO
-						return &UnmarshalTypeError{Value: "number " + s, Type: kt, Offset: int64(start + 1)}
+						return contextualizeError(&UnmarshalTypeError{Value: "number " + s, Type: kt, Offset: int64(start + 1)})
 					}
 					kv = reflect.ValueOf(n).Convert(kt)
 				default:
@@ -822,7 +890,7 @@ func (d *decodeState) object(v reflect.Value) error {
 		}
 		if op != scanObjectValue {
 			// TODO
-			return errPhase
+			return contextualizeError(errPhase)
 		}
 
 		// TODO

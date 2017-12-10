@@ -22,7 +22,7 @@ func Convert_Koki_StatefulSet_to_Kube_StatefulSet(statefulSet *types.StatefulSet
 	// Serialize the "generic" kube StatefulSet.
 	b, err := yaml.Marshal(kubeStatefulSet)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeStatefulSet, "couldn't serialize 'generic' kube StatefulSet: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeStatefulSet, "couldn't serialize 'generic' kube StatefulSet")
 	}
 
 	// Deserialize a versioned kube StatefulSet using its apiVersion.

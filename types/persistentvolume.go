@@ -217,7 +217,7 @@ func (a AccessModes) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(&str)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(a, "couldn't marshal to JSON: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, a, "marshalling to JSON")
 	}
 
 	return b, nil
@@ -227,7 +227,7 @@ func (a *AccessModes) UnmarshalJSON(data []byte) error {
 	str := ""
 	err := json.Unmarshal(data, &str)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), a, "couldn't unmarshal from JSON: %s", err.Error())
+		return util.InvalidInstanceContextErrorf(err, a, "unmarshalling from JSON")
 	}
 
 	return a.InitFromString(str)
@@ -236,12 +236,12 @@ func (a *AccessModes) UnmarshalJSON(data []byte) error {
 func (v *PersistentVolume) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &v.PersistentVolumeSource)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal volume source from JSON: %s", err.Error())
+		return util.InvalidValueForTypeContextErrorf(err, string(data), v, "unmarshalling volume source from JSON")
 	}
 
 	err = json.Unmarshal(data, &v.PersistentVolumeMeta)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), v, "couldn't unmarshal metadata from JSON: %s", err.Error())
+		return util.InvalidValueForTypeContextErrorf(err, string(data), v, "unmarshalling metadata from JSON")
 	}
 
 	return nil
@@ -250,7 +250,7 @@ func (v *PersistentVolume) UnmarshalJSON(data []byte) error {
 func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 	b, err := json.Marshal(v.PersistentVolumeMeta)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(v, "couldn't marshal metadata to JSON: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, v, "marshalling metadata to JSON")
 	}
 
 	bb, err := json.Marshal(v.PersistentVolumeSource)
@@ -261,13 +261,13 @@ func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 	metaObj := map[string]interface{}{}
 	err = json.Unmarshal(b, &metaObj)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(b), v.PersistentVolumeMeta, "couldn't convert metadata to dictionary: %s", err.Error())
+		return nil, util.InvalidValueForTypeContextErrorf(err, string(b), v.PersistentVolumeMeta, "converting metadata to dictionary")
 	}
 
 	sourceObj := map[string]interface{}{}
 	err = json.Unmarshal(bb, &sourceObj)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(string(bb), v.PersistentVolumeSource, "couldn't convert volume source to dictionary: %s", err.Error())
+		return nil, util.InvalidValueForTypeContextErrorf(err, string(bb), v.PersistentVolumeSource, "converting volume source to dictionary")
 	}
 
 	// Merge metadata with volume-source
@@ -277,7 +277,7 @@ func (v PersistentVolume) MarshalJSON() ([]byte, error) {
 
 	result, err := json.Marshal(sourceObj)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(result, v, "couldn't marshal PersistentVolume-as-dictionary to JSON: %s", err.Error())
+		return nil, util.InvalidValueForTypeContextErrorf(err, result, v, "marshalling PersistentVolume-as-dictionary to JSON")
 	}
 
 	return result, nil

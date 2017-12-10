@@ -22,13 +22,13 @@ func Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet runtime.Object) (*ty
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeDaemonSet)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(kubeDaemonSet, "couldn't serialize kube DaemonSet after setting apiVersion to apps/v1beta2: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, kubeDaemonSet, "couldn't serialize kube DaemonSet after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube DaemonSet
 	genericDaemonSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(string(b), "couldn't deserialize 'generic' kube DaemonSet: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube DaemonSet")
 	}
 
 	if genericDaemonSet, ok := genericDaemonSet.(*appsv1beta2.DaemonSet); ok {

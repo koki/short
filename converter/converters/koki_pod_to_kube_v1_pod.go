@@ -1580,7 +1580,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 	if probe.Net != nil {
 		urlStruct, err := url.Parse(probe.Net.URL)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(probe, "couldn't parse URL: %s", err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, probe, "parsing URL")
 		}
 		if strings.ToUpper(urlStruct.Scheme) == "TCP" {
 			hostPort := urlStruct.Host

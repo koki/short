@@ -8,6 +8,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/util"
 )
 
 var kokiPersistentGcePDVolume0 = PersistentVolumeSource{
@@ -253,7 +255,7 @@ func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {
 
 	b, err := yaml.Marshal(kokiVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n%# v", err.Error(), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n%# v", util.PrettyError(err), kokiVolume))
 		return
 	}
 
@@ -261,13 +263,13 @@ func testPersistentVolumeSource(v PersistentVolumeSource, t *testing.T) {
 
 	err = yaml.Unmarshal(b, &newVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", err.Error(), string(b), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", util.PrettyError(err), string(b), kokiVolume))
 		return
 	}
 
 	newB, err := yaml.Marshal(newVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", err.Error(), newVolume, kokiVolume, string(b)))
+		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", util.PrettyError(err), newVolume, kokiVolume, string(b)))
 		return
 	}
 

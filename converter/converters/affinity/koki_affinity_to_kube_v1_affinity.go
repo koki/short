@@ -178,7 +178,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 func parsePodExprs(s string) (*v1.PodAffinityTerm, error) {
 	labelSelector, err := expressions.ParseLabelSelector(s)
 	if err != nil {
-		return nil, util.InvalidValueForTypeErrorf(s, v1.PodAffinityTerm{}, "%s", err.Error())
+		return nil, util.InvalidValueForTypeContextError(err, s, v1.PodAffinityTerm{})
 	}
 
 	return &v1.PodAffinityTerm{
@@ -261,7 +261,7 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	for _, seg := range segs {
 		expr, err := expressions.ParseExpr(seg, []string{"!=", "=", ">", "<"})
 		if err != nil {
-			err = util.InvalidValueForTypeErrorf(s, v1.NodeSelectorTerm{}, "%s", err.Error())
+			err = util.InvalidValueForTypeContextError(err, s, v1.NodeSelectorTerm{})
 			return nil, err
 		}
 

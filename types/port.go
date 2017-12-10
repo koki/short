@@ -30,7 +30,7 @@ func (p *Port) HostPortInt() (int32, error) {
 	if len(p.HostPort) > 0 {
 		hostPort, err := strconv.ParseInt(p.HostPort, 10, 32)
 		if err != nil {
-			return 0, util.InvalidInstanceErrorf(p, "HostPort should be an int: %s", err.Error())
+			return 0, util.InvalidInstanceContextErrorf(err, p, "HostPort should be an int")
 		}
 
 		return int32(hostPort), nil
@@ -43,7 +43,7 @@ func (p *Port) ContainerPortInt() (int32, error) {
 	if len(p.ContainerPort) > 0 {
 		containerPort, err := strconv.ParseInt(p.ContainerPort, 10, 32)
 		if err != nil {
-			return 0, util.InvalidInstanceErrorf(p, "ContainerPort should be an int: %s", err.Error())
+			return 0, util.InvalidInstanceContextErrorf(err, p, "ContainerPort should be an int")
 		}
 
 		return int32(containerPort), nil
@@ -178,14 +178,14 @@ func (p Port) MarshalJSON() ([]byte, error) {
 			}
 			b, err := json.Marshal(&obj)
 			if err != nil {
-				return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with name (%s) and port number (%d): %s", p.Name, i, err.Error())
+				return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port number (%d)", p.Name, i)
 			}
 			return b, nil
 		}
 
 		b, err := json.Marshal(&i)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with port number (%d): %s", i, err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port number (%d)", i)
 		}
 		return b, nil
 	}
@@ -196,14 +196,14 @@ func (p Port) MarshalJSON() ([]byte, error) {
 		}
 		b, err := json.Marshal(&obj)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with name (%s) and port string (%s): %s", p.Name, str, err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port string (%s)", p.Name, str)
 		}
 		return b, nil
 	}
 
 	b, err := json.Marshal(&str)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON with port string (%s): %s", str, err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port string (%s)", str)
 	}
 	return b, nil
 }

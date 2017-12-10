@@ -12,7 +12,7 @@ import (
 func (c *EvalContext) Parse(rootPath string) ([]Module, error) {
 	objs, err := c.ReadFromPath(rootPath)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(rootPath, "error reading module: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, rootPath, "reading module")
 	}
 
 	if len(objs) > 1 {
@@ -192,7 +192,7 @@ func (c *EvalContext) parseImports(rootPath string, obj map[string]interface{}) 
 				if imprt, ok := imprt.(map[string]interface{}); ok {
 					anImport, err := c.parseImport(rootPath, imprt)
 					if err != nil {
-						return nil, hasImportsKey, util.InvalidValueForTypeErrorf(imprt, Import{}, "error processing import in module (%s): %s", rootPath, err.Error())
+						return nil, hasImportsKey, util.InvalidValueForTypeContextErrorf(err, imprt, Import{}, "processing import in module (%s)", rootPath)
 					}
 					imports = append(imports, anImport)
 				} else {

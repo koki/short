@@ -27,11 +27,11 @@ func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
 
 	typedObj, err := creator.New(u.GetObjectKind().GroupVersionKind())
 	if err != nil {
-		return nil, util.InvalidValueErrorf(u, "unsupported apiVersion/kind (is the manifest kube-native format?): %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, u, "unsupported apiVersion/kind (is the manifest kube-native format?)")
 	}
 
 	if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
-		return nil, util.InvalidValueForTypeErrorf(obj, typedObj, "couldn't convert to typed kube obj: %s", err.Error())
+		return nil, util.InvalidValueForTypeContextErrorf(err, obj, typedObj, "couldn't convert to typed kube obj")
 	}
 
 	return typedObj, nil

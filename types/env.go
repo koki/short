@@ -122,7 +122,7 @@ func (e Env) MarshalJSON() ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(e, "couldn't marshal to JSON: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, e, "marshalling to JSON")
 	}
 
 	return b, nil

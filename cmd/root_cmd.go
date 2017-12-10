@@ -29,7 +29,7 @@ Full documentation available at https://docs.koki.io/short
 				fmt.Fprintln(os.Stderr, "Use flag '--verbose-errors' for more detailed error info.")
 			}
 
-			return err
+			return fmt.Errorf(util.PrettyError(err))
 		},
 		SilenceUsage: true,
 		Example: `

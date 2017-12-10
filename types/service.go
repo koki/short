@@ -122,7 +122,7 @@ func (i LoadBalancerIngress) MarshalJSON() ([]byte, error) {
 	str := i.String()
 	b, err := json.Marshal(str)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(i, "couldn't marshal from string (%s) to JSON: %s", str, err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, i, "marshalling from string (%s) to JSON", str)
 	}
 
 	return b, nil

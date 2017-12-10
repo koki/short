@@ -22,7 +22,7 @@ func ParseLabelSelector(s string) (*metav1.LabelSelector, error) {
 	for _, seg := range segs {
 		expr, err := ParseExpr(seg, []string{"!=", "="})
 		if err != nil {
-			return nil, util.InvalidValueForTypeErrorf(s, metav1.LabelSelector{}, "couldn't parse subexpression: %s", err.Error())
+			return nil, util.InvalidValueForTypeContextErrorf(err, s, metav1.LabelSelector{}, "couldn't parse subexpression")
 		}
 
 		if expr == nil {
@@ -98,7 +98,7 @@ func UnparseLabelSelector(kubeSelector *metav1.LabelSelector) (string, error) {
 		value := strings.Join(expr.Values, ",")
 		op, err := ConvertOperatorLabelSelector(expr.Operator)
 		if err != nil {
-			return "", util.InvalidInstanceErrorf(expr, "invalid operator: %s", err.Error())
+			return "", util.InvalidInstanceContextErrorf(err, expr, "invalid operator")
 		}
 		kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 		if expr.Operator == metav1.LabelSelectorOpExists {

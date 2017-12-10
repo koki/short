@@ -22,7 +22,7 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 	// Serialize the "generic" kube Deployment.
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeDeployment, "couldn't serialize 'generic' kube Deployment: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeDeployment, "couldn't serialize 'generic' kube Deployment")
 	}
 
 	// Deserialize a versioned kube Deployment using its apiVersion.

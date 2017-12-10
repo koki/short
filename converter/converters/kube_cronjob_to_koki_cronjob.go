@@ -19,13 +19,13 @@ func Convert_Kube_CronJob_to_Koki_CronJob(kubeCronJob runtime.Object) (*types.Cr
 	// Serialize as batch/v1beta1
 	b, err := yaml.Marshal(kubeCronJob)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(kubeCronJob, "couldn't serialize kube CronJob after setting apiVersion to batch/v1beta1: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, kubeCronJob, "couldn't serialize kube CronJob after setting apiVersion to batch/v1beta1")
 	}
 
 	// Deserialize the "generic" kube CronJob
 	genericCronJob, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(string(b), "couldn't deserialize 'generic' kube CronJob: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube CronJob")
 	}
 
 	if genericCronJob, ok := genericCronJob.(*batchv1beta1.CronJob); ok {

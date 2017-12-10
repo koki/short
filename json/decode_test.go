@@ -399,7 +399,7 @@ var unmarshalTests = []unmarshalTest{
 	{in: `"g-clef: \uD834\uDD1E"`, ptr: new(string), out: "g-clef: \U0001D11E"},
 	{in: `"invalid: \uD834x\uDD1E"`, ptr: new(string), out: "invalid: \uFFFDx\uFFFD"},
 	{in: "null", ptr: new(interface{}), out: nil},
-	{in: `{"X": [1,2,3], "Y": 4}`, ptr: new(T), out: T{Y: 4}, err: &UnmarshalTypeError{"array", reflect.TypeOf(""), 7, "T", "X"}},
+	{in: `{"X": [1,2,3], "Y": 4}`, ptr: new(T), out: T{Y: 4}, err: &ErrorWithPath{BaseError: &UnmarshalTypeError{Value: "array", Type: reflect.TypeOf(""), Offset: 7, Struct: "T", Field: "X"}, Path: []string{"X"}}},
 	{in: `{"x": 1}`, ptr: new(tx), out: tx{}},
 	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: float64(1), F2: int32(2), F3: Number("3")}},
 	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: Number("1"), F2: int32(2), F3: Number("3")}, useNumber: true},
@@ -507,29 +507,29 @@ var unmarshalTests = []unmarshalTest{
 	{
 		in:  `{"2":4}`,
 		ptr: new(map[u8marshal]int),
-		err: errMissingU8Prefix,
+		err: &ErrorWithPath{BaseError: errMissingU8Prefix, Path: []string{"2"}},
 	},
 
 	// integer-keyed map errors
 	{
 		in:  `{"abc":"abc"}`,
 		ptr: new(map[int]string),
-		err: &UnmarshalTypeError{Value: "number abc", Type: reflect.TypeOf(0), Offset: 2},
+		err: &ErrorWithPath{BaseError: &UnmarshalTypeError{Value: "number abc", Type: reflect.TypeOf(0), Offset: 2}, Path: []string{"abc"}},
 	},
 	{
 		in:  `{"256":"abc"}`,
 		ptr: new(map[uint8]string),
-		err: &UnmarshalTypeError{Value: "number 256", Type: reflect.TypeOf(uint8(0)), Offset: 2},
+		err: &ErrorWithPath{BaseError: &UnmarshalTypeError{Value: "number 256", Type: reflect.TypeOf(uint8(0)), Offset: 2}, Path: []string{"256"}},
 	},
 	{
 		in:  `{"128":"abc"}`,
 		ptr: new(map[int8]string),
-		err: &UnmarshalTypeError{Value: "number 128", Type: reflect.TypeOf(int8(0)), Offset: 2},
+		err: &ErrorWithPath{BaseError: &UnmarshalTypeError{Value: "number 128", Type: reflect.TypeOf(int8(0)), Offset: 2}, Path: []string{"128"}},
 	},
 	{
 		in:  `{"-1":"abc"}`,
 		ptr: new(map[uint8]string),
-		err: &UnmarshalTypeError{Value: "number -1", Type: reflect.TypeOf(uint8(0)), Offset: 2},
+		err: &ErrorWithPath{BaseError: &UnmarshalTypeError{Value: "number -1", Type: reflect.TypeOf(uint8(0)), Offset: 2}, Path: []string{"-1"}},
 	},
 
 	// Map keys can be encoding.TextUnmarshalers.
@@ -764,23 +764,29 @@ var unmarshalTests = []unmarshalTest{
 	{
 		in:  `{"V": {"F2": "hello"}}`,
 		ptr: new(VOuter),
-		err: &UnmarshalTypeError{
-			Value:  "string",
-			Struct: "V",
-			Field:  "F2",
-			Type:   reflect.TypeOf(int32(0)),
-			Offset: 20,
+		err: &ErrorWithPath{
+			BaseError: &UnmarshalTypeError{
+				Value:  "string",
+				Struct: "V",
+				Field:  "F2",
+				Type:   reflect.TypeOf(int32(0)),
+				Offset: 20,
+			},
+			Path: []string{"F2", "V"},
 		},
 	},
 	{
 		in:  `{"V": {"F4": {}, "F2": "hello"}}`,
 		ptr: new(VOuter),
-		err: &UnmarshalTypeError{
-			Value:  "string",
-			Struct: "V",
-			Field:  "F2",
-			Type:   reflect.TypeOf(int32(0)),
-			Offset: 30,
+		err: &ErrorWithPath{
+			BaseError: &UnmarshalTypeError{
+				Value:  "string",
+				Struct: "V",
+				Field:  "F2",
+				Type:   reflect.TypeOf(int32(0)),
+				Offset: 30,
+			},
+			Path: []string{"F2", "V"},
 		},
 	},
 
@@ -788,11 +794,11 @@ var unmarshalTests = []unmarshalTest{
 	// invalid inputs in wrongStringTests below.
 	{in: `{"B":"true"}`, ptr: new(B), out: B{true}, golden: true},
 	{in: `{"B":"false"}`, ptr: new(B), out: B{false}, golden: true},
-	{in: `{"B": "maybe"}`, ptr: new(B), err: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "maybe" into bool`)},
-	{in: `{"B": "tru"}`, ptr: new(B), err: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "tru" into bool`)},
-	{in: `{"B": "False"}`, ptr: new(B), err: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "False" into bool`)},
+	{in: `{"B": "maybe"}`, ptr: new(B), err: &ErrorWithPath{BaseError: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "maybe" into bool`), Path: []string{"B"}}},
+	{in: `{"B": "tru"}`, ptr: new(B), err: &ErrorWithPath{BaseError: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "tru" into bool`), Path: []string{"B"}}},
+	{in: `{"B": "False"}`, ptr: new(B), err: &ErrorWithPath{BaseError: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "False" into bool`), Path: []string{"B"}}},
 	{in: `{"B": "null"}`, ptr: new(B), out: B{false}},
-	{in: `{"B": "nul"}`, ptr: new(B), err: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "nul" into bool`)},
+	{in: `{"B": "nul"}`, ptr: new(B), err: &ErrorWithPath{BaseError: errors.New(`json: invalid use of ,string struct tag, trying to unmarshal "nul" into bool`), Path: []string{"B"}}},
 }
 
 func TestMarshal(t *testing.T) {
@@ -1071,10 +1077,10 @@ type wrongStringTest struct {
 }
 
 var wrongStringTests = []wrongStringTest{
-	{`{"result":"x"}`, `json: invalid use of ,string struct tag, trying to unmarshal "x" into string`},
-	{`{"result":"foo"}`, `json: invalid use of ,string struct tag, trying to unmarshal "foo" into string`},
-	{`{"result":"123"}`, `json: invalid use of ,string struct tag, trying to unmarshal "123" into string`},
-	{`{"result":123}`, `json: invalid use of ,string struct tag, trying to unmarshal unquoted value into string`},
+	{`{"result":"x"}`, `at path $.result, json: invalid use of ,string struct tag, trying to unmarshal "x" into string`},
+	{`{"result":"foo"}`, `at path $.result, json: invalid use of ,string struct tag, trying to unmarshal "foo" into string`},
+	{`{"result":"123"}`, `at path $.result, json: invalid use of ,string struct tag, trying to unmarshal "123" into string`},
+	{`{"result":123}`, `at path $.result, json: invalid use of ,string struct tag, trying to unmarshal unquoted value into string`},
 }
 
 // If people misuse the ,string modifier, the error message should be
