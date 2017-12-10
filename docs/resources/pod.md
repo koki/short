@@ -524,7 +524,1200 @@ The selector string selects Taints using the following formats
 
 #### Volume Overview
 
+This section describes the mechanism for specifying volume sources for the pod. In short syntax, Volume sources are always defined as a map. 
 
+Each of the keys of this map is considered to be the local reference(store) of the volume source, and this key should be referenced in the `volume.store` key in the *container* definition. Here's a simple example showing this behavior
+
+```yaml
+# Pod with simple volume source
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+spec:
+  containers:
+  - name: redis
+    image: redis
+    volumeMounts:
+    - name: redis-storage
+      mountPath: /data/redis
+  volumes:
+  - name: redis-storage
+    emptyDir: {}
+```
+
+The equivalent short syntax looks like this
+
+```yaml
+# short syntax for volume source with string as the value's type
+pod:
+  containers:
+  - image: redis
+    name: redis
+    volume:
+    - mount: /data/redis
+      store: redis-storage  # The store is the local reference to the volume
+  name: redis
+  version: v1
+  volumes:
+    redis-storage: empty_dir # The key is the name of the volume 
+```
+
+In case this information about the volume cannot be encoded in a single string easily, then the entry's value can be a map instead of a string. This is the case for most of the volume sources in Kubernetes. Here is an example depicting this syntax
+
+```yaml
+# Pod with complex volume source
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-ebs
+spec:
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /test-ebs
+      name: test-volume
+  volumes:
+  - name: test-volume
+    # This AWS EBS volume must already exist.
+    awsElasticBlockStore:
+      volumeID: <volume-id>
+      fsType: ext4
+```
+
+```yaml
+# short syntax for volume source with map as the value's type
+pod:
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-ebs
+      store: test-volume   # The local reference is used to denote that the volume is used by this container
+  name: test-ebs
+  version: v1
+  volumes:
+    test-volume:    # The key is the local reference to the volume 
+      fs: ext4      # parameters for the volume...
+      vol_id: <volume-id> 
+      vol_type: aws_ebs
+```
+
+Here's an example pod that has multiple volume sources (in short syntax)
+
+```yaml
+pod:
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-ebs
+      store: test-volume
+    - mount: /test-empty-dir
+      store: test-empty-dir-vol
+  name: test-ebs
+  version: v1
+  volumes:
+    test-empty-dir-vol: empty_dir    # Each key is a local reference to a volume
+    test-volume:
+      fs: ext4
+      vol_id: <volume-id>
+      vol_type: aws_ebs
+```
+
+The following volume sources are defined in Short syntax
+
+| Volume Source | Link | 
+|:-------------:|:----:|
+| Empty Directory | [empty_dir](#empty-directory) |
+| AWS Elastic Block Store | [aws_ebs](#aws-elastic-block-store) |
+| Azure Disk | [azure_disk](#azure-disk) |
+| Azure File | [azure_file](#azure-file) |
+| Ceph FS | [cephfs](#ceph-fs) |
+| Downward API | [downward_api](#downward-api) |
+| Fibre Channel | [fc](#fibre-channel) |
+| Flocker | [flocker](#flocker) |
+| GCE Persistent Disk | [gce_pd](#gce-persistent-disk) |
+| Git Repository | [git](#git-repository) |
+| GlusterFS | [glusterfs](#gluster-fs) |
+| Host Path | [host_path](#host-path) |
+| ISCSI | [iscsi](#iscsi) |
+| NFS | [nfs](#nfs) |
+| Persistent Volume Claim | [pvc](#persistent-volume-claim) |
+| Projected | [projected](#projected) |
+| Portworx | [portworx](#portworx) |
+| QuoByte | [quobyte](#quobyte) |
+| RBD | [rbd](#rbd) |
+| ScaleIO | [scaleio](#scaleio) |
+| Secret | [secret](#secret) |
+| Storage OS | [storageos](#storage-os) |
+| VSphere Volume | [vsphere](#vsphere-volume) |
+
+The next section describes the short syntax for each of the volume source types
+
+##### Empty Directory
+
+| Field | Type | K8s counterpart(s) | Description | 
+|:-----:|:----:|:------------------:|:-----------:|
+|max_size|`string`|`SizeLimit`| The maximum amount of data that can be stored in this volume|
+|medium| `string` | `Medium` | The mechanism by which the storage is allocated to the volume|
+|vol_type| `string` | - | This should always be set to `empty_dir` for volumes of type `empty_dir` |
+
+Medium can take the following values
+
+| Medium Type | Description | 
+|:-----------:|:-----------:|
+|      | `<empty value>` Use the node default| 
+| memory      | Store the data in memory (tmpfs) |
+| huge-pages   | Store the data in huge pages |
+
+Here's an example pod with empty directory volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  volumes:
+    test_volume:
+      max_size: 500G
+      medium: huge-pages
+      vol_type: empty_dir
+```
+
+##### AWS Elastic Block Store
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| vol_id | `string` | `VolumeID` |  Unique ID of the persistent disk resource in AWS (Amazon EBS volume) |
+| partition | `int32` | `Partition` | The partition in the volume that you want to mount |
+| vol_type| `string` | - | This should always be set to `aws_ebs` for volumes of type `aws_ebs` |
+
+Here's an example pod with aws ebs volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_id: i4054053
+      vol_type: aws_ebs
+      partition: 2
+```
+
+##### Azure Disk
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| cache | `string` | `CachingMode` | Host Caching mode |
+| disk_uri | `string` | `DataDiskURI` | The URI the data disk in the blob storage |
+| disk_name | `string` | `DiskName` | The Name of the data disk in the blob storage |
+| kind | `string` | `Kind` | The kind of azure disk volume | 
+| vol_type| `string` | - | This should always be set to `azure_disk` for volumes of type `azure_disk` |
+
+Azure disks can be of the following Kinds
+
+| Azure disk Kind | Description | 
+|:---------------:|:-----------:|
+| dedicated | This denotes single blob disks per storage account |
+| shared    | This is the default value. This denotes multiple blob disks per storage account |
+| managed   | Azure data disk (only in managed availability set) | 
+
+Azure disk cache can take the following values 
+
+| Azure Disk Caching Mode | Description | 
+|:-----------------------:|:-----------:|
+| none | No caching |
+| ro | Cache reads |
+| rw | Cache reads and writes |
+
+Here's an example pod with azure disk volume source 
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      cache: rw
+      disk_name: azure_disk_name
+      disk_uri: disk://uri.azure.disk
+      fs: xfs
+      kind: dedicated
+      vol_type: azure_disk
+```
+
+##### Azure File
+
+Azure file is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`azure_file:{secret_name}:{share_name}:{ro}`
+
+where, `secret_name` and `share_name` are required fields and `ro` is optional
+
+The description for each of the fields are provided in this table
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| secret_name | `string` | `SecretName` | The name of secret that contains Azure Storage Account Name and Key  |
+| share_name | `string` | `ShareName` | Name of the share  |
+| ro | `string` | `ReadOnly` | This is an **optional** field and should only be set if this volume is read-only. When it is not set, then the volume defaults to read-write|
+| azure_file| `constant` | - | This prefix is used to denote that this is an `azure_file` volume |
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with azure file volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: azure_file:azure_file_secret_name:azure_file_share_name:ro
+```
+
+##### Ceph FS
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| monitors | `[]string` | `Monitors` | A list of Ceph monitors |
+| ro | `bool` | `ReadOnly` | Denote that the volume should be read only |
+| secret | `string` | `SecretFile`, `SecretRef`  | Authentication secret for the user |
+| user | `string` | `User` | Rados user name. Defaults to `admin` | 
+| vol_type| `string` | - | This should always be set to `cephfs` for volumes of type `cephfs` |
+
+The `secret` field is used to denote both `SecretFile` and `SecretRef` in the Kubernetes API resource. This is done by using one of the two prefixes for the value of the `secret` field.
+
+| Secret Field Prefix | Description | 
+|:-------------------:|:-----------:|
+| `ref:${secret_name}`| If the `ref` prefix is used, then it is a reference to a secret name |
+| `file:${/path/to/file}` | A path to keyring for the user. Defaults to `/etc/ceph/user.secret` |
+
+Here's an example pod with ceph fs volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      monitors:
+      - monitor1
+      - monitor2
+      path: /path/to/nowhere
+      ro: true
+      secret: file:/path/to/secret   # can also be ref:secretname
+      user: username
+      vol_type: cephfs
+```
+
+##### Downward API
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| items | `map[string]items` | `Items` | A list of downward api sources |
+| mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
+| vol_type| `string` | - | This should always be set to `downward_api` for volumes of type `downward_api` |
+
+The items map is a special map. The keys to the map are file paths of the files that will be created from the downward_api source. This key directly corresponds to the `Path` key in the `DownwardAPIVolumeFile` resource in the Kubernetes API.
+
+The value to the file path key is a resource with the following fields
+
+| Field | Type | K8s counterpart(s) | Description | 
+|:-----:|:----:|:------------------:|:-----------:|
+| field | `string` | `FieldRef` | Selects a field of the pod: only annotations, labels, name and namespace are supported |
+| resource | `string` | `ResourceFieldRef` | Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported |
+| mode | `int32` | `Mode` | Mode bits to use on this file. Overrides default mode |
+
+The volume for the resource field should satisfy the format
+
+`${container-name}:{resource}:{requirement}`
+
+where `container-name` is the name of the container, and `resource` is one of `limits.cpu`, `limits.memory`, `request.cpu` and `requests.memory` and `requirement` is the value for the resource.
+
+Here's an example pod with downward api volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      items:
+        path/to/file:
+          field: metadata.annotation
+          mode: "0644"
+        path/to/file1:
+          mode: "0644"
+          resource: container-name:limits.cpu:1m
+      mode: "0644"
+      vol_type: downward_api
+```
+
+##### Fibre Channel
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| lun | `int32` | `Lun` | FC target lun number |
+| ro | `bool` | `ReadOnly` | Denote that the volume is read only. Defaults to `false` | 
+| wwid | `[]string` | `WWIDs` |  FC volume world wide identifiers  |
+| wwn | `[]string` | `TargetWWNs` | FC target worldwide names |
+| vol_type| `string` | - | This should always be set to `azure_disk` for volumes of type `azure_disk` |
+
+Here's an example pod with fibre channel volume source 
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      lun: 3
+      ro: true
+      vol_type: fc
+      wwid:
+      - wwid1
+      - wwid2
+      wwn:
+      - wwn1
+      - wwn2
+```
+
+##### Flocker
+
+Flocker is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`flocker:{uuid}`
+
+where, `uuid` is the unique identifier of the flocker dataset
+
+and `flocker` is the volume type (mandatory constant)
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with flocker volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: flocker:uuid
+```
+
+##### GCE Persistent Disk
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| vol_id | `string` | `PDName` |  Unique ID of the persistent disk resource in GCE (GCE PD volume) |
+| partition | `int32` | `Partition` | The partition in the volume that you want to mount |
+| vol_type| `string` | - | This should always be set to `gce_pd` for volumes of type `gce_pd` |
+
+Here's an example pod with gce persistent disk volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      partition: 1
+      ro: true
+      vol_id: name_of_pd
+      vol_type: gce_pd
+```
+
+##### GIT Repository 
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| dir | `string`| `Directory`   | Target directory name |
+| rev | `string`  | `Revision` | Commit hash for the specfied revision |
+| vol_id | `string` | `Repository` |  URL of the git repository |
+| vol_type| `string` | - | This should always be set to `git` for volumes of type `git` |
+
+Here's an example pod with git repository volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      dir: testdata
+      rev: master
+      vol_id: github.com/koki
+      vol_type: git
+```
+
+##### Gluster FS
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| ro | `bool`| `ReadOnly`   | Denotes that the volume is read-only |
+| endpoints | `string`  | `Endpoints` | Endpoint name that details GlusterFS topology |
+| path | `string` | `Path` |  GlusterFS volume path |
+| vol_type| `string` | - | This should always be set to `glusterfs` for volumes of type `glusterfs` |
+
+Here's an example pod with gluster fs volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      endpoints: endpointsName
+      ro: true
+      path: /path/to/gluster/vol
+      vol_type: glusterfs
+```
+
+##### Host Path
+
+Host Path is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`host_path:{/path/to/dir}:{host_path_type}`
+
+where, `/path/to/dir` is a required field and `host_path_type` is optional
+
+and `host_path` is the volume type (mandatory constant)
+
+Host Path Type can take the following values
+
+| Host Path Type | Description |
+|:--------------:|:-----------:|
+|                | `<empty value>` for backwards compatibility. This is also the default value |
+| `dir-or-create` | If nothing exists at the given path, an empty directory will be created there as needed with file mode 0755, having the same group and ownership with Kubelet |
+| `dir` | A directory must exist at the given path |
+| `file-or-create` | If nothing exists at the given path, an empty file will be created there as needed with file mode 0644, having the same group and ownership with Kubelet |
+| `file` | A file must exist at the given path |
+| `socket` | A UNIX socket must exist at the given path |
+| `char-dev` | A character device must exist at the given path |
+| `block-dev` | A block device must exist at the given path |
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with host path volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: host_path:/path/to/dir:block-dev
+```
+
+##### ISCSI
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| portals | `[]string` | `Portals` | iSCSI Target Portal List. The portal is either an IP or ip_addr:port if the port is other than default (typically TCP ports 860 and 3260) |
+| chap_discovery | `bool` | `DiscoveryCHAPAuth` | Denotes the support for iSCSI Discovery CHAP authentication |
+| chap_session | `bool` | `SessionCHAPAuth` | Denotes the support for iSCSI Session CHAP authentication |
+| secret | `string` | `SecretRef` | The name of the secret  for iSCSI target and initiator authentication |
+| initiator | `string` | `InitiatorName` | Custom iSCSI Initiator Name. If initiatorName is specified with iscsiInterface simultaneously, new iSCSI interface. `<target portal>:<volume name>` will be created for the connection |
+| target_portal | `string` | `TargetPortal` | iSCSI Target portal. The Portal is either an IP or ip_addr:port if the port is other than default (typically TCP ports 860 and 3260) |
+| iqn | `string` | `IQN` | Target iSCSI qualified Name |
+| lun | `int32` | `Lun` | Target iSCSI Lun number |
+| iscsi_interface | `string` | `ISCSIInterface` | iSCSI Interface Name that uses an iSCSI transport. Defaults to 'default' (tcp)|
+| vol_type| `string` | - | This should always be set to `iscsi` for volumes of type `iscsi` |
+
+Here's an example pod with iscsi volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      chap_discovery: true
+      chap_session: true
+      fs: xfs
+      initiator: initiator.name
+      iqn: iqn.iscsi.hello.world
+      iscsi_interface: default
+      lun: 45
+      portals:
+      - 127.0.0.1
+      - 192.168.1.132:861
+      ro: true
+      secret: secretName
+      target_portal: 10.10.0.10
+      vol_type: iscsi
+```
+
+##### NFS
+
+NFS is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`nfs:{server_addr}:{/path/to/dir}:{ro}`
+
+where, `server_addr` and `/path/to/dir` are required fields and `ro` is optional
+
+The descriptions for the above fields are provided in the table below
+
+| Fields | Type | K8s counterpart(s) | Description |
+|:-----:|:------:|:-----------------:|:-----------:|
+| server_addr | `string` | `Server` | Server is the hostname or IP address of the NFS server |
+| /path/to/vol | `string` | `Path` | Path that is exported by the NFS server |
+| ro | `bool`  | `ReadOnly` | Make the volume read only. Defaults to `false` |
+| vol_type| `string` | - | This should always be set to `nfs` for volumes of type `nfs` |
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with nfs volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: nfs:server_addr:/path/to/data
+```
+
+##### Persistent Volume Claim
+
+Persistent Volume Claim (PVC) is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`pvc:{pvc_name}:{ro}`
+
+where, `pvc_name` is a required field and `ro` is optional
+
+The descriptions for the above fields are provided in the table below
+
+| Fields | Type | K8s counterpart(s) | Description |
+|:-----:|:------:|:-----------------:|:-----------:|
+| pvc_name | `string` | `ClaimName` | Name of a PersistentVolumeClaim in the same namespace as the pod using this volume |
+| ro | `bool`  | `ReadOnly` | Make the volume read only. Defaults to `false` |
+| vol_type| `string` | - | This should always be set to `pvc` for volumes of type `pvc` |
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with persistent volume claim volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: pvc:pvc_name:ro
+```
+
+##### Projected
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| sources | `[]source` | `Sources` | A list of Projected Sources |
+| mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
+| vol_type| `string` | - | This should always be set to `projected` for volumes of type `projected` |
+
+Source is a special structure that takes on different forms based on the type of `source`. There are three types of sources
+
+| Source Type | Description | 
+|:-----------:|:-----------:|
+| Secret Source | secret to project |
+| Config Map Source | configMap to project |
+| Downward API Source | downwardAPI to project |
+
+*Note that this source type is used for conceptual understanding only, and is not used anywhere in short syntax*
+
+###### Secret Source
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| items | `map[string]item` | `Items` | A list of secret projections |
+| secret | `string` | `LocalObjectReference` | Name of the secret to project from |
+
+The items map for secret source is a special map. The keys to the map are the file paths of the files that will be created from the secret source. The key directly corresponds to the Key in the `KeyToPath` resource in Kubernetes API.
+
+The value to the file path key for secret source is a string of the following format.
+
+`{key}:{mode}`
+
+where `key` is a key that should exist in the secret object being referenced, and `mode` is an optional field to override the default mode bits for the projected volume source 
+
+###### Config Map Source
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| items | `map[string]item` | `Items` | A list of secret projections |
+| config | `string` | `LocalObjectReference` | Name of the Config Map to project from |
+
+The items map for config map source is a special map. The keys to the map are the file paths of the files that will be created from the config map source. The key directly corresponds to the Key in the `KeyToPath` resource in Kubernetes API.
+
+The value to the file path key for secret source is a string of the following format.
+
+`{key}:{mode}`
+
+where `key` is a key that should exist in the config map object being referenced, and `mode` is an optional field to override the default mode bits for the projected volume source 
+
+###### Downward API Source
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| items | `map[string]item` | `Items` | A list of downward api projections |
+
+The items map for downward api source is a special map, and different from the items map for secret and configmap. The keys to the map are file paths of the files that will be created from the downward_api source. This key directly corresponds to the `Path` key in the `DownwardAPIVolumeFile` resource in the Kubernetes API.
+
+The value to the file path key for downward api source is a resource with the following fields
+
+| Field | Type | K8s counterpart(s) | Description | 
+|:-----:|:----:|:------------------:|:-----------:|
+| field | `string` | `FieldRef` | Selects a field of the pod: only annotations, labels, name and namespace are supported |
+| resource | `string` | `ResourceFieldRef` | Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported |
+| mode | `int32` | `Mode` | Mode bits to use on this file. Overrides default mode |
+
+The volume for the resource field should satisfy the format
+
+`${container-name}:{resource}:{requirement}`
+
+where `container-name` is the name of the container, and `resource` is one of `limits.cpu`, `limits.memory`, `request.cpu` and `requests.memory` and `requirement` is the value for the resource.
+
+Here's an example pod with projected volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      sources:
+      - items:
+          path/to/key: key:0644
+        secret: secret_name
+      - config: config_map_name
+        items:
+          path/to/key1: key:0644
+      - items:
+          path/to/file:
+            field: metadata.annotation
+            mode: "0644"
+          path/to/file1:
+            resource: container-name:limits.cpu:1m
+      vol_type: projected
+```
+
+##### Portworx
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| vol_id | `string` | `VolumeID` | Unique identifier a Portworx volume |  
+| vol_type| `string` | - |  This should always be set to `portworx` for volumes of type `portworx` |
+
+Here's an example pod with portworx volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_id: 3094ejer
+      vol_type: portworx
+```
+
+##### QuoByte
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| vol_id | `string` | `Volume` | Reference to already created QuoByte volume by name |  
+| user | `string` | `User` | User to map volume access to. Defaults to serviceaccount user | 
+| group| `string` | `Group` | Group to map volume access to. Defaults to no group |
+| registry| `string` | `Registry` | `registry` represents a single or multiple Quobyte Registry services specified as a string as host:port pair (multiple entries are separated with commas) which acts as the central registry for volumes |
+| vol_type| `string` | - |  This should always be set to `quobyte` for volumes of type `quobyte` |
+
+Here's an example pod with quobyte volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      group: quobyte.group
+      registry: registry.quobyte
+      ro: true
+      user: quobyte.user
+      vol_id: volume.quobyte
+      vol_type: quobyte
+```
+
+##### RBD 
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| user | `string` | `RadosUser` | Rados user name. Default is `admin` | 
+| pool| `string` | `RBDPool` | Rados Pool name. Defaults to `rbd` |
+| image| `string` | `RBDImage` | Rados image name |
+| monitors | `[]string` | `CephMonitors` | A list of ceph monitors |
+| keyring | `string` | `Keyring` | Keyring is the path to key ring for RBDUser. Defaults to `/etc/ceph/keyring` |
+| secret | `string` | `SecretRef` |  Name of the authentication secret for RBDUser. If provided overrides keyring |
+| vol_type| `string` | - |  This should always be set to `rbd` for volumes of type `rbd` |
+
+Here's an example pod with rbd volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: ext4
+      image: foo
+      keyring: /etc/ceph/keyring
+      monitors:
+      - 1.2.3.4:6789
+      - 1.2.3.5:6789
+      pool: kube
+      ro: true
+      secret: secret-name
+      user: admin
+      vol_type: rbd
+```
+
+##### ScaleIO
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| gateway | `string` | `Gateway` | The host address of the ScaleIO API Gateway | 
+| system | `string` | `System` | The name of the storage system as configured in ScaleIO |
+| secret | `string` | `SecretRef` | Name of the secret for ScaleIO user and other sensitive information. If this is not provided, Login operation will fail |
+| ssl | `bool` | `SSLEnabled` | Flag to enable/disable SSL communication with Gateway, default false |
+| protection_domain | `string` | `ProtectionDomain` | The name of the ScaleIO Protection Domain for the configured storage |
+| storage_pool | `string` | `StoragePool` | The ScaleIO Storage Pool associated with the protection domain |
+| storage_mode | `string` | `StorageMode` | Indicates the storage mode for a volume |
+| vol_id | `string` | `VolumeName` | The name of a volume already created in the ScaleIO system that is associated with this volume source |
+| vol_type| `string` | - |  This should always be set to `scaleio` for volumes of type `scaleio` |
+
+Where, the storage mode can be
+
+| Storage Mode Type |  Description |
+|:-----------------:|:------------:|
+| thick-provisioned | Disk is allocated on creation |
+| thin-provisioned | Space required is allocated on demand |
+
+Here's an example pod with scaleio volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      gateway: gateway
+      protection_domain: domain
+      ro: true
+      secret: secret
+      ssl: true
+      storage_mode: thick-provisioned
+      storage_pool: storage.pool
+      system: system
+      vol_id: volName
+      vol_type: scaleio
+```
+
+##### Secret 
+
+| Field | Type| K8s counterpart(s) | Description |
+|:-----:|:---:|:------------------:|:-----------:|
+| required | `bool` | `Optional` | Denotes that the secret should exist if set to `true` |
+| mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
+| items | `map[string]item` | `Items` | A list of secret projections |
+| vol_id | `string` | `SecretName` | Name of the secret to project from |
+| vol_type| `string` | - | This should always be set to `secret` for volumes of type `secret` |
+
+
+The items map for secret source is a special map. The keys to the map are the file paths of the files that will be created from the secret source. The key directly corresponds to the Key in the `KeyToPath` resource in Kubernetes API.
+
+The value to the file path key for secret source is a string of the following format.
+
+`{key}:{mode}`
+
+where `key` is a key that should exist in the secret object being referenced, and `mode` is an optional field to override the default mode bits for the secret volume source 
+
+Here's an example pod with secret volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      items:
+        /path/to/key: key:0644
+      mode: "0644"
+      required: false
+      vol_id: secret_name
+      vol_type: secret
+```
+
+##### Storage OS
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| secret | `string` | `SecretRef` | Name of the secret to use for obtaining the StorageOS API credentials.  If not specified, default values will be attempted |
+| vol_namespace | `string` | `VolumeNamespace` | Scope of the volume in storageOS. Defaults to pod namespace if unspecified |
+| vol_id | `string` | `VolumeName` | The name of a volume in the storageOS system. Unique withing namespace |
+| vol_type| `string` | - |  This should always be set to `storageos` for volumes of type `storageos` |
+
+Here's an example pod with storage os volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      ro: true
+      secret: secret_name
+      vol_id: storageOS.VolName
+      vol_namespace: storageOS.VolNamespace
+      vol_type: storageos
+```
+##### VSphere Volume
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| policy | `policy`  | `StoragePolicyName`, `StoragePolicyID` | Policy for policy based management |
+| vol_id | `string` | `VolumeName` | The path that identifies vsphere volume vmdk |
+| vol_type| `string` | - |  This should always be set to `vsphere` for volumes of type `vsphere` |
+
+where the policy struct has the following fields
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| id | `string`| `StoragePolicyID`   | Storage Policy Based Management (SPBM) profile ID associated with the StoragePolicyName |
+| name | `string` | `StoragePolictName` |  Storage Policy Based Management (SPBM) profile name |
+
+Here's an example pod with vsphere volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      policy:
+        id: id
+        name: policy
+      vol_id: /path/to/vsphere/volume
+      vol_type: vsphere
+```
 
 # Examples 
 

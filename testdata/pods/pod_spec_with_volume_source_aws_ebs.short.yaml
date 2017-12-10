@@ -13,3 +13,4 @@ pod:
       ro: true
       vol_id: i4054053
       vol_type: aws_ebs
+      partition: 2

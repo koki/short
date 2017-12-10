@@ -15,4 +15,3 @@ spec:
       secretName: azure_file_secret_name
       shareName: azure_file_share_name
       readOnly: true
-                

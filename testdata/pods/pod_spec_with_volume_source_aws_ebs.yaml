@@ -14,6 +14,6 @@ spec:
     awsElasticBlockStore:
       volumeID: i4054053
       fsType: xfs
-      partition: 0
+      partition: 2
       readOnly: true
                 

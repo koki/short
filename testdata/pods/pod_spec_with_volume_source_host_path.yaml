@@ -13,4 +13,4 @@ spec:
   - name: test_volume
     hostPath:
       path: /path/to/dir
-      type: BlockDevice      
+      type: BlockDevice 
