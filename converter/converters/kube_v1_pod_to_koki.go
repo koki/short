@@ -823,8 +823,7 @@ func convertContainer(container *v1.Container) (*types.Container, error) {
 		kokiContainer.AllowEscalation = container.SecurityContext.AllowPrivilegeEscalation
 		if container.SecurityContext.ReadOnlyRootFilesystem != nil {
 			kokiContainer.RO = container.SecurityContext.ReadOnlyRootFilesystem
-			rw := !(*kokiContainer.RO)
-			kokiContainer.RW = &rw
+			kokiContainer.RW = util.BoolPtrOrNil(!(*kokiContainer.RO))
 		}
 		kokiContainer.ForceNonRoot = container.SecurityContext.RunAsNonRoot
 		kokiContainer.UID = container.SecurityContext.RunAsUser

@@ -39,6 +39,11 @@ spec:
           name: configMapName
           optional: false
     - name: key
+      valueFrom:
+        secretKeyRef:
+          key: key.in.secret
+          name: secretName
+          optional: false
     envFrom:
     - configMapRef:
         name: configMapName
@@ -103,6 +108,8 @@ spec:
         - NET_ADMIN
         - WALK
       privileged: true
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
       runAsUser: 8
       seLinuxOptions:
         level: level

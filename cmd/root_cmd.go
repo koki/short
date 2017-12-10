@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/koki/short/client"
-	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
 	"github.com/koki/short/util"
 )
@@ -164,14 +163,14 @@ func short(c *cobra.Command, args []string) error {
 
 			if kubeNative {
 				glog.V(3).Info("converting input to kubernetes native syntax")
-				objs, err := converter.ConvertToKubeNative(data)
+				objs, err := client.ConvertKokiMaps(data)
 				if err != nil {
 					return fmt.Errorf("converting %s: %s", filename, err.Error())
 				}
 				convertedData = append(convertedData, objs...)
 			} else {
 				glog.V(3).Info("converting input to koki native syntax")
-				objs, err := converter.ConvertToKokiNative(data)
+				objs, err := client.ConvertKubeMaps(data)
 				if err != nil {
 					return fmt.Errorf("converting %s: %s", filename, err.Error())
 				}

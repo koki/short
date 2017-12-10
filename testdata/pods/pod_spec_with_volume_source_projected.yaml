@@ -36,4 +36,4 @@ spec:
               containerName: container-name
               resource: limits.cpu
               divisor: 1m
-    defaultMode: 0644        
+      defaultMode: 0644        

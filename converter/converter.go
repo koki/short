@@ -4,6 +4,12 @@ import (
 	"github.com/koki/short/parser"
 )
 
+/*
+
+For methods that handle reading from streams or doing additional validation, see koki/short/client.
+
+*/
+
 func ConvertToKubeNative(objs []map[string]interface{}) ([]interface{}, error) {
 	convertedTypes := []interface{}{}
 	for _, obj := range objs {

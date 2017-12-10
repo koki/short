@@ -31,7 +31,7 @@ spec:
       type: type
       level: level
     runAsUser: 8
-    runAsRoot: true
+    runAsNonRoot: true
     supplementalGroups: 
     - 1
     - 2
@@ -81,7 +81,7 @@ spec:
           key: key.in.map
           optional: true
     - name: key
-      valuefrom:
+      valueFrom:
         secretKeyRef:
           name: secretName
           key: key.in.secret
@@ -157,6 +157,6 @@ spec:
         level: level
       privileged: true
       runAsUser: 8
-      runAsRoot: true
-      readOnlyFileSystem: true
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
       allowPrivilegeEscalation: true

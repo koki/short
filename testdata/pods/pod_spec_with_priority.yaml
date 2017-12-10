@@ -10,4 +10,4 @@ metadata:
   clusterName: test_cluster
 spec:
   priority: 3
-  priortyClassName: SYSTEM
+  priorityClassName: SYSTEM

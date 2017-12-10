@@ -9,6 +9,7 @@ pod:
   version: v1
   volumes:
     test_volume:
+      mode: "0644"
       sources:
       - items:
           path/to/key: key:0644
@@ -23,3 +24,4 @@ pod:
           path/to/file1:
             resource: container-name:limits.cpu:1m
       vol_type: projected
+

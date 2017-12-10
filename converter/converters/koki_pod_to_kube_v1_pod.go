@@ -1340,8 +1340,8 @@ func revertSecurityContext(container types.Container) (*v1.SecurityContext, erro
 	}
 
 	if container.RO != nil || container.RW != nil {
-		ro := *container.RO
-		rw := *container.RW
+		ro := util.FromBoolPtr(container.RO)
+		rw := util.FromBoolPtr(container.RW)
 
 		if !((!ro && rw) || (!rw && ro)) {
 			return nil, util.InvalidInstanceErrorf(container, "conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
