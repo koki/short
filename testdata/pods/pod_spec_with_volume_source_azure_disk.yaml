@@ -14,10 +14,7 @@ spec:
     azureDisk:
       diskName: azure_disk_name
       diskURI: disk://uri.azure.disk
-      cachingMode: ReadWrite
+      cachingMode: ReadWrite 
       fsType: xfs
       readOnly: false
       kind: Dedicated
-
-   
-                
