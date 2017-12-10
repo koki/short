@@ -25,7 +25,7 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 	// Serialize the "generic" kube ReplicaSet.
 	b, err := yaml.Marshal(kubeRS)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeRS, "couldn't serialize 'generic' kube ReplicaSet: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeRS, "couldn't serialize 'generic' kube ReplicaSet")
 	}
 
 	// Deserialize a versioned kube ReplicaSet using its apiVersion.

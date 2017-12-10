@@ -1,10 +1,10 @@
 package floatstr
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 

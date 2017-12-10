@@ -1,10 +1,9 @@
 package types
 
 import (
-	"encoding/json"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 
@@ -90,7 +89,7 @@ func (s RSSelector) MarshalJSON() ([]byte, error) {
 	if len(s.Shorthand) > 0 {
 		b, err := json.Marshal(s.Shorthand)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(s, "couldn't marshal shorthand string to JSON: %s", err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, s, "marshalling shorthand string to JSON")
 		}
 
 		return b, nil
@@ -98,7 +97,7 @@ func (s RSSelector) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(s.Labels)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(s, "couldn't marshal labels dictionary to JSON: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, s, "marshalling labels dictionary to JSON")
 	}
 
 	return b, nil

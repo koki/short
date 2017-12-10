@@ -16,7 +16,7 @@ spec:
       type: type
       level: level
     runAsUser: 8
-    runAsRoot: true
+    runAsNonRoot: true
     supplementGroups: 
     - 1
     - 2

@@ -12,5 +12,4 @@ spec:
   minReadySeconds: 32
   revisionHistoryLimit: 32
   paused: true
-  rollbackConfig: 4352
   progressDeadlineSeconds: 32

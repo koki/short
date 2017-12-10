@@ -21,7 +21,7 @@ func Convert_Koki_DaemonSet_to_Kube_DaemonSet(daemonSet *types.DaemonSetWrapper)
 	// Serialize the "generic" kube DaemonSet.
 	b, err := yaml.Marshal(kubeDaemonSet)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeDaemonSet, "couldn't serialize 'generic' kube DaemonSet: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeDaemonSet, "couldn't serialize 'generic' kube DaemonSet")
 	}
 
 	// Deserialize a versioned kube DaemonSet using its apiVersion.

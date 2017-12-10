@@ -10,4 +10,9 @@ metadata:
   clusterName: test_cluster
 spec:
   selector:
-    app: web
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web

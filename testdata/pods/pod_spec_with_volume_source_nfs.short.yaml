@@ -8,4 +8,5 @@ pod:
   namespace: test
   version: v1
   volumes:
-    test_volume: nfs:server_addr:/path/to/data
+    test_volume: nfs:server_addr:/path/to/data:ro
+

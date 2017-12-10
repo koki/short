@@ -1,11 +1,12 @@
 package parser
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	"github.com/golang/glog"
+
+	"github.com/koki/short/util"
 )
 
 func OpenStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
@@ -15,7 +16,7 @@ func OpenStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
 		glog.V(5).Infof("opening file %s for reading", name)
 		f, err := os.Open(name)
 		if err != nil {
-			return nil, fmt.Errorf("failed opening file (%s): %s", name, err.Error())
+			return nil, util.ContextualizeErrorf(err, "opening file %s", name)
 		}
 
 		readers = append(readers, f)

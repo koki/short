@@ -117,12 +117,12 @@ func TestRevertService(t *testing.T) {
 func tryService(kokiService *types.ServiceWrapper, t *testing.T) *v1.Service {
 	kubeService, err := Convert_Koki_Service_To_Kube_v1_Service(kokiService)
 	if err != nil {
-		t.Error(pretty.Sprintf("failed converting (%# v) with error (%s)", kokiService, err.Error()))
+		t.Error(pretty.Sprintf("failed converting (%# v) with error (%s)", kokiService, util.PrettyError(err)))
 	}
 
 	roundTripped, err := Convert_Kube_v1_Service_to_Koki_Service(kubeService)
 	if err != nil {
-		t.Error(pretty.Sprintf("failed reverting (%# v) with error (%s)", kubeService, err.Error()))
+		t.Error(pretty.Sprintf("failed reverting (%# v) with error (%s)", kubeService, util.PrettyError(err)))
 	}
 
 	if !reflect.DeepEqual(kokiService, roundTripped) {

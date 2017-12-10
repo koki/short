@@ -30,7 +30,9 @@ pod:
     - from: config:configMapName:key.in.map
       key: key
       required: true
-    - key
+    - from: secret:secretName:key.in.secret
+      key: key
+      required: true
     - from: config:configMapName
       key: FROM_CONFIG_
       required: true
@@ -38,6 +40,7 @@ pod:
       key: FROM_SECRET_
     expose:
     - port_name: 127.0.0.1:8080:80
+    force_non_root: true
     image: container_image
     liveness_probe:
       delay: 3
@@ -66,6 +69,7 @@ pod:
       interval: 10
       net:
         url: TCP://:8080
+    ro: true
     selinux:
       level: level
       role: role
@@ -105,3 +109,4 @@ pod:
       vol_id: gce_pd_test_volume
       vol_type: gce_pd
     host_path_test_volume: host_path:/path/to/host/vol:dir
+

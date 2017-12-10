@@ -823,8 +823,7 @@ func convertContainer(container *v1.Container) (*types.Container, error) {
 		kokiContainer.AllowEscalation = container.SecurityContext.AllowPrivilegeEscalation
 		if container.SecurityContext.ReadOnlyRootFilesystem != nil {
 			kokiContainer.RO = container.SecurityContext.ReadOnlyRootFilesystem
-			rw := !(*kokiContainer.RO)
-			kokiContainer.RW = &rw
+			kokiContainer.RW = util.BoolPtrOrNil(!(*kokiContainer.RO))
 		}
 		kokiContainer.ForceNonRoot = container.SecurityContext.RunAsNonRoot
 		kokiContainer.UID = container.SecurityContext.RunAsUser
@@ -1309,7 +1308,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceErrorf(nodeHardAffinity, "unsupported Operator: %s", err.Error())
+					return nil, util.InvalidInstanceContextErrorf(err, nodeHardAffinity, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -1339,7 +1338,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceErrorf(nodeSoftAffinity, "unsupported Operator: %s", err.Error())
+					return nil, util.InvalidInstanceContextErrorf(err, nodeSoftAffinity, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -1417,7 +1416,7 @@ func convertPodWeightedAffinityTerms(isAntiAffinity bool, podSoftAffinity []v1.W
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceErrorf(selectorTerm.PodAffinityTerm, "unsupported Operator: %s", err.Error())
+					return nil, util.InvalidInstanceContextErrorf(err, selectorTerm.PodAffinityTerm, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {
@@ -1467,7 +1466,7 @@ func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffini
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceErrorf(selectorTerm, "unsupported Operator: %s", err.Error())
+					return nil, util.InvalidInstanceContextErrorf(err, selectorTerm, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {

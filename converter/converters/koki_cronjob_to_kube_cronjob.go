@@ -22,7 +22,7 @@ func Convert_Koki_CronJob_to_Kube_CronJob(cronJob *types.CronJobWrapper) (interf
 	// Serialize the "generic" kube CronJob.
 	b, err := yaml.Marshal(kubeCronJob)
 	if err != nil {
-		return nil, util.InvalidValueErrorf(kubeCronJob, "couldn't serialize 'generic' kube CronJob: %s", err.Error())
+		return nil, util.InvalidValueContextErrorf(err, kubeCronJob, "couldn't serialize 'generic' kube CronJob")
 	}
 
 	// Deserialize a versioned kube CronJob using its apiVersion.

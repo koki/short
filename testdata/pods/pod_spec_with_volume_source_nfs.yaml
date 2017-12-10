@@ -14,4 +14,4 @@ spec:
     nfs:
       server: server_addr
       path: /path/to/data
-      ro: true      
+      readOnly: true      

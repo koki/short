@@ -1340,8 +1340,8 @@ func revertSecurityContext(container types.Container) (*v1.SecurityContext, erro
 	}
 
 	if container.RO != nil || container.RW != nil {
-		ro := *container.RO
-		rw := *container.RW
+		ro := util.FromBoolPtr(container.RO)
+		rw := util.FromBoolPtr(container.RW)
 
 		if !((!ro && rw) || (!rw && ro)) {
 			return nil, util.InvalidInstanceErrorf(container, "conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
@@ -1580,7 +1580,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 	if probe.Net != nil {
 		urlStruct, err := url.Parse(probe.Net.URL)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(probe, "couldn't parse URL: %s", err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, probe, "parsing URL")
 		}
 		if strings.ToUpper(urlStruct.Scheme) == "TCP" {
 			hostPort := urlStruct.Host

@@ -22,5 +22,4 @@ spec:
       readOnly: true
       secretRef:
         name: secret-name
-        namespace: secret-namespace
       user: admin

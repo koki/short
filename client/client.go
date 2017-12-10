@@ -1,19 +1,23 @@
 package client
 
 import (
-	"encoding/json"
 	"io"
 
 	"github.com/ghodss/yaml"
 
 	"github.com/koki/short/converter"
+	"github.com/koki/short/json"
 	"github.com/koki/short/parser"
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/objutil"
 )
 
 /*
 
-Converting text streams to objects.
+Converting text streams and JSON/YAML dictionaries to objects. (And also the reverse.)
+
+This package is the canonical integration point for using Koki Short functionality.
+It's used for the command-line tool and functional tests.
 
 */
 
@@ -24,7 +28,36 @@ func ConvertKokiStreams(kokiStreams []io.ReadCloser) ([]interface{}, error) {
 		return nil, err
 	}
 
-	return converter.ConvertToKubeNative(objs)
+	return ConvertKokiMaps(objs)
+}
+
+func ConvertKokiMaps(objs []map[string]interface{}) ([]interface{}, error) {
+	convertedObjs := make([]interface{}, len(objs))
+	for i, obj := range objs {
+		// 1. Parse.
+		parsedObj, err := parser.ParseKokiNativeObject(obj)
+		if err != nil {
+			return nil, err
+		}
+
+		// 2. Check for unparsed fields--potential typos.
+		extraneousPaths, err := objutil.ExtraneousFieldPaths(obj, parsedObj)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+		}
+		if len(extraneousPaths) > 0 {
+			return nil, &objutil.ExtraneousFieldsError{Paths: extraneousPaths}
+		}
+
+		// 3. Convert.
+		convertedObj, err := converter.DetectAndConvertFromKokiObj(parsedObj)
+		if err != nil {
+			return nil, err
+		}
+		convertedObjs[i] = convertedObj
+	}
+
+	return convertedObjs, nil
 }
 
 // ConvertKubeStreams to Koki objects.
@@ -34,7 +67,36 @@ func ConvertKubeStreams(kubeStreams []io.ReadCloser) ([]interface{}, error) {
 		return nil, err
 	}
 
-	return converter.ConvertToKokiNative(objs)
+	return ConvertKubeMaps(objs)
+}
+
+func ConvertKubeMaps(objs []map[string]interface{}) ([]interface{}, error) {
+	convertedObjs := make([]interface{}, len(objs))
+	for i, obj := range objs {
+		// 1. Parse.
+		parsedObj, err := parser.ParseSingleKubeNative(obj)
+		if err != nil {
+			return nil, err
+		}
+
+		// 2. Check for unparsed fields--potential typos.
+		extraneousPaths, err := objutil.ExtraneousFieldPaths(obj, parsedObj)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+		}
+		if len(extraneousPaths) > 0 {
+			return nil, &objutil.ExtraneousFieldsError{Paths: extraneousPaths}
+		}
+
+		// 3. Convert.
+		convertedObj, err := converter.DetectAndConvertFromKubeObj(parsedObj)
+		if err != nil {
+			return nil, err
+		}
+		convertedObjs[i] = convertedObj
+	}
+
+	return convertedObjs, nil
 }
 
 // ConvertEitherStreamsToKube either Koki or Kube to just Kube objects.

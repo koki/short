@@ -570,7 +570,7 @@ func isString(data []byte, t *testing.T) bool {
 func testVolumeSource(kokiVolume Volume, t *testing.T, expectString bool) {
 	b, err := yaml.Marshal(kokiVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n%# v", err.Error(), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n%# v", util.PrettyError(err), kokiVolume))
 		return
 	}
 
@@ -583,13 +583,13 @@ func testVolumeSource(kokiVolume Volume, t *testing.T, expectString bool) {
 
 	err = yaml.Unmarshal(b, &newVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", err.Error(), string(b), kokiVolume))
+		t.Error(pretty.Sprintf("%s\n(%s)\n(%# v)", util.PrettyError(err), string(b), kokiVolume))
 		return
 	}
 
 	newB, err := yaml.Marshal(newVolume)
 	if err != nil {
-		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", err.Error(), newVolume, kokiVolume, string(b)))
+		t.Error(pretty.Sprintf("%s\n(%# v)\n(%# v)\n(%s)", util.PrettyError(err), newVolume, kokiVolume, string(b)))
 		return
 	}
 

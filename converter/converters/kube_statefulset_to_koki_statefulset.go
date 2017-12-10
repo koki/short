@@ -22,13 +22,13 @@ func Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet runtime.Object
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeStatefulSet)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(kubeStatefulSet, "couldn't serialize kube StatefulSet after setting apiVersion to apps/v1beta2: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, kubeStatefulSet, "couldn't serialize kube StatefulSet after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube StatefulSet
 	genericStatefulSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(string(b), "couldn't deserialize 'generic' kube StatefulSet: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube StatefulSet")
 	}
 
 	if genericStatefulSet, ok := genericStatefulSet.(*appsv1beta2.StatefulSet); ok {

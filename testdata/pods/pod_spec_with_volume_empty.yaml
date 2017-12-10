@@ -9,5 +9,5 @@ metadata:
   namespace: test
   clusterName: test_cluster
 spec:
-  volumes:
+  volumes: []
                 

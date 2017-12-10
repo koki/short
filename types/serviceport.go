@@ -1,13 +1,13 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/koki/short/json"
 	"github.com/koki/short/util"
 )
 
@@ -112,7 +112,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 	if intErr == nil {
 		b, err := json.Marshal(i)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(p, "couldn't marshal port number (%d) to JSON: %s", i, err.Error())
+			return nil, util.InvalidInstanceContextErrorf(err, p, "marshalling port number (%d) to JSON", i)
 		}
 
 		return b, nil
@@ -121,7 +121,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 	str := p.String()
 	b, strErr := json.Marshal(str)
 	if strErr != nil {
-		return nil, util.InvalidInstanceErrorf(p, "couldn't marshal to JSON from string (%s): %s", str, strErr.Error())
+		return nil, util.InvalidInstanceContextErrorf(strErr, p, "marshalling to JSON from string (%s)", str)
 	}
 
 	return b, nil

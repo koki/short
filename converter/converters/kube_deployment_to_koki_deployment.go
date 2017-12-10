@@ -22,13 +22,13 @@ func Convert_Kube_Deployment_to_Koki_Deployment(kubeDeployment runtime.Object) (
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(kubeDeployment, "couldn't serialize kube Deployment after setting apiVersion to apps/v1beta2: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, kubeDeployment, "couldn't serialize kube Deployment after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube Deployment
 	genericDeployment, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceErrorf(string(b), "couldn't deserialize 'generic' kube Deployment: %s", err.Error())
+		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube Deployment")
 	}
 
 	if genericDeployment, ok := genericDeployment.(*appsv1beta2.Deployment); ok {
