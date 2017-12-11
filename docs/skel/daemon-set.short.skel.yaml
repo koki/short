@@ -1,0 +1,579 @@
+{
+ "daemon_set": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "replace_on_delete": false,
+  "max_unavailable": {
+   "Type": 0,
+   "IntVal": 0,
+   "StrVal": ""
+  },
+  "min_ready": 0,
+  "max_revs": 0,
+  "selector": {
+   "Shorthand": "",
+   "Labels": {}
+  },
+  "pod_meta": {
+   "cluster": "",
+   "name": "",
+   "namespace": "",
+   "labels": {},
+   "annotations": {}
+  },
+  "volumes": {
+   " ": {
+    "HostPath": {},
+    "EmptyDir": {
+     "medium": "",
+     "max_size": {
+      "Format": ""
+     }
+    },
+    "GcePD": {
+     "fs": "",
+     "partition": 0,
+     "ro": false
+    },
+    "AwsEBS": {
+     "fs": "",
+     "partition": 0,
+     "ro": false
+    },
+    "AzureDisk": {
+     "disk_name": "",
+     "disk_uri": "",
+     "cache": " ",
+     "fs": "",
+     "ro": false,
+     "kind": " "
+    },
+    "AzureFile": {},
+    "CephFS": {
+     "monitors": [
+      ""
+     ],
+     "path": "",
+     "user": "",
+     "secret": {},
+     "ro": false
+    },
+    "Cinder": {
+     "fs": "",
+     "ro": false
+    },
+    "FibreChannel": {
+     "wwn": [
+      ""
+     ],
+     "lun": 0,
+     "fs": "",
+     "ro": false,
+     "wwid": [
+      ""
+     ]
+    },
+    "Flex": {
+     "fs": "",
+     "secret": "",
+     "ro": false,
+     "options": {}
+    },
+    "Flocker": {},
+    "Glusterfs": {
+     "endpoints": "",
+     "ro": false
+    },
+    "ISCSI": {
+     "target_portal": "",
+     "iqn": "",
+     "lun": 0,
+     "iscsi_interface": "",
+     "fs": "",
+     "ro": false,
+     "portals": [
+      ""
+     ],
+     "chap_discovery": false,
+     "chap_session": false,
+     "secret": "",
+     "initiator": ""
+    },
+    "NFS": {},
+    "PhotonPD": {},
+    "Portworx": {
+     "fs": "",
+     "ro": false
+    },
+    "PVC": {},
+    "Quobyte": {
+     "registry": "",
+     "ro": false,
+     "user": "",
+     "group": ""
+    },
+    "ScaleIO": {
+     "gateway": "",
+     "system": "",
+     "secret": "",
+     "ssl": false,
+     "protection_domain": "",
+     "storage_pool": "",
+     "storage_mode": "",
+     "fs": "",
+     "ro": false
+    },
+    "Vsphere": {
+     "fs": "",
+     "policy": {
+      "name": "",
+      "id": ""
+     }
+    },
+    "ConfigMap": {
+     "items": {},
+     "mode": 0,
+     "required": false
+    },
+    "Secret": {
+     "items": {},
+     "mode": 0,
+     "required": false
+    },
+    "DownwardAPI": {
+     "items": {},
+     "mode": 0
+    },
+    "Projected": {
+     "sources": [
+      {}
+     ],
+     "mode": 0
+    },
+    "Git": {
+     "revision": "",
+     "directory": ""
+    },
+    "RBD": {
+     "monitors": [
+      ""
+     ],
+     "image": "",
+     "fs": "",
+     "pool": "",
+     "user": "",
+     "keyring": "",
+     "secret": "",
+     "ro": false
+    },
+    "StorageOS": {
+     "vol_namespace": "",
+     "fs": "",
+     "ro": false,
+     "secret": ""
+    }
+   }
+  },
+  "init_containers": [
+   {
+    "command": [
+     ""
+    ],
+    "args": [
+     {
+      "Type": 0,
+      "FloatVal": 0,
+      "StringVal": ""
+     }
+    ],
+    "env": [
+     {
+      "Type": 0,
+      "From": {
+       "key": "",
+       "from": "",
+       "required": false
+      },
+      "Val": {
+       "Key": "",
+       "Val": ""
+      }
+     }
+    ],
+    "image": "",
+    "pull": "",
+    "on_start": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     }
+    },
+    "pre_stop": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     }
+    },
+    "cpu": {
+     "min": "",
+     "max": ""
+    },
+    "mem": {
+     "min": "",
+     "max": ""
+    },
+    "name": "",
+    "cap_add": [
+     ""
+    ],
+    "cap_drop": [
+     ""
+    ],
+    "privileged": false,
+    "allow_escalation": false,
+    "rw": false,
+    "ro": false,
+    "force_non_root": false,
+    "uid": 0,
+    "selinux": {
+     "level": "",
+     "role": "",
+     "type": "",
+     "user": ""
+    },
+    "liveness_probe": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     },
+     "delay": 0,
+     "interval": 0,
+     "min_count_success": 0,
+     "min_count_fail": 0,
+     "timeout": 0
+    },
+    "readiness_probe": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     },
+     "delay": 0,
+     "interval": 0,
+     "min_count_success": 0,
+     "min_count_fail": 0,
+     "timeout": 0
+    },
+    "expose": [
+     {
+      "Name": "",
+      "Protocol": "",
+      "IP": "",
+      "HostPort": "",
+      "ContainerPort": ""
+     }
+    ],
+    "stdin": false,
+    "stdin_once": false,
+    "tty": false,
+    "wd": "",
+    "termination_msg_path": "",
+    "termination_msg_policy": "",
+    "container_id": "",
+    "image_id": "",
+    "ready": false,
+    "last_state": {
+     "waiting": {
+      "reason": "",
+      "msg": ""
+     },
+     "terminated": {
+      "start_time": "0001-01-01T00:00:00Z",
+      "finish_time": "0001-01-01T00:00:00Z",
+      "reason": "",
+      "msg": "",
+      "exit_code": 0,
+      "signal": 0
+     },
+     "running": {
+      "start_time": "0001-01-01T00:00:00Z"
+     }
+    },
+    "current_state": {
+     "waiting": {
+      "reason": "",
+      "msg": ""
+     },
+     "terminated": {
+      "start_time": "0001-01-01T00:00:00Z",
+      "finish_time": "0001-01-01T00:00:00Z",
+      "reason": "",
+      "msg": "",
+      "exit_code": 0,
+      "signal": 0
+     },
+     "running": {
+      "start_time": "0001-01-01T00:00:00Z"
+     }
+    },
+    "volume": [
+     {
+      "mount": "",
+      "propagation": "",
+      "store": ""
+     }
+    ],
+    "restarts": 0
+   }
+  ],
+  "containers": [
+   {
+    "command": [
+     ""
+    ],
+    "args": [
+     {
+      "Type": 0,
+      "FloatVal": 0,
+      "StringVal": ""
+     }
+    ],
+    "env": [
+     {
+      "Type": 0,
+      "From": {
+       "key": "",
+       "from": "",
+       "required": false
+      },
+      "Val": {
+       "Key": "",
+       "Val": ""
+      }
+     }
+    ],
+    "image": "",
+    "pull": "",
+    "on_start": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     }
+    },
+    "pre_stop": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     }
+    },
+    "cpu": {
+     "min": "",
+     "max": ""
+    },
+    "mem": {
+     "min": "",
+     "max": ""
+    },
+    "name": "",
+    "cap_add": [
+     ""
+    ],
+    "cap_drop": [
+     ""
+    ],
+    "privileged": false,
+    "allow_escalation": false,
+    "rw": false,
+    "ro": false,
+    "force_non_root": false,
+    "uid": 0,
+    "selinux": {
+     "level": "",
+     "role": "",
+     "type": "",
+     "user": ""
+    },
+    "liveness_probe": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     },
+     "delay": 0,
+     "interval": 0,
+     "min_count_success": 0,
+     "min_count_fail": 0,
+     "timeout": 0
+    },
+    "readiness_probe": {
+     "command": [
+      ""
+     ],
+     "net": {
+      "headers": [
+       ""
+      ],
+      "url": ""
+     },
+     "delay": 0,
+     "interval": 0,
+     "min_count_success": 0,
+     "min_count_fail": 0,
+     "timeout": 0
+    },
+    "expose": [
+     {
+      "Name": "",
+      "Protocol": "",
+      "IP": "",
+      "HostPort": "",
+      "ContainerPort": ""
+     }
+    ],
+    "stdin": false,
+    "stdin_once": false,
+    "tty": false,
+    "wd": "",
+    "termination_msg_path": "",
+    "termination_msg_policy": "",
+    "container_id": "",
+    "image_id": "",
+    "ready": false,
+    "last_state": {
+     "waiting": {
+      "reason": "",
+      "msg": ""
+     },
+     "terminated": {
+      "start_time": "0001-01-01T00:00:00Z",
+      "finish_time": "0001-01-01T00:00:00Z",
+      "reason": "",
+      "msg": "",
+      "exit_code": 0,
+      "signal": 0
+     },
+     "running": {
+      "start_time": "0001-01-01T00:00:00Z"
+     }
+    },
+    "current_state": {
+     "waiting": {
+      "reason": "",
+      "msg": ""
+     },
+     "terminated": {
+      "start_time": "0001-01-01T00:00:00Z",
+      "finish_time": "0001-01-01T00:00:00Z",
+      "reason": "",
+      "msg": "",
+      "exit_code": 0,
+      "signal": 0
+     },
+     "running": {
+      "start_time": "0001-01-01T00:00:00Z"
+     }
+    },
+    "volume": [
+     {
+      "mount": "",
+      "propagation": "",
+      "store": ""
+     }
+    ],
+    "restarts": 0
+   }
+  ],
+  "restart_policy": "",
+  "termination_grace_period": 0,
+  "active_deadline": 0,
+  "dns_policy": "",
+  "account": "",
+  "node": "",
+  "host_mode": [
+   ""
+  ],
+  "fs_gid": 0,
+  "gids": [
+   0
+  ],
+  "registry_secrets": [
+   ""
+  ],
+  "hostname": "",
+  "affinity": [
+   {
+    "node": "",
+    "pod": "",
+    "anti_pod": "",
+    "topology": "",
+    "namespaces": [
+     ""
+    ]
+   }
+  ],
+  "scheduler_name": "",
+  "tolerations": [
+   {
+    "expiry_after": 0,
+    "Selector": ""
+   }
+  ],
+  "host_aliases": [
+   ""
+  ],
+  "priority": {
+   "value": 0,
+   "class": ""
+  },
+  "generation_observed": 0,
+  "num_nodes_scheduled": 0,
+  "num_nodes_misscheduled": 0,
+  "num_nodes_desired": 0,
+  "num_ready": 0,
+  "num_updated": 0,
+  "num_available": 0,
+  "num_unavailable": 0,
+  "hash_collisions": 0
+ }
+}

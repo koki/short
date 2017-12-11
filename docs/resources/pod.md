@@ -635,8 +635,10 @@ The following volume sources are defined in Short syntax
 | Azure Disk | [azure_disk](#azure-disk) |
 | Azure File | [azure_file](#azure-file) |
 | Ceph FS | [cephfs](#ceph-fs) |
+| Cinder | [cinder](#cinder) |
 | Downward API | [downward_api](#downward-api) |
 | Fibre Channel | [fc](#fibre-channel) |
+| Flex  | [flex](#flex) |
 | Flocker | [flocker](#flocker) |
 | GCE Persistent Disk | [gce_pd](#gce-persistent-disk) |
 | Git Repository | [git](#git-repository) |
@@ -645,6 +647,7 @@ The following volume sources are defined in Short syntax
 | ISCSI | [iscsi](#iscsi) |
 | NFS | [nfs](#nfs) |
 | Persistent Volume Claim | [pvc](#persistent-volume-claim) |
+| Photon Persistent Disk | [photon](#photon-persistent-disk) |
 | Projected | [projected](#projected) |
 | Portworx | [portworx](#portworx) |
 | QuoByte | [quobyte](#quobyte) |
@@ -879,6 +882,41 @@ pod:
       vol_type: cephfs
 ```
 
+##### Cinder
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| vol_id | `string` | `VolumeID` | Identifier to reference the volume in Cinder |
+| vol_type| `string` | - | This should always be set to `cinder` for volumes of type `cinder` |
+
+Here's an example pod with cinder volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      ro: true
+      vol_id: cinderID
+      vol_type: cinder
+```
+
 ##### Downward API
 
 | Field | Type| K8s counterpart(s) | Description |
@@ -975,6 +1013,47 @@ pod:
       wwn:
       - wwn1
       - wwn2
+```
+
+##### Flex
+
+| Field | Type | K8s counterpart(s) | Description |
+|:-----:|:----:|:------------------:|:-----------:|
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| ro | `bool`  | `ReadOnly` | Make the volume read only |
+| driver | `string` | `Driver` |  Name of the flex driver for this volume |
+| options | `map[string]string` | `Options` | Additional parameters to send to the flex drive, if any |
+| secret | `string` | `SecretRef` | The name of the secret with sensitive information to pass to the flex driver |
+| vol_type| `string` | - | This should always be set to `flex` for volumes of type `flex` |
+
+Here's an example pod with flex volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume:
+      fs: xfs
+      options:
+        key: value
+        key2: value2
+      ro: true
+      secret: secret_name
+      driver: flex-driver
+      vol_type: flex
 ```
 
 ##### Flocker
@@ -1305,6 +1384,48 @@ pod:
       store: test-volume
   volumes:
     test_volume: pvc:pvc_name:ro
+```
+
+##### Photon Persistent Disk
+
+Photon Persistent Disk is a simple volume source. It doesn't have a map representation. It just uses plain string
+
+The format of the string is
+
+`photon:{photon_id}:{fs}`
+
+where, `photon_id` is a required field and `fs` is optional
+
+The descriptions for the above fields are provided in the table below
+
+| Fields | Type | K8s counterpart(s) | Description |
+|:-----:|:------:|:-----------------:|:-----------:|
+| photon_id | `string` | `pdID` | Identifier for Photon Controller Persistent Disk |
+| fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
+| vol_type| `string` | - | This should always be set to `photon` for volumes of type `photon` |
+
+**Please note that this is a simple volume source with a string representation only**
+
+Here's an example pod with photon persistent disk volume source
+
+```yaml
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volume:
+    - mount: /test-volume
+      store: test-volume
+  volumes:
+    test_volume: photon:pdname123:xfs
 ```
 
 ##### Projected

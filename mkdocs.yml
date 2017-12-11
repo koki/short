@@ -13,6 +13,8 @@ pages:
    - Deployment: resources/deployment.md
    - ReplicaSet: resources/replica-set.md
    - ReplicationController: resources/replication-controller.md
+   - Job: resources/job.md
+   - DaemonSet: resources/daemon-set.md
  - Modules:
    - Introduction: modules/index.md
 theme: readthedocs
