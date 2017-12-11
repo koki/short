@@ -45,6 +45,21 @@ params:
   default: x
 value: ${param0}
 `,
+	"module6": `
+imports:
+- import7: module7
+value:
+- ${import7.blah}
+- ${import7.doot.0}
+- something
+`,
+	"module7": `
+thing:
+  blah: "bleh"
+  doot:
+  - what: hello
+  - not: this
+`,
 }
 
 var evalResults = map[string]interface{}{
@@ -52,25 +67,26 @@ var evalResults = map[string]interface{}{
 		"resource0": "stuff",
 	},
 	"module2": map[string]interface{}{
-		"value": map[string]interface{}{
-			"value": float64(1234),
-		},
+		"value": float64(1234),
 	},
 	"module4": map[string]interface{}{
 		"value": []interface{}{
-			map[string]interface{}{
-				"resource0": "stuff",
-			},
-			map[string]interface{}{
-				"value": map[string]interface{}{
-					"value": float64(1234),
-				},
-			},
+			"stuff",
+			float64(1234),
 			"something",
 		},
 	},
 	"module5": map[string]interface{}{
 		"value": "x",
+	},
+	"module6": map[string]interface{}{
+		"value": []interface{}{
+			"bleh",
+			map[string]interface{}{
+				"what": "hello",
+			},
+			"something",
+		},
 	},
 }
 
@@ -103,6 +119,7 @@ func TestEval(t *testing.T) {
 	doTestEval("module3", t, true)
 	doTestEval("module4", t, false)
 	doTestEval("module5", t, false)
+	doTestEval("module6", t, false)
 }
 
 func doTestEval(modulePath string, t *testing.T, expectEvalError bool) {

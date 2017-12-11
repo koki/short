@@ -18,7 +18,7 @@ type ParamDef struct {
 
 type Resource struct {
 	// Raw yaml parsed as string or map[string]interface{}
-	Raw interface{} `json:"Value"`
+	Raw map[string]interface{} `json:"Value"`
 
 	// TypedResult a koki object (or other object with special meaning)
 	TypedResult interface{} `json:"-"`

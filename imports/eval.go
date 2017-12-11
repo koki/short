@@ -74,7 +74,7 @@ func (c *EvalContext) EvaluateExport(module *Module, params map[string]interface
 	// Lazy-evaluate all variables and substitute them into any template holes.
 	// (ResolverForModule does the lazy evaluation.)
 	// Evaluation is lazy so we don't have to determine ahead-of-time which order to evaluate the imports in.
-	raw, err := template.ReplaceAny(export.Raw, c.ResolverForModule(module, params))
+	raw, err := template.ReplaceMap(export.Raw, c.ResolverForModule(module, params))
 	if err != nil {
 		return err
 	}

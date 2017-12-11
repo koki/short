@@ -66,15 +66,14 @@ func convertKokiModules(kokiModules []imports.Module) ([]interface{}, error) {
 	kubeObjs := []interface{}{}
 	for _, kokiModule := range kokiModules {
 		kokiExport := kokiModule.Export
-		if data, ok := kokiExport.Raw.(map[string]interface{}); ok {
-			extraneousPaths, err := objutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
-			if err != nil {
-				return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
-			}
-			if len(extraneousPaths) > 0 {
-				return nil, &objutil.ExtraneousFieldsError{
-					Paths: extraneousPaths,
-				}
+		data := kokiExport.Raw
+		extraneousPaths, err := objutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+		}
+		if len(extraneousPaths) > 0 {
+			return nil, &objutil.ExtraneousFieldsError{
+				Paths: extraneousPaths,
 			}
 		}
 

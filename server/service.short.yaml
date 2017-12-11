@@ -1,15 +1,12 @@
 params:
 - name: for selector/labels and name
   default: koki-short-server
-exports:
-- default: a koki short service
-  value:
-    service:
-      name: ${name}
-      labels:
-        app: ${name}
-      selector:
-        app: ${name}
-      port: 80:8080
-      type: load-balancer
+service:
+  name: ${name}
+  labels:
+    app: ${name}
+  selector:
+    app: ${name}
+  port: 80:8080
+  type: load-balancer
 

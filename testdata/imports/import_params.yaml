@@ -1,0 +1,9 @@
+imports:
+- foo: ./params.yaml
+  params:
+    without_default: bar
+baz:
+- ${foo}
+- ${foo.0}
+- ${foo.1}
+- ${foo...}

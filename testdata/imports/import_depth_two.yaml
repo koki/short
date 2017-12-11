@@ -1,0 +1,7 @@
+imports:
+- intermediary: ./params_and_imports.yaml
+  params:
+    bar: tortoise
+brendan:
+  a: some string
+  b: ${intermediary}

@@ -1,0 +1,7 @@
+params:
+- with_default: has a default value
+  default: 1
+- without_default: doesn't have a default value
+jill:
+- ${with_default}
+- ${without_default}
