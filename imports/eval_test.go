@@ -16,66 +16,77 @@ resource0: stuff
 	"module1": `
 params:
 - param0: a param
-exports:
-- default: a resource
-  value: ${param0}
+value: ${param0}
 `,
 	"module2": `
 imports:
 - import0: module1
   params:
     param0: 1234
-exports:
-- default: a resource
-  value: ${import0}
+value: ${import0}
 `,
 	"module3": `
 imports:
 - import0: module1
-exports:
-- default: a resource
-  value: ${import0}
+value: ${import0}
 `,
 	"module4": `
 imports:
 - import0: module0
 - import2: module2
-exports:
-- export0: first export
-  value: ${import0}
-- export1: second export
-  value: ${import2}
-- export2: third export
-  value: something
+value:
+- ${import0}
+- ${import2}
+- something
 `,
 	"module5": `
 params:
 - param0: a param with a default value
   default: x
-exports:
-- default: testing params with default values
-  value: ${param0}
+value: ${param0}
+`,
+	"module6": `
+imports:
+- import7: module7
+value:
+- ${import7.blah}
+- ${import7.doot.0}
+- something
+`,
+	"module7": `
+thing:
+  blah: "bleh"
+  doot:
+  - what: hello
+  - not: this
 `,
 }
 
 var evalResults = map[string]interface{}{
 	"module0": map[string]interface{}{
-		"default": map[string]interface{}{
-			"resource0": "stuff",
-		},
+		"resource0": "stuff",
 	},
 	"module2": map[string]interface{}{
-		"default": float64(1234),
+		"value": float64(1234),
 	},
 	"module4": map[string]interface{}{
-		"export0": map[string]interface{}{
-			"resource0": "stuff",
+		"value": []interface{}{
+			"stuff",
+			float64(1234),
+			"something",
 		},
-		"export1": float64(1234),
-		"export2": "something",
 	},
 	"module5": map[string]interface{}{
-		"default": "x",
+		"value": "x",
+	},
+	"module6": map[string]interface{}{
+		"value": []interface{}{
+			"bleh",
+			map[string]interface{}{
+				"what": "hello",
+			},
+			"something",
+		},
 	},
 }
 
@@ -108,6 +119,7 @@ func TestEval(t *testing.T) {
 	doTestEval("module3", t, true)
 	doTestEval("module4", t, false)
 	doTestEval("module5", t, false)
+	doTestEval("module6", t, false)
 }
 
 func doTestEval(modulePath string, t *testing.T, expectEvalError bool) {
@@ -118,7 +130,7 @@ func doTestEval(modulePath string, t *testing.T, expectEvalError bool) {
 	}
 
 	if len(modules) != 1 {
-		t.Fatal(pretty.Sprintf("expected only one module\n(%# v)", modules))
+		t.Fatal(pretty.Sprintf("%s: expected only one module\n(%# v)", modulePath, modules))
 	}
 
 	module := &modules[0]
@@ -131,16 +143,11 @@ func doTestEval(modulePath string, t *testing.T, expectEvalError bool) {
 		return
 	}
 	if err == nil && expectEvalError {
-		t.Fatal(pretty.Sprintf("unexpected success evaluating module\n(%# v)", module))
+		t.Fatal(pretty.Sprintf("%s: unexpected success evaluating module\n(%# v)", modulePath, module))
 		return
 	}
 
-	exports := map[string]interface{}{}
-	for name, export := range module.Exports {
-		exports[name] = export.Raw
-	}
-
-	if !reflect.DeepEqual(exports, evalResults[modulePath]) {
-		t.Fatal(pretty.Sprintf("evaluated module doesn't match expected\n(%# v)\n(%# v)", exports, evalResults[modulePath]))
+	if !reflect.DeepEqual(module.Export.Raw, evalResults[modulePath]) {
+		t.Fatal(pretty.Sprintf("%s: evaluated module doesn't match expected\n(%# v)\n(%# v)", modulePath, module.Export.Raw, evalResults[modulePath]))
 	}
 }

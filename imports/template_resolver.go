@@ -5,37 +5,41 @@ import (
 
 	"github.com/koki/short/template"
 	"github.com/koki/short/util"
+	"github.com/koki/short/util/objutil"
 )
 
 func (c *EvalContext) ResolverForModule(module *Module, params map[string]interface{}) template.Resolver {
 	return template.Resolver(func(ident string) (interface{}, error) {
+		// Split identifier into segments.
+		segments := strings.Split(ident, ".")
+
 		// Check params for the identifier.
-		if val, ok := params[ident]; ok {
+		if param, ok := params[segments[0]]; ok {
+			val, err := objutil.AtPathIn(param, segments[1:])
+			if err != nil {
+				return nil, util.InvalidValueContextErrorf(err, param, "resolving %s", ident)
+			}
 			return val, nil
 		}
 
 		// Check imports for the identifier.
-		identSegments := strings.Split(ident, ".")
-		importName := identSegments[0]
-		if len(identSegments) > 2 {
-			return nil, util.InvalidValueErrorf(ident, "cannot index into an imported resource. (%s) can have at most two segments. in module (%s)", ident, module.Path)
-		}
-		exportName := "default"
-		if len(identSegments) > 1 {
-			exportName = identSegments[1]
-		}
-
 		for _, imprt := range module.Imports {
-			if imprt.Name == importName {
+			if imprt.Name == segments[0] {
 				// Make sure the Import has been evaluated.
 				err := c.EvaluateImport(module, params, imprt)
 				if err != nil {
-					return nil, err
+					return nil, util.ContextualizeErrorf(err, "resolving %s", ident)
 				}
 
-				if val, ok := imprt.Module.Exports[exportName]; ok {
-					return val.Raw, nil
+				_, export, err := objutil.GetOnlyMapEntry(imprt.Module.Export.Raw)
+				if err != nil {
+					return nil, util.InvalidValueContextErrorf(err, imprt.Module.Export.Raw, "module should export exactly one top-level key")
 				}
+				val, err := objutil.AtPathIn(export, segments[1:])
+				if err != nil {
+					return nil, util.InvalidValueContextErrorf(err, imprt, "resolving %s", ident)
+				}
+				return val, nil
 			}
 		}
 

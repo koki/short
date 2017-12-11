@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/util"
 	"github.com/koki/short/json"
+	"github.com/koki/short/util"
 )
 
 // GetOnlyMapEntry get the only entry from a map. Error if the map doesn't contain exactly one entry.
@@ -121,10 +121,10 @@ func ExtraneousSlicePaths(prefix []string, before []interface{}, after interface
 			if i >= len(after) {
 				// Nope!
 				paths = append(paths, newPrefix)
+			} else {
+				afterVal := after[i]
+				paths = append(paths, ExtraneousAnyPaths(newPrefix, beforeVal, afterVal)...)
 			}
-
-			afterVal := after[i]
-			paths = append(paths, ExtraneousAnyPaths(newPrefix, beforeVal, afterVal)...)
 		}
 	}
 

@@ -17,9 +17,8 @@ type ParamDef struct {
 }
 
 type Resource struct {
-	Description string
 	// Raw yaml parsed as string or map[string]interface{}
-	Raw interface{} `json:"Value"`
+	Raw map[string]interface{} `json:"Value"`
 
 	// TypedResult a koki object (or other object with special meaning)
 	TypedResult interface{} `json:"-"`
@@ -33,7 +32,7 @@ type Module struct {
 	// IsEvaluated has the Raw yaml in Exports been evaluated (template holes filled, etc)?
 	IsEvaluated bool `json:"-"`
 
-	Exports map[string]*Resource
+	Export Resource
 }
 
 type EvalContext struct {

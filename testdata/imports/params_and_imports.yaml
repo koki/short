@@ -1,0 +1,7 @@
+imports:
+- foo: ./params.yaml
+  params:
+    without_default: ${bar}
+params:
+- bar: a param called bar
+leslie: ${foo}

@@ -1,0 +1,9 @@
+imports:
+- foo: ./params.yaml
+  params:
+    with_default: banana
+    without_default: ${bar}
+- bar: ./no_imports.yaml
+malcolm:
+- ${foo}
+- ${bar}

@@ -13,23 +13,17 @@ var modules = map[string]string{
 resource0: stuff
 `,
 	"module1": `
-exports:
-- default: stuff
-  value: thing
+value: thing
 `,
 	"module2": `
 imports:
 - import1: module1
-exports:
-- default: stuff
-  value: thing
+value: thing
 `,
 	"module3": `
 params:
 - param0: a param
-exports:
-- default: stuff
-  value: thing
+value: thing
 `,
 	"module4": `
 imports:
@@ -41,30 +35,28 @@ params:
 - param0: a param
 - param1: another param
   default: 123
-exports:
-- export0: stuff
-  value: thing
-- export1: another
-  value: things
+value: thing
 `,
 	"module5": `
 imports:
   import1: module1
-exports:
-- default: stuff
-  value: thing
+value: thing
 `,
 	"module6": `
 params:
   param0: a param
-exports:
-- default: stuff
-  value: thing
+value: thing
 `,
 	"module7": `
 params:
 - param0: a param
 export0: ${param0}
+`,
+	"module8": `
+params:
+- param0: a param
+export0: ${param0}
+export1: asdf
 `,
 }
 
@@ -95,7 +87,8 @@ func TestImports(t *testing.T) {
 	doTestImport("module4", t, false)
 	doTestImport("module5", t, true)
 	doTestImport("module6", t, true)
-	doTestImport("module7", t, true)
+	doTestImport("module7", t, false)
+	doTestImport("module8", t, true)
 }
 
 func doTestImport(modulePath string, t *testing.T, expectParseError bool) {

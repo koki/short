@@ -49,11 +49,10 @@ func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 				return nil, err
 			}
 
-			for _, export := range module.Exports {
-				if err, ok := export.TypedResult.(error); ok {
-					debugLogModule(module)
-					return nil, err
-				}
+			export := module.Export
+			if err, ok := export.TypedResult.(error); ok {
+				debugLogModule(module)
+				return nil, err
 			}
 
 			results = append(results, module)
@@ -66,26 +65,24 @@ func loadKokiFiles(filenames []string) ([]imports.Module, error) {
 func convertKokiModules(kokiModules []imports.Module) ([]interface{}, error) {
 	kubeObjs := []interface{}{}
 	for _, kokiModule := range kokiModules {
-		for _, kokiExport := range kokiModule.Exports {
-			if data, ok := kokiExport.Raw.(map[string]interface{}); ok {
-				extraneousPaths, err := objutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
-				if err != nil {
-					return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
-				}
-				if len(extraneousPaths) > 0 {
-					return nil, &objutil.ExtraneousFieldsError{
-						Paths: extraneousPaths,
-					}
-				}
-			}
-
-			kubeObj, err := converter.DetectAndConvertFromKokiObj(kokiExport.TypedResult)
-			if err != nil {
-				debugLogModule(kokiModule)
-				return nil, err
-			}
-			kubeObjs = append(kubeObjs, kubeObj)
+		kokiExport := kokiModule.Export
+		data := kokiExport.Raw
+		extraneousPaths, err := objutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
+		if err != nil {
+			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
 		}
+		if len(extraneousPaths) > 0 {
+			return nil, &objutil.ExtraneousFieldsError{
+				Paths: extraneousPaths,
+			}
+		}
+
+		kubeObj, err := converter.DetectAndConvertFromKokiObj(kokiExport.TypedResult)
+		if err != nil {
+			debugLogModule(kokiModule)
+			return nil, err
+		}
+		kubeObjs = append(kubeObjs, kubeObj)
 	}
 
 	return kubeObjs, nil
