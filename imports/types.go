@@ -17,7 +17,6 @@ type ParamDef struct {
 }
 
 type Resource struct {
-	Description string
 	// Raw yaml parsed as string or map[string]interface{}
 	Raw interface{} `json:"Value"`
 
@@ -33,7 +32,7 @@ type Module struct {
 	// IsEvaluated has the Raw yaml in Exports been evaluated (template holes filled, etc)?
 	IsEvaluated bool `json:"-"`
 
-	Exports map[string]*Resource
+	Export Resource
 }
 
 type EvalContext struct {

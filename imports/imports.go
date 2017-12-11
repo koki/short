@@ -33,101 +33,33 @@ func (c *EvalContext) Parse(rootPath string) ([]Module, error) {
 }
 
 func (c *EvalContext) ParseComponent(rootPath string, obj map[string]interface{}) (*Module, error) {
-	imports, hasImportsKey, err := c.parseImports(rootPath, obj)
+	imports, _, err := c.parseImports(rootPath, obj)
 	if err != nil {
 		return nil, err
 	}
 	delete(obj, "imports")
 
-	params, hasParamsKey, err := parseParamDefs(rootPath, obj)
+	params, _, err := parseParamDefs(rootPath, obj)
 	if err != nil {
 		return nil, err
 	}
 	delete(obj, "params")
 
-	exports, hasExportsKey, err := parseExports(rootPath, obj)
-	if err != nil {
-		return nil, err
+	// Last remaining key must be the exported resource.
+	if len(obj) != 1 {
+		return nil, util.InvalidValueErrorf(rootPath, "koki module must contain exactly one resource")
 	}
-	delete(obj, "exports")
 
-	if hasImportsKey || hasParamsKey || hasExportsKey {
-		if len(obj) > 0 {
-			return nil, util.InvalidValueErrorf(rootPath, "a koki module file can only have imports/params/exports as its top-level keys")
-		}
-	} else {
-		if len(obj) != 1 {
-			return nil, util.InvalidValueErrorf(rootPath, "a simple koki resource file must have exactly one top-level key")
-		}
-
-		// obj is a koki resource wrapper without imports
-		return &Module{
-			Path: rootPath,
-			Exports: map[string]*Resource{
-				"default": &Resource{
-					Raw: obj,
-				},
-			},
-		}, nil
+	export := Resource{
+		Raw: obj,
 	}
 
 	return &Module{
 		Path:    rootPath,
 		Imports: imports,
 		Params:  params,
-		Exports: exports,
+		Export:  export,
 	}, nil
-}
-
-func parseExports(rootPath string, obj map[string]interface{}) (map[string]*Resource, bool, error) {
-	hasExportsKey := false
-	exports := map[string]*Resource{}
-	if exportsObj, ok := obj["exports"]; ok {
-		hasExportsKey = true
-		if exportObjs, ok := exportsObj.([]interface{}); ok {
-			for _, exportObj := range exportObjs {
-				exportName, exportDef, err := parseExport(exportObj)
-				if err != nil {
-					return nil, hasExportsKey, util.ContextualizeErrorf(err, "couldn't parse an Export in (%s)", rootPath)
-				}
-				exports[exportName] = exportDef
-			}
-		} else {
-			return nil, hasExportsKey, util.InvalidValueForTypeErrorf(exportsObj, exports, "expected array of exports in %s", rootPath)
-		}
-	}
-
-	if len(exports) == 0 {
-		return nil, hasExportsKey, nil
-	}
-
-	return exports, hasExportsKey, nil
-}
-
-func parseExport(obj interface{}) (string, *Resource, error) {
-	def := &Resource{}
-	if dict, ok := obj.(map[string]interface{}); ok {
-		if val, ok := dict["value"]; ok {
-			def.Raw = val
-		} else {
-			return "", def, util.InvalidValueForTypeErrorf(dict, def, "exports entry must contain a \"value\" key with the exported value")
-		}
-		if len(dict) != 2 {
-			return "", def, util.InvalidValueForTypeErrorf(obj, def, "exports entry should have two keys, one for the exported name, and one for the exported value")
-		}
-		for name, description := range dict {
-			if name != "value" {
-				if descriptionStr, ok := description.(string); ok {
-					def.Description = descriptionStr
-					return name, def, nil
-				}
-
-				return "", def, util.InvalidValueForTypeErrorf(dict, def, "expected the export description to be a string value for name key (%s)", name)
-			}
-		}
-	}
-
-	return "", def, util.InvalidValueForTypeErrorf(obj, def, "expected exports entry to be a dictionary with two keys, one for the exported name, and one for the exported value")
 }
 
 func parseParamDefs(rootPath string, obj map[string]interface{}) (map[string]ParamDef, bool, error) {

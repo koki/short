@@ -10,5 +10,6 @@ cd $SCRIPTS_DIR/..
 go test ./converter/...
 go test ./types/...
 go test ./tests
+go test ./imports
 go test ./json
 go test ./yaml
