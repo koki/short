@@ -92,3 +92,6 @@ The following types are currently supported
 | apps/v1beta2 | DaemonSet | [DaemonSet](./daemon-set.md) | [DaemonSet Skeleton](./daemon-set.md#skeleton) | [DaemonSet Examples](./daemon-set.md#examples) |
 | batch/v2alpha1 | CronJob | [CronJob](./cron-job.md) | [CronJob Skeleton](./cron-job.md#skeleton) | [CronJob Examples](./cron-job.md#examples) |
 | batch/v1beta1 | CronJob | [CronJob](./cron-job.md) | [CronJob Skeleton](./cron-job.md#skeleton) | [CronJob Examples](./cron-job.md#examples) |
+| apps/v1beta1 | StatefulSet | [StatefulSet](./stateful-set.md) | [StatefulSet Skeleton](./stateful-set.md#skeleton) | [StatefulSet Examples](./stateful-set.md#examples) |
+| apps/v1beta2 | StatefulSet |  [StatefulSet](./stateful-set.md) | [StatefulSet Skeleton](./stateful-set.md#skeleton) | [StatefulSet Examples](./stateful-set.md#examples) |
+| core/v1 | PersistentVolumeClaim | [PersistentVolumeClaim](./persistent-volume-claim.md) | [PersistentVolumeClaim Skeleton](./persistent-volume-claim.md#skeleton) | [PersistentVolumeClaim Examples](./persistent-volume-claim.md#examples) |

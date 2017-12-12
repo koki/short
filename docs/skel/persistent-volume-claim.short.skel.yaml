@@ -1,0 +1,35 @@
+{
+ "pvc": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "storage_class": " ",
+  "volume": "",
+  "access_modes": [
+   ""
+  ],
+  "storage": "",
+  "selector": {
+   "Shorthand": "",
+   "Labels": {}
+  },
+  "phase": "",
+  "condition": [
+   {
+    "type": "",
+    "status": "",
+    "timestamp": "0001-01-01T00:00:00Z",
+    "last_change": "0001-01-01T00:00:00Z",
+    "reason": "",
+    "message": ""
+   }
+  ]
+ }
+}

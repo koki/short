@@ -1,0 +1,122 @@
+{
+ "kind": "",
+ "apiVersion": "",
+ "metadata": {
+  "name": "",
+  "generateName": "",
+  "namespace": "",
+  "selfLink": "",
+  "uid": "",
+  "resourceVersion": "",
+  "generation": 0,
+  "creationTimestamp": "0001-01-01T00:00:00Z",
+  "deletionTimestamp": null,
+  "deletionGracePeriodSeconds": 0,
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "ownerReferences": [
+   {
+    "apiVersion": "",
+    "kind": "",
+    "name": "",
+    "uid": "",
+    "controller": false,
+    "blockOwnerDeletion": false
+   }
+  ],
+  "initializers": {
+   "pending": [
+    {
+     "name": ""
+    }
+   ],
+   "result": {
+    "kind": "",
+    "apiVersion": "",
+    "metadata": {
+     "selfLink": "",
+     "resourceVersion": "",
+     "continue": ""
+    },
+    "status": "",
+    "message": "",
+    "reason": "",
+    "details": {
+     "name": "",
+     "group": "",
+     "kind": "",
+     "uid": "",
+     "causes": [
+      {
+       "reason": "",
+       "message": "",
+       "field": ""
+      }
+     ],
+     "retryAfterSeconds": 0
+    },
+    "code": 0
+   }
+  },
+  "finalizers": [
+   ""
+  ],
+  "clusterName": ""
+ },
+ "spec": {
+  "accessModes": [
+   ""
+  ],
+  "selector": {
+   "matchLabels": {},
+   "matchExpressions": [
+    {
+     "key": "",
+     "operator": "",
+     "values": [
+      ""
+     ]
+    }
+   ]
+  },
+  "resources": {
+   "limits": {
+    " ": {
+     "Format": ""
+    }
+   },
+   "requests": {
+    " ": {
+     "Format": ""
+    }
+   }
+  },
+  "volumeName": "",
+  "storageClassName": " "
+ },
+ "status": {
+  "phase": "",
+  "accessModes": [
+   ""
+  ],
+  "capacity": {
+   " ": {
+    "Format": ""
+   }
+  },
+  "conditions": [
+   {
+    "type": "",
+    "status": "",
+    "lastProbeTime": "0001-01-01T00:00:00Z",
+    "lastTransitionTime": "0001-01-01T00:00:00Z",
+    "reason": "",
+    "message": ""
+   }
+  ]
+ }
+}

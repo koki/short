@@ -16,6 +16,8 @@ pages:
    - Job: resources/job.md
    - DaemonSet: resources/daemon-set.md
    - CronJob: resources/cron-job.md
+   - StatefulSet: resources/stateful-set.md
+   - PersistentVolumeClaim: resources/persistent-volume-claim.md
  - Modules:
    - Introduction: modules/index.md
 theme: readthedocs

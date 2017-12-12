@@ -1,32 +1,62 @@
 # Introduction
 
-A CronJob is a declarative interface to describe time based Jobs.
+ StatefulSet is a declarative interface to deploy and manage a set of stateful pod which need guarantees about uniqueness and ordering.
 
 | API group | Resource | Kube Skeleton                                   |
 |:---------:|:--------:|:-----------------------------------------------:|
-| batch/v1beta1  | CronJob |  [skel](../skel/cron-job.batch.v1beta1.kube.skel.yaml)         |
-| batch/v2alpha1  | CronJob |  [skel](../skel/cron-job.batch.v2alpha1.kube.skel.yaml)         |
+| apps/v1beta1  | StatefulSet |  [skel](../skel/stateful-set.apps.v1beta1.kube.skel.yaml)         |
+| apps/v1beta2  | StatefulSet |  [skel](../skel/stateful-set.apps.v1beta2.kube.skel.yaml)         |
 
-Here's an example Kubernetes CronJob:
+Here's an example Kubernetes StatefulSet along with its headless service:
 ```yaml
-apiVersion: batch/v1beta1
-kind: CronJob
+apiVersion: v1
+kind: Service
 metadata:
-  name: hello
+  name: nginx
+  labels:
+    app: nginx
 spec:
-  schedule: "*/1 * * * *"
-  jobTemplate:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: nginx # has to match .spec.template.metadata.labels
+  serviceName: "nginx"
+  replicas: 3 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: nginx # has to match .spec.selector.matchLabels
     spec:
-      template:
-        spec:
-          containers:
-          - name: hello
-            image: busybox
-            args:
-            - /bin/sh
-            - -c
-            - date; echo Hello from the Kubernetes cluster
-          restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: gcr.io/google_containers/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: my-storage-class
+      resources:
+        requests:
+          storage: 1Gi
 ```
 
 The following sections contain detailed information about each field in Short syntax, including how the field translates to and from Kubernetes syntax.
@@ -36,24 +66,20 @@ The following sections contain detailed information about each field in Short sy
 | Field | Type | K8s counterpart(s) | Description         |
 |:-----:|:----:|:-------:|:----------------------:|
 |version| `string` | `apiVersion` | The version of the resource object | 
-|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this CronJob is running |
-|name | `string` | `metadata.name`| The name of the CronJob | 
-|namespace | `string` | `metadata.namespace` | The K8s namespace this CronJob will be a member of | 
-|labels | `string` | `metadata.labels`| Metadata about the CronJob, including identifying information | 
-|annotations| `string` | `metadata.annotations`| Non-identifying information about the CronJob |
-|schedule| `string` | `spec.schedule` | The schedule in cron format (https://en.wikipedia.org/wiki/Cron) |
-|suspend| `bool` | `spec.suspend` | If set, then subsequent executions are suspended |
-|start_deadline| `int64` | `spec.startingDeadlineSeconds` | Optional deadline for starting the cron-job if it misses the schedule. Missed cron-jobs are considered failed. |
-|concurrency| `string` | `spec.concurrencyPolicy` | Specifies how to treat concurrent executions of a cron-job. See [Concurrency Policy](#concurrency-policy) |
-|max_success_history | `int32` | `spec.successfulJobsHistoryLimit` | The number of successful finished cron-jobs to retain |
-|max_failure_history | `int32` | `spec.failedJobsHistoryLimit` | The number of failed finished cron-jobs to retain | 
-|parallelism | `int32` | `spec.parallelism` | Maximum number of pods of this cron-job that can run in parallel  |
-|completions| `int32` | `spec.completions` | Minimum number of successfully completed pods for the cron-job to be considered successful |
-|max_retries | `int32` | `spec.backOffLimit` | Maximum number of retries before considering this cron-job failed |
-|active_deadline | `int32` | `spec.activeDeadlineSeconds` | Maximum time for a cron-job to be active before it is terminated by the system |
-|select_manually | `bool` | `spec.manualSelector` | Controls generation of pod labels and pod selectors. Defaults to false. If set, user is responsible for choosing pods correctly |
-|selector | `map[string]string` or `string` | `selector` | An expression (string) or a set of key, value pairs (map) that is used to select a set of pods to manage using the cron-job controller. See [Selector Overview](#selector-overview) |
-|pod_meta | `TemplateMetadata` | `template` | Metadata of the Pod that is selected by this CronJob. See [Template Metadata](#template-metadata)|
+|cluster| `string` | `metadata.clusterName` | The name of the cluster on which this StatefulSet is running |
+|name | `string` | `metadata.name`| The name of the StatefulSet | 
+|namespace | `string` | `metadata.namespace` | The K8s namespace this StatefulSet will be a member of | 
+|labels | `string` | `metadata.labels`| Metadata about the StatefulSet, including identifying information | 
+|annotations| `string` | `metadata.annotations`| Non-identifying information about the StatefulSet | 
+|replicas| `int32` | `replicas`| The number of replicas of the selected Pod |
+|replace_on_delete | `bool` | `strategy` | The strategy for performing upgrades. If set to `true`, then the strategy is `OnDelete`. If not, by default the strategy is `RollingUpdate` |
+|partition | `int` | `strategy.rollingUpdate` | Ordinal at which the statefulset should be partitioned during upgrade | 
+|service  | `string` | `spec.serviceName`  | Name of the service that governs this Statefulset |
+|pod_policy| `string` | `spec.podManagementPolicy` | Policy for creating pods under a StatefulSet. See [Pod Management Policy](#pod-management-policy) |
+|pvcs | `[]PersistentVolumeClaim` | `spec.VolumeClaimTemplates` | List of claims the pods are allowed to reference. See [Persistent Volume Claim](./persistent-volume-claim.md) |
+|max_revs | `int32` | `revisionHistoryLimit` | Number of old replica sets to retain to allow rollback|
+|selector | `map[string]string` or `string` | `selector` | An expression (string) or a set of key, value pairs (map) that is used to select a set of pods to manage using the StatefulSet controller. See [Selector Overview](#selector-overview) |
+|pod_meta | `TemplateMetadata` | `template` | Metadata of the Pod that is selected by this StatefulSet. See [Template Metadata](#template-metadata)|
 |volumes | `Volume` | `spec.volumes` | Denotes the volumes that are a part of the Pod. See [Volume Overview](pod#volume-overview) |
 | affinity | `[]Affinity` | `spec.affinity` and `spec.NodeSelector` | The Pod's scheduling rules, expressed as (anti-)affinities for nodes or other Pods. See [Affinity Overview](pod#affinity-overview) |
 | node | `string` | `spec.nodeName` | Request that the Pod be scheduled on a specific node. | 
@@ -82,14 +108,12 @@ The following sections contain detailed information about each field in Short sy
 | fs_gid | `int64` | `spec.securityContext.` `fsGroup` | Special supplemental group that applies to all the Containers in the Pod |
 | gids | `[]int64` | `spec.securityContext.` `supplementalGroups` | A list of groups applied to the first process in each of the Containers in the Pod |
 
+#### Pod Management Policy 
 
-#### Concurrency Policy
-
-| Concurrency Policy | Description | 
-|:------------------:|:-----------:|
-| allow | Allows cron jobs to run concurrently |
-| forbid | forbids cron jobs from running concurrently, skipping next execution if the previous hasn't finished |
-| replace | replace cancels current job, to run the next one | 
+| Pod Management Policy | Description |
+|:---------------------:|:-----------:|
+| ordered | Create pods in strictly increasing order on scale up and strictly decreasing order on scale down  |
+| parallel | Create all pods in parallel, and update or delete in parallel |
 
 #### Selector Overview
 
@@ -133,78 +157,116 @@ If the selector is a map, then the values in the map are expected to match direc
 
 # Examples 
 
- -  An example non-parallel cron-job selecting pods with labels app:nginx
+ - Cassandra deployed as StatefulSet 
 
 ```yaml
-job:
+stateful_set:
   containers:
-  - expose:
-    - 80
-    image: nginx:1.7.9
-    name: nginx
-  name: nginx-job
-  parallelism: 1
-  completions: 1
-  schedule: '*/1 * * * *'
+  - cap_add:
+    - IPC_LOCK
+    cpu:
+      max: 500m
+      min: 500m
+    env:
+    - MAX_HEAP_SIZE=512M
+    - HEAP_NEWSIZE=100M
+    - CASSANDRA_SEEDS=cassandra-0.cassandra.default.svc.cluster.local
+    - CASSANDRA_CLUSTER_NAME=K8Demo
+    - CASSANDRA_DC=DC1-K8Demo
+    - CASSANDRA_RACK=Rack1-K8Demo
+    - CASSANDRA_AUTO_BOOTSTRAP=false
+    - from: status.podIP
+      key: POD_IP
+    expose:
+    - intra-node: 7000
+    - tls-intra-node: 7001
+    - jmx: 7199
+    - cql: 9042
+    image: gcr.io/google-samples/cassandra:v12
+    mem:
+      max: 1Gi
+      min: 1Gi
+    name: cassandra
+    pre_stop:
+      command:
+      - /bin/sh
+      - -c
+      - PID=$(pidof java) && kill $PID && while ps -p $PID > /dev/null; do sleep 1;
+        done
+    pull: always
+    readiness_probe:
+      command:
+      - /bin/bash
+      - -c
+      - /ready-probe.sh
+      delay: 15
+      timeout: 5
+    volume:
+    - mount: /cassandra_data
+      store: cassandra-data
+  labels:
+    app: cassandra
+  name: cassandra
+  pvcs:
+  - access_modes:
+    - rw_once
+    annotations:
+      volume.beta.kubernetes.io/storage-class: fast
+    name: cassandra-data
+    storage: 1Gi
+  replicas: 3
   selector:
-    app: nginx
-  version: batch/v1beta1
-```
-
- - An example parallel cron-job with fixed completion count
-
-```yaml
-cron_job:
-  containers:
-  - expose:
-    - 80
-    image: nginx:1.7.9
-    name: nginx
-  name: nginx-job
-  parallelism: 2
-  completions: 4
-  schedule: '*/1 * * * *'
-  selector:
-    app: nginx
-  version: batch/v1beta1
-```
-
- - An example parallel cron-job work queue
-
-```yaml
-cron_job:
-  containers:
-  - expose:
-    - 80
-    image: nginx:1.7.9
-    name: nginx
-  name: nginx-job
-  parallelism: 2
-  completions: 1
-  schedule: '*/1 * * * *'
-  selector:
-    app: nginx
-  version: batch/v1beta1
+    app: cassandra
+  service: cassandra
+  version: apps/v1beta2
+---
+storage_class:
+  name: fast
+  params:
+    type: pd-ssd
+  provisioner: k8s.io/minikube-hostpath
+  version: storage.k8s.io/v1
 ```
 
 # Skeleton
 
 | Short Type           | Skeleton                                       |
 |:--------------------:|:----------------------------------------------:|
-| CronJob                  | [skel](../skel/cron-job.short.skel.yaml)            |
+| StatefulSet           | [skel](../skel/stateful-set.short.skel.yaml)     |
 
-Here's a starter skeleton of a Short CronJob.
+Here's a starter skeleton of a Short StatefulSet.
 ```yaml
-cron_job:
+service:
+  cluster_ip: None
+  labels:
+    app: nginx
+  name: nginx
+  ports:
+  - web: 80
+  selector:
+    app: nginx
+  version: v1
+---
+stateful_set:
   containers:
-  - args:
-    - /bin/sh
-    - -c
-    - date; echo Hello from the Kubernetes cluster
-    image: busybox
-    name: hello
-  name: hello
-  restart_policy: on-failure
-  schedule: '*/1 * * * *'
-  version: batch/v1beta1
+  - expose:
+    - web: 80
+    image: gcr.io/google_containers/nginx-slim:0.8
+    name: nginx
+    volume:
+    - mount: /usr/share/nginx/html
+      store: www
+  name: web
+  pvcs:
+  - access_modes:
+    - rw_once
+    name: www
+    storage: 1Gi
+    storage_class: my-storage-class
+  replicas: 3
+  selector:
+    app: nginx
+  service: nginx
+  termination_grace_period: 10
+  version: apps/v1beta2
 ```
