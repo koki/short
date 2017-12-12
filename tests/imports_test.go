@@ -12,8 +12,8 @@ import (
 
 	"github.com/koki/short/imports"
 	"github.com/koki/short/parser"
-	"github.com/koki/short/util"
 	"github.com/koki/short/yaml"
+	serrors "github.com/koki/structurederrors"
 )
 
 func TestImports(t *testing.T) {
@@ -82,7 +82,7 @@ func testImportsRoot(importPath, rootPath string, pathMap map[string]string, t *
 
 	modules, err := evalContext.Parse(pathMap[importPath])
 	if err != nil {
-		t.Errorf("failed to parse file at %s:\n%s", importPath, util.PrettyError(err))
+		t.Errorf("failed to parse file at %s:\n%s", importPath, serrors.PrettyError(err))
 		return
 	}
 	if len(modules) != 1 {
@@ -92,19 +92,19 @@ func testImportsRoot(importPath, rootPath string, pathMap map[string]string, t *
 	module := modules[0]
 	err = evalContext.EvaluateModule(&module, nil)
 	if err != nil {
-		t.Errorf("failed to evaluate module at %s:\n%s", importPath, util.PrettyError(err))
+		t.Errorf("failed to evaluate module at %s:\n%s", importPath, serrors.PrettyError(err))
 		return
 	}
 
 	rootFile, err := ioutil.ReadFile(rootPath)
 	if err != nil {
-		t.Errorf("failed to read file at %s:\n%s", rootPath, util.PrettyError(err))
+		t.Errorf("failed to read file at %s:\n%s", rootPath, serrors.PrettyError(err))
 	}
 
 	resource := module.Export.Raw
 	resourceFile, err := yaml.Marshal(resource)
 	if err != nil {
-		t.Errorf("at %s, couldn't marshal %s, error: %s", importPath, pretty.Sprint(resource), util.PrettyError(err))
+		t.Errorf("at %s, couldn't marshal %s, error: %s", importPath, pretty.Sprint(resource), serrors.PrettyError(err))
 		return
 	}
 

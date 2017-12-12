@@ -9,7 +9,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrapper) (interface{}, error) {
@@ -22,7 +22,7 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 	// Serialize the "generic" kube Deployment.
 	b, err := yaml.Marshal(kubeDeployment)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeDeployment, "couldn't serialize 'generic' kube Deployment")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeDeployment, "couldn't serialize 'generic' kube Deployment")
 	}
 
 	// Deserialize a versioned kube Deployment using its apiVersion.
@@ -39,7 +39,7 @@ func Convert_Koki_Deployment_to_Kube_Deployment(deployment *types.DeploymentWrap
 	case *exts.Deployment:
 		// Perform exts/v1beta1-specific initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedDeployment, "deserialized the manifest, but not as a supported kube Deployment")
+		return nil, serrors.TypeErrorf(versionedDeployment, "deserialized the manifest, but not as a supported kube Deployment")
 	}
 
 	return versionedDeployment, nil
@@ -82,10 +82,10 @@ func Convert_Koki_Deployment_to_Kube_apps_v1beta2_Deployment(deployment *types.D
 	// Fill in the rest of the Pod template.
 	kubeTemplate, err := revertTemplate(kokiDeployment.TemplateMetadata, kokiDeployment.PodTemplate)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
-		return nil, util.InvalidInstanceErrorf(kokiDeployment, "missing pod template")
+		return nil, serrors.InvalidInstanceErrorf(kokiDeployment, "missing pod template")
 	}
 	kubeSpec.Template = *kubeTemplate
 
@@ -132,11 +132,11 @@ func revertDeploymentConditions(kokiConditions []types.DeploymentCondition) ([]a
 	for i, condition := range kokiConditions {
 		status, err := revertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "deployment conditions[%d]", i)
 		}
 		conditionType, err := revertDeploymentConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "deployment conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "deployment conditions[%d]", i)
 		}
 		kubeConditions[i] = appsv1beta2.DeploymentCondition{
 			Type:               conditionType,
@@ -160,7 +160,7 @@ func revertDeploymentConditionType(kokiType types.DeploymentConditionType) (apps
 	case types.DeploymentReplicaFailure:
 		return appsv1beta2.DeploymentReplicaFailure, nil
 	default:
-		return appsv1beta2.DeploymentReplicaFailure, util.InvalidValueErrorf(kokiType, "unrecognized deployment condition type")
+		return appsv1beta2.DeploymentReplicaFailure, serrors.InvalidValueErrorf(kokiType, "unrecognized deployment condition type")
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/floatstr"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Pod_to_Kube_v1_Pod(pod *types.PodWrapper) (*v1.Pod, error) {
@@ -111,7 +112,7 @@ func revertPodSpec(kokiPod types.PodTemplate) (*v1.PodSpec, error) {
 	spec := v1.PodSpec{}
 	spec.Volumes, err = revertVolumes(kokiPod.Volumes)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod volumes")
+		return nil, serrors.ContextualizeErrorf(err, "pod volumes")
 	}
 	fields := strings.SplitN(kokiPod.Hostname, ".", 2)
 	if len(fields) == 1 {
@@ -236,7 +237,7 @@ func revertStorageMedium(kokiMedium types.StorageMedium) (v1.StorageMedium, erro
 	case types.StorageMediumHugepages:
 		return v1.StorageMediumHugepages, nil
 	default:
-		return v1.StorageMediumDefault, util.InvalidValueErrorf(kokiMedium, "unrecognized storage medium")
+		return v1.StorageMediumDefault, serrors.InvalidValueErrorf(kokiMedium, "unrecognized storage medium")
 	}
 }
 
@@ -259,7 +260,7 @@ func revertHostPathType(kokiType types.HostPathType) (v1.HostPathType, error) {
 	case types.HostPathBlockDev:
 		return v1.HostPathBlockDev, nil
 	default:
-		return v1.HostPathUnset, util.InvalidValueErrorf(kokiType, "unrecognized host_path type")
+		return v1.HostPathUnset, serrors.InvalidValueErrorf(kokiType, "unrecognized host_path type")
 	}
 }
 
@@ -277,7 +278,7 @@ func revertAzureDiskKind(kokiKind *types.AzureDataDiskKind) (*v1.AzureDataDiskKi
 	case types.AzureManagedDisk:
 		kind = v1.AzureManagedDisk
 	default:
-		return nil, util.InvalidValueErrorf(kokiKind, "unrecognized kind")
+		return nil, serrors.InvalidValueErrorf(kokiKind, "unrecognized kind")
 	}
 
 	return &kind, nil
@@ -297,7 +298,7 @@ func revertAzureDiskCachingMode(kokiMode *types.AzureDataDiskCachingMode) (*v1.A
 	case types.AzureDataDiskCachingReadWrite:
 		mode = v1.AzureDataDiskCachingReadWrite
 	default:
-		return nil, util.InvalidValueErrorf(kokiMode, "unrecognized cache")
+		return nil, serrors.InvalidValueErrorf(kokiMode, "unrecognized cache")
 	}
 
 	return &mode, nil
@@ -423,11 +424,11 @@ func revertVolumeProjections(kokiProjections []types.VolumeProjection) ([]v1.Vol
 	for i, projection := range kokiProjections {
 		secret, err := revertSecretProjection(projection.Secret)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "secret volume-projection #%d", i)
+			return nil, serrors.ContextualizeErrorf(err, "secret volume-projection #%d", i)
 		}
 		config, err := revertConfigMapProjection(projection.ConfigMap)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "config-map volume-projection #%d", i)
+			return nil, serrors.ContextualizeErrorf(err, "config-map volume-projection #%d", i)
 		}
 		projections[i] = v1.VolumeProjection{
 			Secret:      secret,
@@ -446,7 +447,7 @@ func revertSecretProjection(kokiProjection *types.SecretProjection) (*v1.SecretP
 
 	ref := revertLocalObjectRef(kokiProjection.Name)
 	if ref == nil {
-		return nil, util.InvalidInstanceErrorf(kokiProjection, "secret name is missing")
+		return nil, serrors.InvalidInstanceErrorf(kokiProjection, "secret name is missing")
 	}
 	return &v1.SecretProjection{
 		LocalObjectReference: *ref,
@@ -461,7 +462,7 @@ func revertConfigMapProjection(kokiProjection *types.ConfigMapProjection) (*v1.C
 
 	ref := revertLocalObjectRef(kokiProjection.Name)
 	if ref == nil {
-		return nil, util.InvalidInstanceErrorf(kokiProjection, "config-map name is missing")
+		return nil, serrors.InvalidInstanceErrorf(kokiProjection, "config-map name is missing")
 	}
 	return &v1.ConfigMapProjection{
 		LocalObjectReference: *ref,
@@ -632,7 +633,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.EmptyDir != nil {
 		medium, err := revertStorageMedium(kokiVolume.EmptyDir.Medium)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return nil, serrors.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return &v1.Volume{
 			Name: name,
@@ -647,7 +648,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	if kokiVolume.HostPath != nil {
 		source, err := revertHostPathVolume(kokiVolume.HostPath)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return nil, serrors.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return &v1.Volume{
 			Name: name,
@@ -839,7 +840,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		source := kokiVolume.ConfigMap
 		ref := revertLocalObjectRef(source.Name)
 		if ref == nil {
-			return nil, util.InvalidInstanceErrorf(source, "config name is required")
+			return nil, serrors.InvalidInstanceErrorf(source, "config name is required")
 		}
 
 		return &v1.Volume{
@@ -884,7 +885,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		source := kokiVolume.Projected
 		sources, err := revertVolumeProjections(source.Sources)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return nil, serrors.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return &v1.Volume{
 			Name: name,
@@ -943,7 +944,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 		}, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
+	return nil, serrors.InvalidInstanceErrorf(kokiVolume, "empty volume definition")
 }
 
 func revertContainerStatus(container types.Container) (v1.ContainerStatus, error) {
@@ -1002,7 +1003,7 @@ func revertQOSClass(class types.PodQOSClass) (v1.PodQOSClass, error) {
 	if class == types.PodQOSBestEffort {
 		return v1.PodQOSBestEffort, nil
 	}
-	return "", util.InvalidInstanceError(class)
+	return "", serrors.InvalidInstanceError(class)
 }
 
 func revertPodPhase(phase types.PodPhase) (v1.PodPhase, error) {
@@ -1024,7 +1025,7 @@ func revertPodPhase(phase types.PodPhase) (v1.PodPhase, error) {
 	if phase == types.PodUnknown {
 		return v1.PodUnknown, nil
 	}
-	return "", util.InvalidInstanceError(phase)
+	return "", serrors.InvalidInstanceError(phase)
 }
 
 func revertPodConditions(conditions []types.PodCondition) ([]v1.PodCondition, error) {
@@ -1074,7 +1075,7 @@ func revertPodConditionType(typ types.PodConditionType) (v1.PodConditionType, er
 	if typ == types.PodReasonUnschedulable {
 		return v1.PodReasonUnschedulable, nil
 	}
-	return "", util.InvalidInstanceError(typ)
+	return "", serrors.InvalidInstanceError(typ)
 }
 
 func revertConditionStatus(status types.ConditionStatus) (v1.ConditionStatus, error) {
@@ -1090,7 +1091,7 @@ func revertConditionStatus(status types.ConditionStatus) (v1.ConditionStatus, er
 	if status == types.ConditionUnknown {
 		return v1.ConditionUnknown, nil
 	}
-	return "", util.InvalidInstanceError(status)
+	return "", serrors.InvalidInstanceError(status)
 
 }
 
@@ -1114,12 +1115,12 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 			case "NoExecute":
 				kubeToleration.Effect = v1.TaintEffectNoExecute
 			default:
-				return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
+				return nil, serrors.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
 			}
 		case 1:
 			// Do nothing
 		default:
-			return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration effect")
+			return nil, serrors.InvalidInstanceErrorf(toleration, "unexpected toleration effect")
 		}
 
 		fields := strings.Split(superFields[0], "=")
@@ -1131,7 +1132,7 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 			kubeToleration.Operator = v1.TolerationOpEqual
 			kubeToleration.Value = fields[1]
 		} else {
-			return nil, util.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
+			return nil, serrors.InvalidInstanceErrorf(toleration, "unexpected toleration selector")
 		}
 
 		kubeTolerations = append(kubeTolerations, kubeToleration)
@@ -1164,7 +1165,7 @@ func revertHostModes(modes []types.HostMode) (net bool, pid bool, ipc bool, err 
 		case types.HostModeIPC:
 			ipc = true
 		default:
-			return false, false, false, util.InvalidInstanceError(mode)
+			return false, false, false, serrors.InvalidInstanceError(mode)
 		}
 	}
 
@@ -1182,14 +1183,14 @@ func revertServiceAccount(account string) (string, *bool, error) {
 		if fields[1] == "auto" {
 			auto = true
 		} else {
-			return "", &auto, util.InvalidValueErrorf(account, "unexpected service account automount value (%s)", fields[1])
+			return "", &auto, serrors.InvalidValueErrorf(account, "unexpected service account automount value (%s)", fields[1])
 		}
 		return fields[1], &auto, nil
 	} else if len(fields) == 1 {
 		return fields[0], &auto, nil
 	}
 
-	return "", &auto, util.InvalidValueErrorf(account, "unexpected service account automount value")
+	return "", &auto, serrors.InvalidValueErrorf(account, "unexpected service account automount value")
 }
 
 func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
@@ -1205,7 +1206,7 @@ func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {
 	if dnsPolicy == types.DNSDefault {
 		return v1.DNSDefault, nil
 	}
-	return "", util.InvalidInstanceError(dnsPolicy)
+	return "", serrors.InvalidInstanceError(dnsPolicy)
 }
 
 func revertRestartPolicy(policy types.RestartPolicy) (v1.RestartPolicy, error) {
@@ -1221,7 +1222,7 @@ func revertRestartPolicy(policy types.RestartPolicy) (v1.RestartPolicy, error) {
 	if policy == types.RestartPolicyNever {
 		return v1.RestartPolicyNever, nil
 	}
-	return "", util.InvalidInstanceError(policy)
+	return "", serrors.InvalidInstanceError(policy)
 }
 
 func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
@@ -1241,7 +1242,7 @@ func revertHostAliases(aliases []string) ([]v1.HostAlias, error) {
 				}
 			}
 		} else {
-			return nil, util.InvalidValueForTypeErrorf(alias, hostAlias, "expected 2 space-separated values")
+			return nil, serrors.InvalidValueForTypeErrorf(alias, hostAlias, "expected 2 space-separated values")
 		}
 		hostAliases = append(hostAliases, hostAlias)
 	}
@@ -1344,7 +1345,7 @@ func revertSecurityContext(container types.Container) (*v1.SecurityContext, erro
 		rw := util.FromBoolPtr(container.RW)
 
 		if !((!ro && rw) || (!rw && ro)) {
-			return nil, util.InvalidInstanceErrorf(container, "conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
+			return nil, serrors.InvalidInstanceErrorf(container, "conflicting value (Read Only) %v and (ReadWrite) %v", ro, rw)
 		}
 
 		sc.ReadOnlyRootFilesystem = &ro
@@ -1436,7 +1437,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 	if action.Net != nil {
 		urlStruct, err := url.Parse(action.Net.URL)
 		if err != nil {
-			return nil, util.InvalidInstanceErrorf(action, "couldn't parse URL: %s", err)
+			return nil, serrors.InvalidInstanceErrorf(action, "couldn't parse URL: %s", err)
 		}
 		var host string
 		var port intstr.IntOrString
@@ -1449,7 +1450,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 		} else if len(fields) == 1 {
 			host = hostPort
 		} else {
-			return nil, util.InvalidInstanceErrorf(action.Net, "unexpected HostPort %s", action.Net.URL)
+			return nil, serrors.InvalidInstanceErrorf(action.Net, "unexpected HostPort %s", action.Net.URL)
 		}
 
 		if strings.ToUpper(urlStruct.Scheme) == "HTTP" || strings.ToUpper(urlStruct.Scheme) == "HTTPS" {
@@ -1467,7 +1468,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 				header := action.Net.Headers[i]
 				fields := strings.Split(header, ":")
 				if len(fields) != 2 {
-					return nil, util.InvalidInstanceErrorf(action.Net, "unexpected HTTP Header %s", header)
+					return nil, serrors.InvalidInstanceErrorf(action.Net, "unexpected HTTP Header %s", header)
 				}
 				kubeHeader := v1.HTTPHeader{
 					Name:  fields[0],
@@ -1489,7 +1490,7 @@ func revertLifecycleAction(action *types.Action) (*v1.Handler, error) {
 				Port: port,
 			}
 		} else {
-			return nil, util.InvalidInstanceErrorf(action.Net, "unexpected URL Scheme %s", urlStruct.Scheme)
+			return nil, serrors.InvalidInstanceErrorf(action.Net, "unexpected URL Scheme %s", urlStruct.Scheme)
 		}
 	}
 
@@ -1580,13 +1581,13 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 	if probe.Net != nil {
 		urlStruct, err := url.Parse(probe.Net.URL)
 		if err != nil {
-			return nil, util.InvalidInstanceContextErrorf(err, probe, "parsing URL")
+			return nil, serrors.InvalidInstanceContextErrorf(err, probe, "parsing URL")
 		}
 		if strings.ToUpper(urlStruct.Scheme) == "TCP" {
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")
 			if len(fields) != 2 && len(fields) != 1 {
-				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
+				return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
 			}
 			host := fields[0]
 			port := "80"
@@ -1604,7 +1605,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			hostPort := urlStruct.Host
 			fields := strings.Split(hostPort, ":")
 			if len(fields) != 2 && len(fields) != 1 {
-				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
+				return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
 			}
 			host := fields[0]
 			port := "80"
@@ -1619,7 +1620,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			} else if strings.ToLower(urlStruct.Scheme) == "https" {
 				scheme = v1.URISchemeHTTPS
 			} else {
-				return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL Scheme")
+				return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL Scheme")
 			}
 
 			kubeProbe.HTTPGet = &v1.HTTPGetAction{
@@ -1636,7 +1637,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 				h := probe.Net.Headers[i]
 				fields := strings.Split(h, ":")
 				if len(fields) != 2 {
-					return nil, util.InvalidValueErrorf(h, "unrecognized Probe HTTPHeader")
+					return nil, serrors.InvalidValueErrorf(h, "unrecognized Probe HTTPHeader")
 				}
 				header := v1.HTTPHeader{
 					Name:  fields[0],
@@ -1646,7 +1647,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			}
 			kubeProbe.HTTPGet.HTTPHeaders = headers
 		} else {
-			return nil, util.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL")
+			return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe URL")
 		}
 	}
 	return kubeProbe, nil
@@ -1664,7 +1665,7 @@ func revertResources(cpu *types.CPU, mem *types.Mem) (v1.ResourceRequirements, e
 		if cpu.Min != "" {
 			q, err := resource.ParseQuantity(cpu.Min)
 			if err != nil {
-				return requirements, util.InvalidInstanceErrorf(cpu, "couldn't parse min quantity: %s", err)
+				return requirements, serrors.InvalidInstanceErrorf(cpu, "couldn't parse min quantity: %s", err)
 			}
 			requests[v1.ResourceCPU] = q
 		}
@@ -1672,7 +1673,7 @@ func revertResources(cpu *types.CPU, mem *types.Mem) (v1.ResourceRequirements, e
 		if cpu.Max != "" {
 			q, err := resource.ParseQuantity(cpu.Max)
 			if err != nil {
-				return requirements, util.InvalidInstanceErrorf(cpu, "couldn't parse max quantity: %s", err)
+				return requirements, serrors.InvalidInstanceErrorf(cpu, "couldn't parse max quantity: %s", err)
 			}
 			limits[v1.ResourceCPU] = q
 		}
@@ -1682,7 +1683,7 @@ func revertResources(cpu *types.CPU, mem *types.Mem) (v1.ResourceRequirements, e
 		if mem.Min != "" {
 			q, err := resource.ParseQuantity(mem.Min)
 			if err != nil {
-				return requirements, util.InvalidInstanceErrorf(mem, "couldn't parse min quantity: %s", err)
+				return requirements, serrors.InvalidInstanceErrorf(mem, "couldn't parse min quantity: %s", err)
 			}
 			requests[v1.ResourceMemory] = q
 		}
@@ -1690,7 +1691,7 @@ func revertResources(cpu *types.CPU, mem *types.Mem) (v1.ResourceRequirements, e
 		if mem.Max != "" {
 			q, err := resource.ParseQuantity(mem.Max)
 			if err != nil {
-				return requirements, util.InvalidInstanceErrorf(mem, "couldn't parse max quantity: %s", err)
+				return requirements, serrors.InvalidInstanceErrorf(mem, "couldn't parse max quantity: %s", err)
 			}
 			limits[v1.ResourceMemory] = q
 		}
@@ -1761,7 +1762,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.InvalidInstanceErrorf(e, "expected either one or two colon-separated values after 'config:'")
+				return nil, nil, serrors.InvalidInstanceErrorf(e, "expected either one or two colon-separated values after 'config:'")
 			}
 			continue
 		}
@@ -1796,7 +1797,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 				}
 				envsFromSource = append(envsFromSource, envVarFromSrc)
 			} else {
-				return nil, nil, util.InvalidInstanceErrorf(e, "expected either one or two colon-separated values after 'secret:'")
+				return nil, nil, serrors.InvalidInstanceErrorf(e, "expected either one or two colon-separated values after 'secret:'")
 			}
 			continue
 		}

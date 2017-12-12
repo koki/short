@@ -12,7 +12,7 @@ import (
 	"github.com/koki/short/parser"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (interface{}, error) {
@@ -25,7 +25,7 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 	// Serialize the "generic" kube ReplicaSet.
 	b, err := yaml.Marshal(kubeRS)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeRS, "couldn't serialize 'generic' kube ReplicaSet")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeRS, "couldn't serialize 'generic' kube ReplicaSet")
 	}
 
 	// Deserialize a versioned kube ReplicaSet using its apiVersion.
@@ -40,7 +40,7 @@ func Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(rs *types.ReplicaSetWrapper) (in
 	case *exts.ReplicaSet:
 		// Perform exts/v1beta1-specific initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedReplicaSet, "deserialized the manifest, but not as a supported kube ReplicaSet")
+		return nil, serrors.TypeErrorf(versionedReplicaSet, "deserialized the manifest, but not as a supported kube ReplicaSet")
 	}
 
 	return versionedReplicaSet, nil
@@ -83,10 +83,10 @@ func Convert_Koki_ReplicaSet_to_Kube_v1beta2_ReplicaSet(rs *types.ReplicaSetWrap
 	//  Fill in the rest of the Pod template.
 	kubeTemplate, err := revertTemplate(kokiRS.TemplateMetadata, kokiRS.PodTemplate)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
-		return nil, util.InvalidInstanceErrorf(kokiRS, "missing pod template")
+		return nil, serrors.InvalidInstanceErrorf(kokiRS, "missing pod template")
 	}
 	kubeSpec.Template = *kubeTemplate
 
@@ -124,11 +124,11 @@ func revertReplicaSetConditions(kokiConditions []types.ReplicaSetCondition) ([]a
 	for i, condition := range kokiConditions {
 		status, err := revertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		conditionType, err := revertReplicaSetConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		kubeConditions[i] = appsv1beta2.ReplicaSetCondition{
 			Type:               conditionType,
@@ -147,7 +147,7 @@ func revertReplicaSetConditionType(kokiType types.ReplicaSetConditionType) (apps
 	case types.ReplicaSetReplicaFailure:
 		return appsv1beta2.ReplicaSetReplicaFailure, nil
 	default:
-		return appsv1beta2.ReplicaSetReplicaFailure, util.InvalidValueErrorf(kokiType, "unrecognized replica-set condition type")
+		return appsv1beta2.ReplicaSetReplicaFailure, serrors.InvalidValueErrorf(kokiType, "unrecognized replica-set condition type")
 	}
 }
 
@@ -187,7 +187,7 @@ func revertRSSelector(name string, selector *types.RSSelector, templateLabels ma
 	if len(selector.Shorthand) > 0 {
 		labelSelector, err := expressions.ParseLabelSelector(selector.Shorthand)
 		if err != nil {
-			return nil, nil, util.InvalidInstanceErrorf(selector, "%s", err)
+			return nil, nil, serrors.InvalidInstanceErrorf(selector, "%s", err)
 		}
 		if len(templateLabels) == 0 && len(labelSelector.MatchExpressions) == 0 {
 			// Selector is only Labels, and Template.Labels is empty.

@@ -12,7 +12,7 @@ import (
 	"github.com/koki/short/parser"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.ReplicaSetWrapper, error) {
@@ -25,13 +25,13 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeRS)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, kubeRS, "couldn't serialize kube ReplicaSet after setting apiVersion to apps/v1beta2")
+		return nil, serrors.InvalidInstanceContextErrorf(err, kubeRS, "couldn't serialize kube ReplicaSet after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube ReplicaSet
 	genericReplicaSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, string(b), "couldn't deserialize 'generic' kube ReplicaSet")
+		return nil, serrors.InvalidValueContextErrorf(err, string(b), "couldn't deserialize 'generic' kube ReplicaSet")
 	}
 
 	if genericReplicaSet, ok := genericReplicaSet.(*appsv1beta2.ReplicaSet); ok {
@@ -49,7 +49,7 @@ func Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeRS runtime.Object) (*types.R
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericReplicaSet, "didn't deserialize 'generic' ReplicaSet as apps/v1beta2.ReplicaSet")
+	return nil, serrors.InvalidInstanceErrorf(genericReplicaSet, "didn't deserialize 'generic' ReplicaSet as apps/v1beta2.ReplicaSet")
 }
 
 func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.ReplicaSet) (*types.ReplicaSetWrapper, error) {
@@ -81,7 +81,7 @@ func Convert_Kube_v1beta2_ReplicaSet_to_Koki_ReplicaSet(kubeRS *appsv1beta2.Repl
 	// Build a Pod from the kube Template. Use it to set the koki Template.
 	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	kokiRS.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
 	kokiRS.PodTemplate = template
@@ -124,11 +124,11 @@ func convertReplicaSetConditions(kubeConditions []appsv1beta2.ReplicaSetConditio
 	for i, condition := range kubeConditions {
 		status, err := convertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		conditionType, err := convertReplicaSetConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replica-set conditions[%d]", i)
 		}
 		kokiConditions[i] = types.ReplicaSetCondition{
 			Type:               conditionType,
@@ -147,7 +147,7 @@ func convertReplicaSetConditionType(kubeType appsv1beta2.ReplicaSetConditionType
 	case appsv1beta2.ReplicaSetReplicaFailure:
 		return types.ReplicaSetReplicaFailure, nil
 	default:
-		return types.ReplicaSetReplicaFailure, util.InvalidValueErrorf(kubeType, "unrecognized replica-set condition type")
+		return types.ReplicaSetReplicaFailure, serrors.InvalidValueErrorf(kubeType, "unrecognized replica-set condition type")
 	}
 }
 

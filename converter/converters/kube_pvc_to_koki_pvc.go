@@ -1,9 +1,10 @@
 package converters
 
 import (
-	"github.com/koki/short/types"
-	"github.com/koki/short/util"
 	"k8s.io/api/core/v1"
+
+	"github.com/koki/short/types"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_PVC_to_Koki_PVC(kubePVC *v1.PersistentVolumeClaim) (*types.PersistentVolumeClaimWrapper, error) {
@@ -82,7 +83,7 @@ func convertAccessMode(accessMode v1.PersistentVolumeAccessMode) (types.Persiste
 	case v1.ReadWriteMany:
 		return types.ReadWriteMany, nil
 	default:
-		return "", util.InvalidValueErrorf(accessMode, "unrecognized access mode")
+		return "", serrors.InvalidValueErrorf(accessMode, "unrecognized access mode")
 	}
 }
 
@@ -136,7 +137,7 @@ func convertPVCPhase(phase v1.PersistentVolumeClaimPhase) (types.PersistentVolum
 	case v1.ClaimLost:
 		return types.ClaimLost, nil
 	default:
-		return "", util.InvalidValueErrorf(phase, "unrecognized volume claim phase")
+		return "", serrors.InvalidValueErrorf(phase, "unrecognized volume claim phase")
 	}
 }
 
@@ -149,11 +150,11 @@ func convertPVCConditions(kubeConditions []v1.PersistentVolumeClaimCondition) ([
 	for i, condition := range kubeConditions {
 		status, err := convertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "pvc conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "pvc conditions[%d]", i)
 		}
 		conditionType, err := convertPVCConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "job conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "job conditions[%d]", i)
 		}
 		kokiConditions[i] = types.PersistentVolumeClaimCondition{
 			Type:               conditionType,
@@ -173,6 +174,6 @@ func convertPVCConditionType(kubeType v1.PersistentVolumeClaimConditionType) (ty
 	case v1.PersistentVolumeClaimResizing:
 		return types.PersistentVolumeClaimResizing, nil
 	default:
-		return "", util.InvalidValueErrorf(kubeType, "unrecognized pvc condition type")
+		return "", serrors.InvalidValueErrorf(kubeType, "unrecognized pvc condition type")
 	}
 }

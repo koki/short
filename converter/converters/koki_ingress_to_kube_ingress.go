@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Ingress_to_Kube_Ingress(ingress *types.IngressWrapper) (*v1beta1.Ingress, error) {
@@ -27,7 +27,7 @@ func Convert_Koki_Ingress_to_Kube_Ingress(ingress *types.IngressWrapper) (*v1bet
 
 	kubeIngress.Spec.Backend, err = revertIngressBackend(kokiIngress.ServiceName, kokiIngress.ServicePort)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "ingress backend/backend_port")
+		return nil, serrors.ContextualizeErrorf(err, "ingress backend/backend_port")
 	}
 	kubeIngress.Spec.TLS = revertIngressTLS(kokiIngress.TLS)
 	kubeIngress.Spec.Rules = revertIngressRules(kokiIngress.Rules)
@@ -42,10 +42,10 @@ func revertIngressBackend(serviceName string, servicePort *intstr.IntOrString) (
 	}
 
 	if servicePort == nil {
-		return nil, util.InvalidValueErrorf(servicePort, "if service name is specified, service port is also required")
+		return nil, serrors.InvalidValueErrorf(servicePort, "if service name is specified, service port is also required")
 	}
 	if len(serviceName) == 0 {
-		return nil, util.InvalidValueErrorf(serviceName, "if service port is specified, service name is also required")
+		return nil, serrors.InvalidValueErrorf(serviceName, "if service port is specified, service name is also required")
 	}
 
 	return &v1beta1.IngressBackend{

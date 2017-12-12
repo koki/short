@@ -1,0 +1,5 @@
+package: github.com/koki/structurederrors
+import:
+- package: github.com/golang/glog
+- package: github.com/kr/pretty
+- package: github.com/kr/text

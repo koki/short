@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
+	serrors "github.com/koki/structurederrors"
 )
 
 type FloatOrString struct {
@@ -56,7 +56,7 @@ func (fs *FloatOrString) UnmarshalJSON(value []byte) error {
 		return nil
 	}
 
-	return util.InvalidValueForTypeErrorf(string(value), fs, "couldn't deserialize")
+	return serrors.InvalidValueForTypeErrorf(string(value), fs, "couldn't deserialize")
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -67,7 +67,7 @@ func (fs FloatOrString) MarshalJSON() ([]byte, error) {
 	case String:
 		return json.Marshal(fs.StringVal)
 	default:
-		return []byte{}, util.InvalidInstanceError(fs.Type)
+		return []byte{}, serrors.InvalidInstanceError(fs.Type)
 	}
 }
 

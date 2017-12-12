@@ -2,11 +2,12 @@ package converters
 
 import (
 	"github.com/ghodss/yaml"
-	"github.com/koki/short/parser"
-	"github.com/koki/short/types"
-	"github.com/koki/short/util"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/koki/short/parser"
+	"github.com/koki/short/types"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_CronJob_to_Koki_CronJob(kubeCronJob runtime.Object) (*types.CronJobWrapper, error) {
@@ -19,13 +20,13 @@ func Convert_Kube_CronJob_to_Koki_CronJob(kubeCronJob runtime.Object) (*types.Cr
 	// Serialize as batch/v1beta1
 	b, err := yaml.Marshal(kubeCronJob)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, kubeCronJob, "couldn't serialize kube CronJob after setting apiVersion to batch/v1beta1")
+		return nil, serrors.InvalidInstanceContextErrorf(err, kubeCronJob, "couldn't serialize kube CronJob after setting apiVersion to batch/v1beta1")
 	}
 
 	// Deserialize the "generic" kube CronJob
 	genericCronJob, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube CronJob")
+		return nil, serrors.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube CronJob")
 	}
 
 	if genericCronJob, ok := genericCronJob.(*batchv1beta1.CronJob); ok {
@@ -40,7 +41,7 @@ func Convert_Kube_CronJob_to_Koki_CronJob(kubeCronJob runtime.Object) (*types.Cr
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericCronJob, "didn't deserialize 'generic' kube CronJob as batch/v1beta1.CronJob")
+	return nil, serrors.InvalidInstanceErrorf(genericCronJob, "didn't deserialize 'generic' kube CronJob as batch/v1beta1.CronJob")
 }
 
 func Convert_Kube_batch_v1beta1_CronJob_to_Koki_CronJob(kubeCronJob *batchv1beta1.CronJob) (*types.CronJobWrapper, error) {
@@ -93,5 +94,5 @@ func convertConcurrencyPolicy(concurrencyPolicy batchv1beta1.ConcurrencyPolicy) 
 	} else if concurrencyPolicy == batchv1beta1.ReplaceConcurrent {
 		return types.ReplaceConcurrent, nil
 	}
-	return "", util.InvalidValueErrorf(concurrencyPolicy, "unrecognized Concurreny Policy")
+	return "", serrors.InvalidValueErrorf(concurrencyPolicy, "unrecognized Concurreny Policy")
 }

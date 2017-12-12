@@ -6,13 +6,13 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/koki/short/parser"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func (c *EvalContext) Parse(rootPath string) ([]Module, error) {
 	objs, err := c.ReadFromPath(rootPath)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, rootPath, "reading module")
+		return nil, serrors.InvalidValueContextErrorf(err, rootPath, "reading module")
 	}
 
 	if len(objs) > 1 {
@@ -47,7 +47,7 @@ func (c *EvalContext) ParseComponent(rootPath string, obj map[string]interface{}
 
 	// Last remaining key must be the exported resource.
 	if len(obj) != 1 {
-		return nil, util.InvalidValueErrorf(rootPath, "koki module must contain exactly one resource")
+		return nil, serrors.InvalidValueErrorf(rootPath, "koki module must contain exactly one resource")
 	}
 
 	export := Resource{
@@ -71,12 +71,12 @@ func parseParamDefs(rootPath string, obj map[string]interface{}) (map[string]Par
 			for _, paramObj := range paramObjs {
 				paramName, paramDef, err := parseParamDef(paramObj)
 				if err != nil {
-					return nil, hasParamsKey, util.ContextualizeErrorf(err, "couldn't parse a Param in (%s)", rootPath)
+					return nil, hasParamsKey, serrors.ContextualizeErrorf(err, "couldn't parse a Param in (%s)", rootPath)
 				}
 				params[paramName] = paramDef
 			}
 		} else {
-			return nil, hasParamsKey, util.InvalidValueForTypeErrorf(paramsObj, params, "expected array of params in %s", rootPath)
+			return nil, hasParamsKey, serrors.InvalidValueForTypeErrorf(paramsObj, params, "expected array of params in %s", rootPath)
 		}
 	}
 
@@ -103,14 +103,14 @@ func parseParamDef(obj interface{}) (string, ParamDef, error) {
 				if description, ok := val.(string); ok {
 					def.Description = description
 				} else {
-					return name, def, util.InvalidValueForTypeErrorf(val, def, "interpreted key (%s) as param name. expected string value (for param description).", key)
+					return name, def, serrors.InvalidValueForTypeErrorf(val, def, "interpreted key (%s) as param name. expected string value (for param description).", key)
 				}
 			}
 		}
 
 		return name, def, nil
 	default:
-		return "", def, util.InvalidValueForTypeErrorf(obj, def, "expected string or map")
+		return "", def, serrors.InvalidValueForTypeErrorf(obj, def, "expected string or map")
 	}
 }
 
@@ -124,15 +124,15 @@ func (c *EvalContext) parseImports(rootPath string, obj map[string]interface{}) 
 				if imprt, ok := imprt.(map[string]interface{}); ok {
 					anImport, err := c.parseImport(rootPath, imprt)
 					if err != nil {
-						return nil, hasImportsKey, util.InvalidValueForTypeContextErrorf(err, imprt, Import{}, "processing import in module (%s)", rootPath)
+						return nil, hasImportsKey, serrors.InvalidValueForTypeContextErrorf(err, imprt, Import{}, "processing import in module (%s)", rootPath)
 					}
 					imports = append(imports, anImport)
 				} else {
-					return nil, hasImportsKey, util.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
+					return nil, hasImportsKey, serrors.InvalidInstanceErrorf(imprt, "expected an import declaration in (%s)", rootPath)
 				}
 			}
 		} else {
-			return nil, hasImportsKey, util.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
+			return nil, hasImportsKey, serrors.InvalidInstanceErrorf(imprts, "expected array of imports in %s", rootPath)
 		}
 	}
 
@@ -146,10 +146,10 @@ func (c *EvalContext) parseImports(rootPath string, obj map[string]interface{}) 
 func (c *EvalContext) parseImport(rootPath string, imprt map[string]interface{}) (*Import, error) {
 	var err error
 	if len(imprt) == 0 {
-		return nil, util.InvalidInstanceErrorf(imprt, "empty import declaration")
+		return nil, serrors.InvalidInstanceErrorf(imprt, "empty import declaration")
 	}
 	if len(imprt) > 2 {
-		return nil, util.InvalidInstanceErrorf(imprt, "import declaration should have at most params and name:path")
+		return nil, serrors.InvalidInstanceErrorf(imprt, "import declaration should have at most params and name:path")
 	}
 
 	imp := &Import{}
@@ -158,23 +158,23 @@ func (c *EvalContext) parseImport(rootPath string, imprt map[string]interface{})
 			if params, ok := val.(map[string]interface{}); ok {
 				imp.Params = params
 			} else {
-				return nil, util.InvalidInstanceErrorf(imprt, "params should be a dictionary")
+				return nil, serrors.InvalidInstanceErrorf(imprt, "params should be a dictionary")
 			}
 		} else {
 			imp.Name = key
 			if importPath, ok := val.(string); ok {
 				imp.Path, err = c.ResolveImportPath(rootPath, importPath)
 				if err != nil {
-					return nil, util.InvalidValueErrorf(importPath, "couldn't resolve 'absolute' path for import (%s) in module (%s)", importPath, rootPath)
+					return nil, serrors.InvalidValueErrorf(importPath, "couldn't resolve 'absolute' path for import (%s) in module (%s)", importPath, rootPath)
 				}
 			} else {
-				return nil, util.InvalidInstanceErrorf(imprt, "import path should be a string")
+				return nil, serrors.InvalidInstanceErrorf(imprt, "import path should be a string")
 			}
 		}
 	}
 
 	if len(imp.Name) == 0 {
-		return nil, util.InvalidInstanceErrorf(imprt, "expected import name and path")
+		return nil, serrors.InvalidInstanceErrorf(imprt, "expected import name and path")
 	}
 
 	importModules, err := c.Parse(imp.Path)

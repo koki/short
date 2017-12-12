@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func ParseLabelSelector(s string) (*metav1.LabelSelector, error) {
@@ -22,7 +22,7 @@ func ParseLabelSelector(s string) (*metav1.LabelSelector, error) {
 	for _, seg := range segs {
 		expr, err := ParseExpr(seg, []string{"!=", "="})
 		if err != nil {
-			return nil, util.InvalidValueForTypeContextErrorf(err, s, metav1.LabelSelector{}, "couldn't parse subexpression")
+			return nil, serrors.InvalidValueForTypeContextErrorf(err, s, metav1.LabelSelector{}, "couldn't parse subexpression")
 		}
 
 		if expr == nil {
@@ -98,7 +98,7 @@ func UnparseLabelSelector(kubeSelector *metav1.LabelSelector) (string, error) {
 		value := strings.Join(expr.Values, ",")
 		op, err := ConvertOperatorLabelSelector(expr.Operator)
 		if err != nil {
-			return "", util.InvalidInstanceContextErrorf(err, expr, "invalid operator")
+			return "", serrors.InvalidInstanceContextErrorf(err, expr, "invalid operator")
 		}
 		kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 		if expr.Operator == metav1.LabelSelectorOpExists {
@@ -134,5 +134,5 @@ func ConvertOperatorLabelSelector(op metav1.LabelSelectorOperator) (string, erro
 	if op == metav1.LabelSelectorOpDoesNotExist {
 		return "", nil
 	}
-	return "", util.InvalidInstanceError(op)
+	return "", serrors.InvalidInstanceError(op)
 }

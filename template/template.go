@@ -5,7 +5,7 @@ import (
 
 	"github.com/kr/pretty"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 /*
@@ -31,7 +31,7 @@ func ResolverForParams(params map[string]interface{}) Resolver {
 			}
 		}
 
-		return nil, util.InvalidValueErrorf(params, "template identifier (%s) not in params", ident)
+		return nil, serrors.InvalidValueErrorf(params, "template identifier (%s) not in params", ident)
 	}
 }
 
@@ -115,7 +115,7 @@ func GetSpread(template interface{}, resolver Resolver) ([]interface{}, bool, er
 		if listVal, ok := val.([]interface{}); ok {
 			return listVal, true, nil
 		} else {
-			return nil, false, util.InvalidValueErrorf(val, "expected a list for template spread %s", template)
+			return nil, false, serrors.InvalidValueErrorf(val, "expected a list for template spread %s", template)
 		}
 	}
 
@@ -169,7 +169,7 @@ func fillString(template string, resolver Resolver) (string, error) {
 		case int:
 			return []byte(pretty.Sprintf("%v", val))
 		default:
-			errors = append(errors, util.InvalidValueErrorf(val, "expected a string or number for param (%s)", string(key)))
+			errors = append(errors, serrors.InvalidValueErrorf(val, "expected a string or number for param (%s)", string(key)))
 			return match
 		}
 	})

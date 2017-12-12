@@ -8,8 +8,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_v1_Service_to_Koki_Service(kubeService *v1.Service) (*types.ServiceWrapper, error) {
@@ -77,7 +77,7 @@ func convertServiceType(kubeType v1.ServiceType) (types.ClusterIPServiceType, er
 	case v1.ServiceTypeLoadBalancer:
 		return types.ClusterIPServiceTypeLoadBalancer, nil
 	default:
-		return "", util.InvalidInstanceError(kubeType)
+		return "", serrors.InvalidInstanceError(kubeType)
 	}
 }
 
@@ -91,7 +91,7 @@ func convertLoadBalancerIngress(kubeIngress []v1.LoadBalancerIngress) ([]types.L
 		if len(singleKubeIngress.IP) > 0 {
 			ip := net.ParseIP(singleKubeIngress.IP)
 			if ip == nil {
-				return nil, util.InvalidInstanceErrorf(singleKubeIngress, "invalid IP")
+				return nil, serrors.InvalidInstanceErrorf(singleKubeIngress, "invalid IP")
 			}
 
 			kokiIngress[index] = types.LoadBalancerIngress{IP: ip}
@@ -170,7 +170,7 @@ func convertExternalTrafficPolicy(kubePolicy v1.ServiceExternalTrafficPolicyType
 	case v1.ServiceExternalTrafficPolicyTypeCluster:
 		return types.ExternalTrafficPolicyCluster, nil
 	default:
-		return "", util.InvalidInstanceError(kubePolicy)
+		return "", serrors.InvalidInstanceError(kubePolicy)
 	}
 }
 

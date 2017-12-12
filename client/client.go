@@ -5,11 +5,11 @@ import (
 
 	"github.com/ghodss/yaml"
 
+	"github.com/koki/json"
+	"github.com/koki/json/jsonutil"
 	"github.com/koki/short/converter"
-	"github.com/koki/short/json"
 	"github.com/koki/short/parser"
-	"github.com/koki/short/util"
-	"github.com/koki/short/util/objutil"
+	serrors "github.com/koki/structurederrors"
 )
 
 /*
@@ -41,12 +41,12 @@ func ConvertKokiMaps(objs []map[string]interface{}) ([]interface{}, error) {
 		}
 
 		// 2. Check for unparsed fields--potential typos.
-		extraneousPaths, err := objutil.ExtraneousFieldPaths(obj, parsedObj)
+		extraneousPaths, err := jsonutil.ExtraneousFieldPaths(obj, parsedObj)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+			return nil, serrors.ContextualizeErrorf(err, "checking for extraneous fields in input")
 		}
 		if len(extraneousPaths) > 0 {
-			return nil, &objutil.ExtraneousFieldsError{Paths: extraneousPaths}
+			return nil, &jsonutil.ExtraneousFieldsError{Paths: extraneousPaths}
 		}
 
 		// 3. Convert.
@@ -80,12 +80,12 @@ func ConvertKubeMaps(objs []map[string]interface{}) ([]interface{}, error) {
 		}
 
 		// 2. Check for unparsed fields--potential typos.
-		extraneousPaths, err := objutil.ExtraneousFieldPaths(obj, parsedObj)
+		extraneousPaths, err := jsonutil.ExtraneousFieldPaths(obj, parsedObj)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+			return nil, serrors.ContextualizeErrorf(err, "checking for extraneous fields in input")
 		}
 		if len(extraneousPaths) > 0 {
-			return nil, &objutil.ExtraneousFieldsError{Paths: extraneousPaths}
+			return nil, &jsonutil.ExtraneousFieldsError{Paths: extraneousPaths}
 		}
 
 		// 3. Convert.
@@ -115,7 +115,7 @@ func ConvertEitherStreamsToKube(eitherStreams []io.ReadCloser) ([]interface{}, e
 
 		kubeObjs[i], err = parser.ParseSingleKubeNative(obj)
 		if err != nil {
-			return nil, util.InvalidValueErrorf(obj, "couldn't parse as Kube or Koki resource")
+			return nil, serrors.InvalidValueErrorf(obj, "couldn't parse as Kube or Koki resource")
 		}
 	}
 
@@ -134,7 +134,7 @@ func WriteObjsToYamlStream(objs []interface{}, yamlStream io.Writer) error {
 
 		b, err := yaml.Marshal(obj)
 		if err != nil {
-			return util.InvalidValueErrorf(obj, "couldn't serialize as yaml")
+			return serrors.InvalidValueErrorf(obj, "couldn't serialize as yaml")
 		}
 		_, err = yamlStream.Write(b)
 		if err != nil {
@@ -157,7 +157,7 @@ func WriteObjsToJSONStream(objs []interface{}, jsonStream io.Writer) error {
 
 		b, err := json.MarshalIndent(obj, "", "  ")
 		if err != nil {
-			return util.InvalidValueErrorf(obj, "couldn't serialize as json")
+			return serrors.InvalidValueErrorf(obj, "couldn't serialize as json")
 		}
 		_, err = jsonStream.Write(b)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(pv *types.PersistentVolumeWrapper) (*v1.PersistentVolume, error) {
@@ -79,7 +80,7 @@ func revertPersistentVolumePhase(kokiPhase types.PersistentVolumePhase) (v1.Pers
 	case types.VolumeFailed:
 		return v1.VolumeFailed, nil
 	default:
-		return v1.VolumeFailed, util.InvalidValueErrorf(kokiPhase, "unrecognized status (phase) for persistent volume")
+		return v1.VolumeFailed, serrors.InvalidValueErrorf(kokiPhase, "unrecognized status (phase) for persistent volume")
 	}
 }
 
@@ -278,7 +279,7 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 		}, nil
 	}
 
-	return v1.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
+	return v1.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }
 
 func revertReclaimPolicy(kokiPolicy types.PersistentVolumeReclaimPolicy) v1.PersistentVolumeReclaimPolicy {

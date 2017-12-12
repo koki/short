@@ -8,7 +8,7 @@ import (
 	kubeTypes "k8s.io/apimachinery/pkg/types"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Endpoints_to_Kube_v1_Endpoints(endpoints *types.EndpointsWrapper) (*v1.Endpoints, error) {
@@ -80,7 +80,7 @@ func revertEndpointPorts(ports []string) ([]v1.EndpointPort, error) {
 			if strings.ToLower(fields[0]) == "udp" {
 				protocol = v1.ProtocolUDP
 			} else if strings.ToLower(fields[0]) != "tcp" {
-				return nil, util.InvalidValueErrorf(fields[0], "invalid protocol")
+				return nil, serrors.InvalidValueErrorf(fields[0], "invalid protocol")
 			}
 
 			portStr := strings.TrimPrefix(fields[1], "//")
@@ -96,7 +96,7 @@ func revertEndpointPorts(ports []string) ([]v1.EndpointPort, error) {
 		}
 
 		if len(fields) != 2 && len(fields) != 3 {
-			return nil, util.InvalidValueErrorf(port, "invalid endpoints port format")
+			return nil, serrors.InvalidValueErrorf(port, "invalid endpoints port format")
 		}
 
 		kubePort := v1.EndpointPort{

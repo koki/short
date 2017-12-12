@@ -1,0 +1,12 @@
+hash: a03673a1b9c3168b7f254eb4a43ebd2ce0bfd383c4b0febb9c17c735207c739c
+updated: 2017-12-11T23:41:24.347981893-08:00
+imports:
+- name: github.com/golang/glog
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+- name: github.com/koki/structurederrors
+  version: 5a728381eca193d3a3c364256d01295346519936
+- name: github.com/kr/pretty
+  version: cfb55aafdaf3ec08f0db22699ab822c50091b1c4
+- name: github.com/kr/text
+  version: 7cafcd837844e784b526369c9bce262804aebc60
+testImports: []

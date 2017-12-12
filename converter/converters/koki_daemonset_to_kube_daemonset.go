@@ -8,7 +8,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_DaemonSet_to_Kube_DaemonSet(daemonSet *types.DaemonSetWrapper) (interface{}, error) {
@@ -21,7 +21,7 @@ func Convert_Koki_DaemonSet_to_Kube_DaemonSet(daemonSet *types.DaemonSetWrapper)
 	// Serialize the "generic" kube DaemonSet.
 	b, err := yaml.Marshal(kubeDaemonSet)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeDaemonSet, "couldn't serialize 'generic' kube DaemonSet")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeDaemonSet, "couldn't serialize 'generic' kube DaemonSet")
 	}
 
 	// Deserialize a versioned kube DaemonSet using its apiVersion.
@@ -36,7 +36,7 @@ func Convert_Koki_DaemonSet_to_Kube_DaemonSet(daemonSet *types.DaemonSetWrapper)
 	case *exts.DaemonSet:
 		// Perform exts/v1beta1-specific initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedDaemonSet, "deserialized the manifest, but not as a supported kube DaemonSet")
+		return nil, serrors.TypeErrorf(versionedDaemonSet, "deserialized the manifest, but not as a supported kube DaemonSet")
 	}
 
 	return versionedDaemonSet, nil
@@ -78,10 +78,10 @@ func Convert_Koki_DaemonSet_to_Kube_apps_v1beta2_DaemonSet(daemonSet *types.Daem
 	// Fill in the rest of the Pod template.
 	kubeTemplate, err := revertTemplate(kokiDaemonSet.TemplateMetadata, kokiDaemonSet.PodTemplate)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
-		return nil, util.InvalidInstanceErrorf(kokiDaemonSet, "missing pod template")
+		return nil, serrors.InvalidInstanceErrorf(kokiDaemonSet, "missing pod template")
 	}
 	kubeSpec.Template = *kubeTemplate
 

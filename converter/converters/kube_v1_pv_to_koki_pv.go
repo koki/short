@@ -8,6 +8,7 @@ import (
 
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubePV *v1.PersistentVolume) (*types.PersistentVolumeWrapper, error) {
@@ -75,7 +76,7 @@ func convertPersistentVolumePhase(kubePhase v1.PersistentVolumePhase) (types.Per
 	case v1.VolumeFailed:
 		return types.VolumeFailed, nil
 	default:
-		return types.VolumeFailed, util.InvalidValueErrorf(kubePhase, "unrecognized status (phase) for persistent volume")
+		return types.VolumeFailed, serrors.InvalidValueErrorf(kubePhase, "unrecognized status (phase) for persistent volume")
 	}
 }
 
@@ -246,7 +247,7 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 		source := kubeSource.ScaleIO
 		secret := convertSecretReference(source.SecretRef)
 		if secret == nil {
-			return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(source, "secret is required for ScaleIO volume")
+			return types.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(source, "secret is required for ScaleIO volume")
 		}
 		return types.PersistentVolumeSource{
 			ScaleIO: &types.ScaleIOPersistentVolume{
@@ -284,7 +285,7 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 		}, nil
 	}
 
-	return types.PersistentVolumeSource{}, util.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
+	return types.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
 
 func convertReclaimPolicy(kubePolicy v1.PersistentVolumeReclaimPolicy) types.PersistentVolumeReclaimPolicy {
@@ -302,5 +303,5 @@ func convertCapacity(kubeCapacity v1.ResourceList) (*resource.Quantity, error) {
 		}
 	}
 
-	return nil, util.InvalidInstanceErrorf(kubeCapacity, "only supports Storage resource")
+	return nil, serrors.InvalidInstanceErrorf(kubeCapacity, "only supports Storage resource")
 }

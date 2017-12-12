@@ -3,7 +3,7 @@ package converter
 import (
 	"github.com/koki/short/converter/converters"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
@@ -54,7 +54,7 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	case *types.VolumeWrapper:
 		return &kokiObj.Volume, nil
 	default:
-		return nil, util.TypeErrorf(kokiObj, "can't convert from unsupported koki type")
+		return nil, serrors.TypeErrorf(kokiObj, "can't convert from unsupported koki type")
 	}
 }
 
@@ -108,6 +108,6 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
 
 	default:
-		return nil, util.TypeErrorf(kubeObj, "can't convert from unsupported kube type")
+		return nil, serrors.TypeErrorf(kubeObj, "can't convert from unsupported kube type")
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_StatefulSet_to_Kube_StatefulSet(statefulSet *types.StatefulSetWrapper) (interface{}, error) {
@@ -22,7 +22,7 @@ func Convert_Koki_StatefulSet_to_Kube_StatefulSet(statefulSet *types.StatefulSet
 	// Serialize the "generic" kube StatefulSet.
 	b, err := yaml.Marshal(kubeStatefulSet)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeStatefulSet, "couldn't serialize 'generic' kube StatefulSet")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeStatefulSet, "couldn't serialize 'generic' kube StatefulSet")
 	}
 
 	// Deserialize a versioned kube StatefulSet using its apiVersion.
@@ -37,7 +37,7 @@ func Convert_Koki_StatefulSet_to_Kube_StatefulSet(statefulSet *types.StatefulSet
 	case *appsv1beta2.StatefulSet:
 		// Perform apps/v1beta2-specific initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedStatefulSet, "deserialized the manifest, but not as a supported kube StatefulSet")
+		return nil, serrors.TypeErrorf(versionedStatefulSet, "deserialized the manifest, but not as a supported kube StatefulSet")
 	}
 
 	return versionedStatefulSet, nil
@@ -76,10 +76,10 @@ func Convert_Koki_StatefulSet_to_Kube_apps_v1beta2_StatefulSet(statefulSet *type
 	// Fill in the rest of the Pod template.
 	kubeTemplate, err := revertTemplate(kokiStatefulSet.TemplateMetadata, kokiStatefulSet.PodTemplate)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	if kubeTemplate == nil {
-		return nil, util.InvalidInstanceErrorf(kokiStatefulSet, "missing pod template")
+		return nil, serrors.InvalidInstanceErrorf(kokiStatefulSet, "missing pod template")
 	}
 	kubeSpec.Template = *kubeTemplate
 

@@ -13,6 +13,7 @@ import (
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/floatstr"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_v1_Pod_to_Koki_Pod(pod *v1.Pod) (*types.PodWrapper, error) {
@@ -76,7 +77,7 @@ func convertPodSpec(kubeSpec v1.PodSpec) (*types.PodTemplate, error) {
 	kokiPod := &types.PodTemplate{}
 	kokiPod.Volumes, err = convertVolumes(kubeSpec.Volumes)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod volumes")
+		return nil, serrors.ContextualizeErrorf(err, "pod volumes")
 	}
 	affinity, err := convertAffinity(kubeSpec)
 	if err != nil {
@@ -167,7 +168,7 @@ func convertVolumes(kubeVolumes []v1.Volume) (map[string]types.Volume, error) {
 	for _, kubeVolume := range kubeVolumes {
 		name, kokiVolume, err := convertVolume(kubeVolume)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return nil, serrors.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		kokiVolumes[name] = *kokiVolume
 	}
@@ -184,7 +185,7 @@ func convertStorageMedium(kubeMedium v1.StorageMedium) (types.StorageMedium, err
 	case v1.StorageMediumHugepages:
 		return types.StorageMediumHugepages, nil
 	default:
-		return types.StorageMediumDefault, util.InvalidValueErrorf(kubeMedium, "unrecognized storage medium")
+		return types.StorageMediumDefault, serrors.InvalidValueErrorf(kubeMedium, "unrecognized storage medium")
 	}
 }
 
@@ -211,7 +212,7 @@ func convertHostPathType(kubeType *v1.HostPathType) (types.HostPathType, error) 
 	case v1.HostPathBlockDev:
 		return types.HostPathBlockDev, nil
 	default:
-		return types.HostPathUnset, util.InvalidValueErrorf(kubeType, "unrecognized host_path type")
+		return types.HostPathUnset, serrors.InvalidValueErrorf(kubeType, "unrecognized host_path type")
 	}
 }
 
@@ -229,7 +230,7 @@ func convertAzureDiskKind(kubeKind *v1.AzureDataDiskKind) (*types.AzureDataDiskK
 	case v1.AzureManagedDisk:
 		kind = types.AzureManagedDisk
 	default:
-		return nil, util.InvalidValueErrorf(kubeKind, "unrecognized kind")
+		return nil, serrors.InvalidValueErrorf(kubeKind, "unrecognized kind")
 	}
 
 	return &kind, nil
@@ -249,7 +250,7 @@ func convertAzureDiskCachingMode(kubeMode *v1.AzureDataDiskCachingMode) (*types.
 	case v1.AzureDataDiskCachingReadWrite:
 		mode = types.AzureDataDiskCachingReadWrite
 	default:
-		return nil, util.InvalidValueErrorf(kubeMode, "unrecognized cache")
+		return nil, serrors.InvalidValueErrorf(kubeMode, "unrecognized cache")
 	}
 
 	return &mode, nil
@@ -583,7 +584,7 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	if kubeVolume.HostPath != nil {
 		source, err := convertHostPathVolume(kubeVolume.HostPath)
 		if err != nil {
-			return name, nil, util.ContextualizeErrorf(err, "volume (%s)", name)
+			return name, nil, serrors.ContextualizeErrorf(err, "volume (%s)", name)
 		}
 		return name, &types.Volume{
 			HostPath: source,
@@ -790,7 +791,7 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 		}, nil
 	}
 
-	return name, nil, util.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
+	return name, nil, serrors.InvalidInstanceErrorf(kubeVolume, "empty volume definition")
 }
 
 func convertContainer(container *v1.Container) (*types.Container, error) {
@@ -900,7 +901,7 @@ func convertPullPolicy(pullPolicy v1.PullPolicy) (types.PullPolicy, error) {
 	if pullPolicy == v1.PullIfNotPresent {
 		return types.PullNever, nil
 	}
-	return "", util.InvalidInstanceError(pullPolicy)
+	return "", serrors.InvalidInstanceError(pullPolicy)
 }
 
 func convertLifecycle(lifecycle *v1.Lifecycle) (onStart *types.Action, preStop *types.Action, err error) {
@@ -943,7 +944,7 @@ func convertLifecycleAction(lcHandler *v1.Handler) (*types.Action, error) {
 			}
 
 			if ps.HTTPGet.Port.String() == "" {
-				return nil, util.InvalidInstanceErrorf(ps, "URL Port is missing")
+				return nil, serrors.InvalidInstanceErrorf(ps, "URL Port is missing")
 			}
 
 			host := "localhost"
@@ -1146,7 +1147,7 @@ func convertTerminationMsgPolicy(p v1.TerminationMessagePolicy) (types.Terminati
 	if p == v1.TerminationMessageFallbackToLogsOnError {
 		return types.TerminationMessageFallbackToLogsOnError, nil
 	}
-	return "", util.InvalidInstanceError(p)
+	return "", serrors.InvalidInstanceError(p)
 }
 
 func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env {
@@ -1249,7 +1250,7 @@ func convertMountPropagation(p v1.MountPropagationMode) (types.MountPropagation,
 	} else if p == v1.MountPropagationBidirectional {
 		return types.MountPropagationBidirectional, nil
 	}
-	return "", util.InvalidInstanceError(p)
+	return "", serrors.InvalidInstanceError(p)
 }
 
 func convertAffinity(spec v1.PodSpec) ([]types.Affinity, error) {
@@ -1308,7 +1309,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceContextErrorf(err, nodeHardAffinity, "unsupported Operator")
+					return nil, serrors.InvalidInstanceContextErrorf(err, nodeHardAffinity, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -1338,7 +1339,7 @@ func convertNodeAffinity(nodeAffinity *v1.NodeAffinity) ([]types.Affinity, error
 				value := strings.Join(expr.Values, ",")
 				op, err := convertOperator(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceContextErrorf(err, nodeSoftAffinity, "unsupported Operator")
+					return nil, serrors.InvalidInstanceContextErrorf(err, nodeSoftAffinity, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == v1.NodeSelectorOpExists {
@@ -1416,7 +1417,7 @@ func convertPodWeightedAffinityTerms(isAntiAffinity bool, podSoftAffinity []v1.W
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceContextErrorf(err, selectorTerm.PodAffinityTerm, "unsupported Operator")
+					return nil, serrors.InvalidInstanceContextErrorf(err, selectorTerm.PodAffinityTerm, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {
@@ -1466,7 +1467,7 @@ func convertPodAffinityTerms(isAntiAffinity bool, podHardAffinity []v1.PodAffini
 				value := strings.Join(expr.Values, ",")
 				op, err := expressions.ConvertOperatorLabelSelector(expr.Operator)
 				if err != nil {
-					return nil, util.InvalidInstanceContextErrorf(err, selectorTerm, "unsupported Operator")
+					return nil, serrors.InvalidInstanceContextErrorf(err, selectorTerm, "unsupported Operator")
 				}
 				kokiExpr := fmt.Sprintf("%s%s%s", expr.Key, op, value)
 				if expr.Operator == metav1.LabelSelectorOpExists {
@@ -1528,7 +1529,7 @@ func convertOperator(op v1.NodeSelectorOperator) (string, error) {
 	if op == v1.NodeSelectorOpLt {
 		return "<", nil
 	}
-	return "", util.InvalidInstanceError(op)
+	return "", serrors.InvalidInstanceError(op)
 }
 
 func convertDNSPolicy(dnsPolicy v1.DNSPolicy) (types.DNSPolicy, error) {
@@ -1544,7 +1545,7 @@ func convertDNSPolicy(dnsPolicy v1.DNSPolicy) (types.DNSPolicy, error) {
 	if dnsPolicy == v1.DNSDefault {
 		return types.DNSDefault, nil
 	}
-	return "", util.InvalidInstanceError(dnsPolicy)
+	return "", serrors.InvalidInstanceError(dnsPolicy)
 }
 
 func convertHostAliases(aliases []v1.HostAlias) []string {
@@ -1610,7 +1611,7 @@ func convertRestartPolicy(policy v1.RestartPolicy) (types.RestartPolicy, error) 
 	if policy == v1.RestartPolicyNever {
 		return types.RestartPolicyNever, nil
 	}
-	return "", util.InvalidInstanceError(policy)
+	return "", serrors.InvalidInstanceError(policy)
 }
 
 func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error) {
@@ -1625,7 +1626,7 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 		} else if toleration.Operator == v1.TolerationOpExists {
 			tolExpr = fmt.Sprintf("%s", toleration.Key)
 		} else {
-			return nil, util.InvalidInstanceErrorf(toleration, "unsupported operator")
+			return nil, serrors.InvalidInstanceErrorf(toleration, "unsupported operator")
 		}
 		if tolExpr != "" {
 			if toleration.Effect != "" {
@@ -1668,7 +1669,7 @@ func convertPhase(phase v1.PodPhase) (types.PodPhase, error) {
 	if phase == v1.PodUnknown {
 		return types.PodUnknown, nil
 	}
-	return "", util.InvalidInstanceError(phase)
+	return "", serrors.InvalidInstanceError(phase)
 }
 
 func convertPodQOSClass(class v1.PodQOSClass) (types.PodQOSClass, error) {
@@ -1684,7 +1685,7 @@ func convertPodQOSClass(class v1.PodQOSClass) (types.PodQOSClass, error) {
 	if class == v1.PodQOSBestEffort {
 		return types.PodQOSBestEffort, nil
 	}
-	return "", util.InvalidInstanceError(class)
+	return "", serrors.InvalidInstanceError(class)
 }
 
 func convertPodConditions(conditions []v1.PodCondition) ([]types.PodCondition, error) {
@@ -1727,7 +1728,7 @@ func convertPodConditionType(typ v1.PodConditionType) (types.PodConditionType, e
 	if typ == v1.PodReasonUnschedulable {
 		return types.PodReasonUnschedulable, nil
 	}
-	return "", util.InvalidInstanceError(typ)
+	return "", serrors.InvalidInstanceError(typ)
 }
 
 func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, error) {
@@ -1743,7 +1744,7 @@ func convertConditionStatus(status v1.ConditionStatus) (types.ConditionStatus, e
 	if status == v1.ConditionUnknown {
 		return types.ConditionUnknown, nil
 	}
-	return "", util.InvalidInstanceError(status)
+	return "", serrors.InvalidInstanceError(status)
 }
 
 func convertContainerStatuses(initContainerStatuses, containerStatuses []v1.ContainerStatus, kokiContainers []types.Container) error {

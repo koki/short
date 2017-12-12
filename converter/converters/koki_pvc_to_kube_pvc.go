@@ -1,10 +1,11 @@
 package converters
 
 import (
-	"github.com/koki/short/types"
-	"github.com/koki/short/util"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/koki/short/types"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_PVC_to_Kube_PVC(pvc *types.PersistentVolumeClaimWrapper) (interface{}, error) {
@@ -149,11 +150,11 @@ func revertPVCConditions(kokiConditions []types.PersistentVolumeClaimCondition) 
 	for i, condition := range kokiConditions {
 		status, err := revertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "pvc conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "pvc conditions[%d]", i)
 		}
 		conditionType, err := revertPVCConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "pvc conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "pvc conditions[%d]", i)
 		}
 		kubeConditions[i] = v1.PersistentVolumeClaimCondition{
 			Type:               conditionType,
@@ -172,6 +173,6 @@ func revertPVCConditionType(kokiType types.PersistentVolumeClaimConditionType) (
 	case types.PersistentVolumeClaimResizing:
 		return v1.PersistentVolumeClaimResizing, nil
 	default:
-		return "", util.InvalidValueErrorf(kokiType, "unrecognized pvc condition type")
+		return "", serrors.InvalidValueErrorf(kokiType, "unrecognized pvc condition type")
 	}
 }

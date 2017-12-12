@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_Ingress_to_Koki_Ingress(kubeIngress *v1beta1.Ingress) (*types.IngressWrapper, error) {
@@ -26,12 +26,12 @@ func Convert_Kube_Ingress_to_Koki_Ingress(kubeIngress *v1beta1.Ingress) (*types.
 	kokiIngress.TLS = convertIngressTLS(kubeSpec.TLS)
 	kokiIngress.Rules, err = convertIngressRules(kubeSpec.Rules)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "ingress rules")
+		return nil, serrors.ContextualizeErrorf(err, "ingress rules")
 	}
 
 	kokiIngress.LoadBalancerIngress, err = convertLoadBalancerIngress(kubeIngress.Status.LoadBalancer.Ingress)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "ingress load balancer status")
+		return nil, serrors.ContextualizeErrorf(err, "ingress load balancer status")
 	}
 
 	return kokiWrapper, nil
@@ -69,7 +69,7 @@ func convertIngressRules(kubeRules []v1beta1.IngressRule) ([]types.IngressRule, 
 	kokiRules := make([]types.IngressRule, len(kubeRules))
 	for i, kubeRule := range kubeRules {
 		if kubeRule.HTTP == nil {
-			return nil, util.InvalidInstanceErrorf(kubeRule, "HTTP is the only supported rule type, but this rule is missing its HTTP entry.")
+			return nil, serrors.InvalidInstanceErrorf(kubeRule, "HTTP is the only supported rule type, but this rule is missing its HTTP entry.")
 		}
 		kokiRules[i] = types.IngressRule{
 			Host:  kubeRule.Host,
