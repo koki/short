@@ -3,7 +3,7 @@ package expressions
 import (
 	"strings"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 // Expr is the generic AST format of a koki NodeSelectorRequirement or LabelSelectorRequirement
@@ -32,7 +32,7 @@ func ParseOp(s string, op string) (*Expr, error) {
 	if strings.Contains(s, op) {
 		segs := strings.Split(s, op)
 		if len(segs) != 2 {
-			return nil, util.InvalidValueErrorf(s, "not a valid expression with operator (%s)", op)
+			return nil, serrors.InvalidValueErrorf(s, "not a valid expression with operator (%s)", op)
 		}
 
 		return &Expr{

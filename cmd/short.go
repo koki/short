@@ -5,12 +5,12 @@ import (
 	"github.com/golang/glog"
 
 	// Just make sure we also build the client package.
+	"github.com/koki/json/jsonutil"
 	_ "github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/imports"
 	"github.com/koki/short/parser"
-	"github.com/koki/short/util"
-	"github.com/koki/short/util/objutil"
+	serrors "github.com/koki/structurederrors"
 )
 
 func debugLogModule(module imports.Module) {
@@ -67,12 +67,12 @@ func convertKokiModules(kokiModules []imports.Module) ([]interface{}, error) {
 	for _, kokiModule := range kokiModules {
 		kokiExport := kokiModule.Export
 		data := kokiExport.Raw
-		extraneousPaths, err := objutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
+		extraneousPaths, err := jsonutil.ExtraneousFieldPaths(data, kokiExport.TypedResult)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "checking for extraneous fields in input")
+			return nil, serrors.ContextualizeErrorf(err, "checking for extraneous fields in input")
 		}
 		if len(extraneousPaths) > 0 {
-			return nil, &objutil.ExtraneousFieldsError{
+			return nil, &jsonutil.ExtraneousFieldsError{
 				Paths: extraneousPaths,
 			}
 		}

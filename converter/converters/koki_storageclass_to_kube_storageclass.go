@@ -8,7 +8,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageClassWrapper) (interface{}, error) {
@@ -18,7 +18,7 @@ func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageC
 	// Serialize the "generic" kube StorageClass.
 	b, err := yaml.Marshal(kubeStorageClass)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeStorageClass, "couldn't serialize 'generic' kube StorageClass")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeStorageClass, "couldn't serialize 'generic' kube StorageClass")
 	}
 
 	// Deserialize a versioned kube StorageClass using its apiVersion.
@@ -33,7 +33,7 @@ func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageC
 	case *storagev1beta1.StorageClass:
 		// Perform storage/v1beta1 initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedStorageClass, "deserialized the manifest, but not as a supported kube StorageClass")
+		return nil, serrors.TypeErrorf(versionedStorageClass, "deserialized the manifest, but not as a supported kube StorageClass")
 	}
 
 	return versionedStorageClass, nil

@@ -3,9 +3,9 @@ package types
 import (
 	"net"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
 	"github.com/koki/short/util/intbool"
+	serrors "github.com/koki/structurederrors"
 )
 
 type ServiceWrapper struct {
@@ -103,7 +103,7 @@ func (i *LoadBalancerIngress) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return util.InvalidValueErrorf(string(data), "expected a string for LoadBalancerIngress")
+		return serrors.InvalidValueErrorf(string(data), "expected a string for LoadBalancerIngress")
 	}
 
 	i.InitFromString(s)
@@ -122,7 +122,7 @@ func (i LoadBalancerIngress) MarshalJSON() ([]byte, error) {
 	str := i.String()
 	b, err := json.Marshal(str)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, i, "marshalling from string (%s) to JSON", str)
+		return nil, serrors.InvalidInstanceContextErrorf(err, i, "marshalling from string (%s) to JSON", str)
 	}
 
 	return b, nil

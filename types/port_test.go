@@ -7,7 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 var port0 = &Port{
@@ -74,7 +74,7 @@ func TestPort(t *testing.T) {
 func doPortTest(port *Port, str string, t *testing.T) {
 	b, err := yaml.Marshal(port)
 	if err != nil {
-		t.Error(pretty.Sprint(util.PrettyError(err), port))
+		t.Error(pretty.Sprint(serrors.PrettyError(err), port))
 	}
 
 	if string(b) != str {
@@ -84,7 +84,7 @@ func doPortTest(port *Port, str string, t *testing.T) {
 	port1 := &Port{}
 	err = yaml.Unmarshal(b, &port1)
 	if err != nil {
-		t.Error(pretty.Sprint(util.PrettyError(err), port, string(b)))
+		t.Error(pretty.Sprint(serrors.PrettyError(err), port, string(b)))
 	}
 
 	if !reflect.DeepEqual(port, port1) {
@@ -96,12 +96,12 @@ func doTest(str string, t *testing.T) {
 	p := Port{}
 	err := p.InitFromString(str)
 	if err != nil {
-		t.Error(pretty.Sprint(util.PrettyError(err), str))
+		t.Error(pretty.Sprint(serrors.PrettyError(err), str))
 	}
 
 	str1, err := p.ToString()
 	if err != nil {
-		t.Error(pretty.Sprint(util.PrettyError(err), str, p))
+		t.Error(pretty.Sprint(serrors.PrettyError(err), str, p))
 	}
 
 	if str != str1 {

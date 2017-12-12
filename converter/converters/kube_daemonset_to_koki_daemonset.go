@@ -9,7 +9,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet runtime.Object) (*types.DaemonSetWrapper, error) {
@@ -22,13 +22,13 @@ func Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet runtime.Object) (*ty
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeDaemonSet)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, kubeDaemonSet, "couldn't serialize kube DaemonSet after setting apiVersion to apps/v1beta2")
+		return nil, serrors.InvalidInstanceContextErrorf(err, kubeDaemonSet, "couldn't serialize kube DaemonSet after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube DaemonSet
 	genericDaemonSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube DaemonSet")
+		return nil, serrors.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube DaemonSet")
 	}
 
 	if genericDaemonSet, ok := genericDaemonSet.(*appsv1beta2.DaemonSet); ok {
@@ -46,7 +46,7 @@ func Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet runtime.Object) (*ty
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericDaemonSet, "didn't deserialize 'generic' kube DaemonSet as apps/v1beta2.DaemonSet")
+	return nil, serrors.InvalidInstanceErrorf(genericDaemonSet, "didn't deserialize 'generic' kube DaemonSet as apps/v1beta2.DaemonSet")
 }
 
 func Convert_Kube_v1beta2_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet *appsv1beta2.DaemonSet) (*types.DaemonSetWrapper, error) {
@@ -77,7 +77,7 @@ func Convert_Kube_v1beta2_DaemonSet_to_Koki_DaemonSet(kubeDaemonSet *appsv1beta2
 	// Build a Pod from the kube Template. Use it to set the koki Template.
 	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	kokiDaemonSet.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
 	kokiDaemonSet.PodTemplate = template

@@ -7,7 +7,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func ParseSingleKubeNativeFromBytes(data []byte) (runtime.Object, error) {
@@ -27,11 +27,11 @@ func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
 
 	typedObj, err := creator.New(u.GetObjectKind().GroupVersionKind())
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, u, "unsupported apiVersion/kind (is the manifest kube-native format?)")
+		return nil, serrors.InvalidValueContextErrorf(err, u, "unsupported apiVersion/kind (is the manifest kube-native format?)")
 	}
 
 	if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
-		return nil, util.InvalidValueForTypeContextErrorf(err, obj, typedObj, "couldn't convert to typed kube obj")
+		return nil, serrors.InvalidValueForTypeContextErrorf(err, obj, typedObj, "couldn't convert to typed kube obj")
 	}
 
 	return typedObj, nil

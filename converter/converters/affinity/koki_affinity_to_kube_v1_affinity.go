@@ -9,7 +9,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Affinity_to_Kube_v1_Affinity(kokiAffinities []types.Affinity) (*v1.Affinity, error) {
@@ -74,7 +74,7 @@ func splitAffinities(affinities []types.Affinity) (node []string, pod, antiPod [
 				Namespaces: affinity.Namespaces,
 			})
 		default:
-			err = util.InvalidInstanceErrorf(affinity, "expected one of: node, pod, pod-anti affinity")
+			err = serrors.InvalidInstanceErrorf(affinity, "expected one of: node, pod, pod-anti affinity")
 		}
 	}
 
@@ -150,7 +150,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = util.InvalidInstanceErrorf(affinity, "second affinity segment should be 'soft'")
+				err = serrors.InvalidInstanceErrorf(affinity, "second affinity segment should be 'soft'")
 				return
 			}
 		}
@@ -161,7 +161,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 		} else {
 			weight, err = strconv.ParseInt(segs[2], 10, 32)
 			if err != nil {
-				err = util.InvalidInstanceErrorf(affinity, "third affinity segment should be a number (weight)")
+				err = serrors.InvalidInstanceErrorf(affinity, "third affinity segment should be a number (weight)")
 				return
 			}
 		}
@@ -178,7 +178,7 @@ func splitAndRevertPodAffinity(affinities []PodAffinity) (hard []v1.PodAffinityT
 func parsePodExprs(s string) (*v1.PodAffinityTerm, error) {
 	labelSelector, err := expressions.ParseLabelSelector(s)
 	if err != nil {
-		return nil, util.InvalidValueForTypeContextError(err, s, v1.PodAffinityTerm{})
+		return nil, serrors.InvalidValueForTypeContextError(err, s, v1.PodAffinityTerm{})
 	}
 
 	return &v1.PodAffinityTerm{
@@ -229,7 +229,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 			continue
 		} else {
 			if segs[1] != "soft" {
-				err = util.InvalidInstanceErrorf(affinity, "second segment should be 'soft'")
+				err = serrors.InvalidInstanceErrorf(affinity, "second segment should be 'soft'")
 				return
 			}
 		}
@@ -241,7 +241,7 @@ func splitAndRevertNodeAffinity(affinities []string) (hard []v1.NodeSelectorTerm
 		} else {
 			weight, err = strconv.ParseInt(segs[2], 10, 32)
 			if err != nil {
-				err = util.InvalidInstanceErrorf(affinity, "third segment should be an integer (weight)")
+				err = serrors.InvalidInstanceErrorf(affinity, "third segment should be an integer (weight)")
 				return
 			}
 		}
@@ -261,7 +261,7 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 	for _, seg := range segs {
 		expr, err := expressions.ParseExpr(seg, []string{"!=", "=", ">", "<"})
 		if err != nil {
-			err = util.InvalidValueForTypeContextError(err, s, v1.NodeSelectorTerm{})
+			err = serrors.InvalidValueForTypeContextError(err, s, v1.NodeSelectorTerm{})
 			return nil, err
 		}
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_CronJob_to_Kube_CronJob(cronJob *types.CronJobWrapper) (interface{}, error) {
@@ -22,7 +22,7 @@ func Convert_Koki_CronJob_to_Kube_CronJob(cronJob *types.CronJobWrapper) (interf
 	// Serialize the "generic" kube CronJob.
 	b, err := yaml.Marshal(kubeCronJob)
 	if err != nil {
-		return nil, util.InvalidValueContextErrorf(err, kubeCronJob, "couldn't serialize 'generic' kube CronJob")
+		return nil, serrors.InvalidValueContextErrorf(err, kubeCronJob, "couldn't serialize 'generic' kube CronJob")
 	}
 
 	// Deserialize a versioned kube CronJob using its apiVersion.
@@ -37,7 +37,7 @@ func Convert_Koki_CronJob_to_Kube_CronJob(cronJob *types.CronJobWrapper) (interf
 	case *batchv2alpha1.CronJob:
 		// Perform batch/v2alpha-specific initialization here.
 	default:
-		return nil, util.TypeErrorf(versionedCronJob, "deserialized the manifest, but not as a supported kube CronJob")
+		return nil, serrors.TypeErrorf(versionedCronJob, "deserialized the manifest, but not as a supported kube CronJob")
 	}
 
 	return versionedCronJob, nil
@@ -113,6 +113,6 @@ func revertConcurrencyPolicy(concurrencyPolicy types.ConcurrencyPolicy) (batchv1
 	case types.ReplaceConcurrent:
 		return batchv1beta1.ReplaceConcurrent, nil
 	default:
-		return "", util.InvalidValueErrorf(concurrencyPolicy, "unrecognized Concurreny Policy")
+		return "", serrors.InvalidValueErrorf(concurrencyPolicy, "unrecognized Concurreny Policy")
 	}
 }

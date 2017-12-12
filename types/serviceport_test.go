@@ -6,7 +6,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 var nsp0 = "name0: 80\n"
@@ -24,14 +24,14 @@ func tryNamedServicePort(s string, t *testing.T) {
 	err := yaml.Unmarshal([]byte(s), &nsp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)",
-			util.PrettyError(err), s))
+			serrors.PrettyError(err), s))
 		return
 	}
 
 	b, err := yaml.Marshal(nsp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)\n(%# v)",
-			util.PrettyError(err), s, nsp))
+			serrors.PrettyError(err), s, nsp))
 		return
 	}
 
@@ -53,14 +53,14 @@ func tryServicePort(s string, t *testing.T) {
 	err := yaml.Unmarshal([]byte(s), &sp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)",
-			util.PrettyError(err), s))
+			serrors.PrettyError(err), s))
 		return
 	}
 
 	b, err := yaml.Marshal(sp)
 	if err != nil {
 		t.Error(pretty.Sprintf("%s:\n(%s)\n(%# v)",
-			util.PrettyError(err), s, sp))
+			serrors.PrettyError(err), s, sp))
 		return
 	}
 

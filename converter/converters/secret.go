@@ -4,7 +4,7 @@ import (
 	"k8s.io/api/core/v1"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_v1_Secret_to_Koki_Secret(kubeSecret *v1.Secret) (*types.SecretWrapper, error) {
@@ -50,7 +50,7 @@ func convertSecretType(secret v1.SecretType) (types.SecretType, error) {
 	case v1.SecretTypeTLS:
 		return types.SecretTypeTLS, nil
 	default:
-		return "", util.InvalidValueErrorf(secret, "unrecognized Secret type")
+		return "", serrors.InvalidValueErrorf(secret, "unrecognized Secret type")
 	}
 }
 
@@ -98,6 +98,6 @@ func revertSecretType(secret types.SecretType) (v1.SecretType, error) {
 	case types.SecretTypeTLS:
 		return v1.SecretTypeTLS, nil
 	default:
-		return "", util.InvalidValueErrorf(secret, "unrecognized Secret type")
+		return "", serrors.InvalidValueErrorf(secret, "unrecognized Secret type")
 	}
 }

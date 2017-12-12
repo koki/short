@@ -1,0 +1,3 @@
+package: github.com/koki/json
+import:
+- package: github.com/koki/structurederrors

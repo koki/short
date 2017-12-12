@@ -1,9 +1,10 @@
 package converters
 
 import (
-	"github.com/koki/short/types"
-	"github.com/koki/short/util"
 	batchv1 "k8s.io/api/batch/v1"
+
+	"github.com/koki/short/types"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_Job_to_Koki_Job(kubeJob *batchv1.Job) (*types.JobWrapper, error) {
@@ -49,7 +50,7 @@ func convertJobSpec(kubeSpec batchv1.JobSpec) (*types.JobTemplate, error) {
 	// Build a Pod from the kube Template. Use it to set the koki Template.
 	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	kokiJob.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
 	kokiJob.PodTemplate = template
@@ -102,11 +103,11 @@ func convertJobConditions(kubeConditions []batchv1.JobCondition) ([]types.JobCon
 	for i, condition := range kubeConditions {
 		status, err := convertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "job conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "job conditions[%d]", i)
 		}
 		conditionType, err := convertJobConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "job conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "job conditions[%d]", i)
 		}
 		kokiConditions[i] = types.JobCondition{
 			Type:               conditionType,
@@ -128,6 +129,6 @@ func convertJobConditionType(kubeType batchv1.JobConditionType) (types.JobCondit
 	case batchv1.JobFailed:
 		return types.JobFailed, nil
 	default:
-		return types.JobFailed, util.InvalidValueErrorf(kubeType, "unrecognized job condition type")
+		return types.JobFailed, serrors.InvalidValueErrorf(kubeType, "unrecognized job condition type")
 	}
 }

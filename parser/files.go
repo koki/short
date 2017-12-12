@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func OpenStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
@@ -16,7 +16,7 @@ func OpenStreamsFromFiles(filenames []string) ([]io.ReadCloser, error) {
 		glog.V(5).Infof("opening file %s for reading", name)
 		f, err := os.Open(name)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "opening file %s", name)
+			return nil, serrors.ContextualizeErrorf(err, "opening file %s", name)
 		}
 
 		readers = append(readers, f)

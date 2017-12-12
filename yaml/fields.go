@@ -13,7 +13,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/koki/short/json"
+	"github.com/koki/json"
 )
 
 // indirect walks down v allocating pointers as needed,

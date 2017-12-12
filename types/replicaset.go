@@ -3,8 +3,8 @@ package types
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
+	serrors "github.com/koki/structurederrors"
 )
 
 type ReplicaSetWrapper struct {
@@ -78,7 +78,7 @@ func (s *RSSelector) UnmarshalJSON(data []byte) error {
 	labels := map[string]string{}
 	dictErr := json.Unmarshal(data, &labels)
 	if dictErr != nil {
-		return util.InvalidValueForTypeErrorf(string(data), s, "couldn't parse JSON as string or dictionary: (%s), (%s)", strErr.Error(), dictErr.Error())
+		return serrors.InvalidValueForTypeErrorf(string(data), s, "couldn't parse JSON as string or dictionary: (%s), (%s)", strErr.Error(), dictErr.Error())
 	}
 
 	s.Labels = labels
@@ -89,7 +89,7 @@ func (s RSSelector) MarshalJSON() ([]byte, error) {
 	if len(s.Shorthand) > 0 {
 		b, err := json.Marshal(s.Shorthand)
 		if err != nil {
-			return nil, util.InvalidInstanceContextErrorf(err, s, "marshalling shorthand string to JSON")
+			return nil, serrors.InvalidInstanceContextErrorf(err, s, "marshalling shorthand string to JSON")
 		}
 
 		return b, nil
@@ -97,7 +97,7 @@ func (s RSSelector) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(s.Labels)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, s, "marshalling labels dictionary to JSON")
+		return nil, serrors.InvalidInstanceContextErrorf(err, s, "marshalling labels dictionary to JSON")
 	}
 
 	return b, nil

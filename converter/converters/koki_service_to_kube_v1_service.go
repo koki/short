@@ -6,6 +6,7 @@ import (
 	"github.com/koki/short/types"
 	"github.com/koki/short/util"
 	"github.com/koki/short/util/intbool"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Koki_Service_To_Kube_v1_Service(service *types.ServiceWrapper) (*v1.Service, error) {
@@ -75,7 +76,7 @@ func revertServiceType(kokiType types.ClusterIPServiceType) (v1.ServiceType, err
 	case types.ClusterIPServiceTypeLoadBalancer:
 		return v1.ServiceTypeLoadBalancer, nil
 	default:
-		return "", util.InvalidInstanceError(kokiType)
+		return "", serrors.InvalidInstanceError(kokiType)
 	}
 }
 
@@ -132,7 +133,7 @@ func revertExternalTrafficPolicy(policy types.ExternalTrafficPolicy) (v1.Service
 	case types.ExternalTrafficPolicyCluster:
 		return v1.ServiceExternalTrafficPolicyTypeCluster, nil
 	default:
-		return "", util.InvalidInstanceError(policy)
+		return "", serrors.InvalidInstanceError(policy)
 	}
 }
 

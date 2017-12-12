@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
+	serrors "github.com/koki/structurederrors"
 )
 
 type Port struct {
@@ -30,7 +30,7 @@ func (p *Port) HostPortInt() (int32, error) {
 	if len(p.HostPort) > 0 {
 		hostPort, err := strconv.ParseInt(p.HostPort, 10, 32)
 		if err != nil {
-			return 0, util.InvalidInstanceContextErrorf(err, p, "HostPort should be an int")
+			return 0, serrors.InvalidInstanceContextErrorf(err, p, "HostPort should be an int")
 		}
 
 		return int32(hostPort), nil
@@ -43,7 +43,7 @@ func (p *Port) ContainerPortInt() (int32, error) {
 	if len(p.ContainerPort) > 0 {
 		containerPort, err := strconv.ParseInt(p.ContainerPort, 10, 32)
 		if err != nil {
-			return 0, util.InvalidInstanceContextErrorf(err, p, "ContainerPort should be an int")
+			return 0, serrors.InvalidInstanceContextErrorf(err, p, "ContainerPort should be an int")
 		}
 
 		return int32(containerPort), nil
@@ -93,7 +93,7 @@ func (p *Port) InitFromString(str string) error {
 		return nil
 	}
 
-	return util.InvalidInstanceErrorf(p, "couldn't parse (%s)", str)
+	return serrors.InvalidInstanceErrorf(p, "couldn't parse (%s)", str)
 }
 
 func appendColonSegment(str, seg string) string {
@@ -142,11 +142,11 @@ func (p *Port) UnmarshalJSON(data []byte) error {
 	obj := map[string]interface{}{}
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), p, "couldn't parse JSON")
+		return serrors.InvalidValueForTypeErrorf(string(data), p, "couldn't parse JSON")
 	}
 
 	if len(obj) != 1 {
-		return util.InvalidValueErrorf(obj, "expected only one entry for Port")
+		return serrors.InvalidValueErrorf(obj, "expected only one entry for Port")
 	}
 
 	for key, val := range obj {
@@ -157,7 +157,7 @@ func (p *Port) UnmarshalJSON(data []byte) error {
 		case float64:
 			return p.InitFromString(fmt.Sprintf("%d", int(val)))
 		default:
-			return util.InvalidValueErrorf(obj, "unrecognized value (not a string or number)")
+			return serrors.InvalidValueErrorf(obj, "unrecognized value (not a string or number)")
 		}
 	}
 
@@ -178,14 +178,14 @@ func (p Port) MarshalJSON() ([]byte, error) {
 			}
 			b, err := json.Marshal(&obj)
 			if err != nil {
-				return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port number (%d)", p.Name, i)
+				return nil, serrors.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port number (%d)", p.Name, i)
 			}
 			return b, nil
 		}
 
 		b, err := json.Marshal(&i)
 		if err != nil {
-			return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port number (%d)", i)
+			return nil, serrors.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port number (%d)", i)
 		}
 		return b, nil
 	}
@@ -196,14 +196,14 @@ func (p Port) MarshalJSON() ([]byte, error) {
 		}
 		b, err := json.Marshal(&obj)
 		if err != nil {
-			return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port string (%s)", p.Name, str)
+			return nil, serrors.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with name (%s) and port string (%s)", p.Name, str)
 		}
 		return b, nil
 	}
 
 	b, err := json.Marshal(&str)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port string (%s)", str)
+		return nil, serrors.InvalidInstanceContextErrorf(err, p, "couldn't marshal to JSON with port string (%s)", str)
 	}
 	return b, nil
 }

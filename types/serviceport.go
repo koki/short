@@ -7,8 +7,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/koki/short/json"
+	"github.com/koki/json"
 	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 type NamedServicePort struct {
@@ -46,16 +47,16 @@ func (p *ServicePort) InitFromString(str string) error {
 	segments := strings.Split(str, ":")
 	l := len(segments)
 	if l < 1 {
-		return util.InvalidValueForTypeErrorf(str, p, "too few sections")
+		return serrors.InvalidValueForTypeErrorf(str, p, "too few sections")
 	}
 	if l > 2 {
-		return util.InvalidValueForTypeErrorf(str, p, "too many sections")
+		return serrors.InvalidValueForTypeErrorf(str, p, "too many sections")
 	}
 
 	// Extract the exposed port, which is the only required field.
 	expose, err := strconv.ParseInt(segments[0], 10, 32)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(str, p, "couldn't parse exposed service port")
+		return serrors.InvalidValueForTypeErrorf(str, p, "couldn't parse exposed service port")
 	}
 	p.Expose = int32(expose)
 
@@ -87,7 +88,7 @@ func (p *ServicePort) ToInt() (int32, error) {
 			return p.Expose, nil
 		}
 	}
-	return -1, util.InvalidInstanceErrorf(p, "can't serialize as int32")
+	return -1, serrors.InvalidInstanceErrorf(p, "can't serialize as int32")
 }
 
 func (p *ServicePort) UnmarshalJSON(data []byte) error {
@@ -101,7 +102,7 @@ func (p *ServicePort) UnmarshalJSON(data []byte) error {
 	var s string
 	strErr := json.Unmarshal(data, &s)
 	if strErr != nil {
-		return util.InvalidValueForTypeErrorf(string(data), p, "couldn't unmarshal JSON as int or string: (%s), (%s)", intErr.Error(), strErr.Error())
+		return serrors.InvalidValueForTypeErrorf(string(data), p, "couldn't unmarshal JSON as int or string: (%s), (%s)", intErr.Error(), strErr.Error())
 	}
 
 	return p.InitFromString(s)
@@ -112,7 +113,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 	if intErr == nil {
 		b, err := json.Marshal(i)
 		if err != nil {
-			return nil, util.InvalidInstanceContextErrorf(err, p, "marshalling port number (%d) to JSON", i)
+			return nil, serrors.InvalidInstanceContextErrorf(err, p, "marshalling port number (%d) to JSON", i)
 		}
 
 		return b, nil
@@ -121,7 +122,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 	str := p.String()
 	b, strErr := json.Marshal(str)
 	if strErr != nil {
-		return nil, util.InvalidInstanceContextErrorf(strErr, p, "marshalling to JSON from string (%s)", str)
+		return nil, serrors.InvalidInstanceContextErrorf(strErr, p, "marshalling to JSON from string (%s)", str)
 	}
 
 	return b, nil
@@ -129,7 +130,7 @@ func (p ServicePort) MarshalJSON() ([]byte, error) {
 
 func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {
 	if len(obj) > 2 {
-		return util.InvalidValueForTypeErrorf(obj, n, "expected at most 2 fields")
+		return serrors.InvalidValueForTypeErrorf(obj, n, "expected at most 2 fields")
 	}
 
 	for key, val := range obj {
@@ -145,7 +146,7 @@ func (n *NamedServicePort) InitFromMap(obj map[string]interface{}) error {
 			case float64:
 				n.Port.InitFromInt(int32(val))
 			default:
-				return util.InvalidValueForTypeErrorf(obj, n, "expected string or int for ServicePort")
+				return serrors.InvalidValueForTypeErrorf(obj, n, "expected string or int for ServicePort")
 			}
 		}
 	}
@@ -157,7 +158,7 @@ func (n *NamedServicePort) UnmarshalJSON(data []byte) error {
 	var obj = map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.InvalidValueForTypeErrorf(string(data), n, "couldn't deserialize")
+		return serrors.InvalidValueForTypeErrorf(string(data), n, "couldn't deserialize")
 	}
 
 	return n.InitFromMap(obj)

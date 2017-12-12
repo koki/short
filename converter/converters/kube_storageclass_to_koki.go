@@ -8,7 +8,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_StorageClass_to_Koki_StorageClass(kubeStorageClass runtime.Object) (*types.StorageClassWrapper, error) {
@@ -21,13 +21,13 @@ func Convert_Kube_StorageClass_to_Koki_StorageClass(kubeStorageClass runtime.Obj
 	// Serialize as v1
 	b, err := yaml.Marshal(kubeStorageClass)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, kubeStorageClass, "couldn't serialize kube StorageClass after setting apiVersion to storage/v1")
+		return nil, serrors.InvalidInstanceContextErrorf(err, kubeStorageClass, "couldn't serialize kube StorageClass after setting apiVersion to storage/v1")
 	}
 
 	// Deserialize the "generic" kube StorageClass
 	genericStorageClass, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube StorageClass")
+		return nil, serrors.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube StorageClass")
 	}
 
 	if genericStorageClass, ok := genericStorageClass.(*storagev1.StorageClass); ok {
@@ -43,7 +43,7 @@ func Convert_Kube_StorageClass_to_Koki_StorageClass(kubeStorageClass runtime.Obj
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericStorageClass, "didn't deserialize 'generic' kube Deployment as storage/v1.StorageClass")
+	return nil, serrors.InvalidInstanceErrorf(genericStorageClass, "didn't deserialize 'generic' kube Deployment as storage/v1.StorageClass")
 }
 
 func Convert_Kube_storage_v1_StorageClass_to_Koki_StorageClass(kubeStorageClass *storagev1.StorageClass) (*types.StorageClassWrapper, error) {

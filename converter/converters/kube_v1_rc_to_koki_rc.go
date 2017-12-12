@@ -6,7 +6,7 @@ import (
 	"k8s.io/api/core/v1"
 
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeRC *v1.ReplicationController) (*types.ReplicationControllerWrapper, error) {
@@ -28,7 +28,7 @@ func Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeRC 
 	if kubeSpec.Template != nil {
 		meta, template, err := convertTemplate(*kubeSpec.Template)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "pod template")
+			return nil, serrors.ContextualizeErrorf(err, "pod template")
 		}
 		kokiRC.TemplateMetadata = meta
 		kokiRC.PodTemplate = template
@@ -76,11 +76,11 @@ func convertReplicationControllerConditions(kubeConditions []v1.ReplicationContr
 	for i, condition := range kubeConditions {
 		status, err := convertConditionStatus(condition.Status)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replication-controller conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replication-controller conditions[%d]", i)
 		}
 		conditionType, err := convertReplicationControllerConditionType(condition.Type)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "replication-controller conditions[%d]", i)
+			return nil, serrors.ContextualizeErrorf(err, "replication-controller conditions[%d]", i)
 		}
 		kokiConditions[i] = types.ReplicationControllerCondition{
 			Type:               conditionType,
@@ -99,7 +99,7 @@ func convertReplicationControllerConditionType(kubeType v1.ReplicationController
 	case v1.ReplicationControllerReplicaFailure:
 		return types.ReplicationControllerReplicaFailure, nil
 	default:
-		return types.ReplicationControllerReplicaFailure, util.InvalidValueErrorf(kubeType, "unrecognized replication-controller condition type")
+		return types.ReplicationControllerReplicaFailure, serrors.InvalidValueErrorf(kubeType, "unrecognized replication-controller condition type")
 	}
 }
 

@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
+	serrors "github.com/koki/structurederrors"
 )
 
 type IntOrBool struct {
@@ -53,7 +53,7 @@ func (ib *IntOrBool) UnmarshalJSON(value []byte) error {
 		return nil
 	}
 
-	return util.InvalidValueForTypeErrorf(string(value), ib, "couldn't deserialize")
+	return serrors.InvalidValueForTypeErrorf(string(value), ib, "couldn't deserialize")
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -64,6 +64,6 @@ func (ib IntOrBool) MarshalJSON() ([]byte, error) {
 	case Bool:
 		return json.Marshal(ib.BoolVal)
 	default:
-		return []byte{}, util.InvalidInstanceError(ib.Type)
+		return []byte{}, serrors.InvalidInstanceError(ib.Type)
 	}
 }

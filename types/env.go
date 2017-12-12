@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
+	"github.com/koki/json"
+	util "github.com/koki/structurederrors"
 )
 
 type EnvFrom struct {

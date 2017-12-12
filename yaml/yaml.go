@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/koki/short/json"
+	"github.com/koki/json"
 )
 
 // Marshals the object into JSON then converts JSON to YAML and returns the

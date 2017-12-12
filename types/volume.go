@@ -11,9 +11,9 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/koki/short/json"
-	"github.com/koki/short/util"
-	"github.com/koki/short/util/objutil"
+	"github.com/koki/json"
+	"github.com/koki/json/jsonutil"
+	serrors "github.com/koki/structurederrors"
 )
 
 type VolumeWrapper struct {
@@ -401,7 +401,7 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	obj := map[string]interface{}{}
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.InvalidValueErrorf(string(data), "expected either string or dictionary")
+		return serrors.InvalidValueErrorf(string(data), "expected either string or dictionary")
 	}
 
 	selector := []string{}
@@ -409,11 +409,11 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 		if volName, ok := val.(string); ok {
 			selector = append(selector, volName)
 		} else {
-			return util.InvalidValueErrorf(string(data), "expected string for key \"vol_id\"")
+			return serrors.InvalidValueErrorf(string(data), "expected string for key \"vol_id\"")
 		}
 	}
 
-	volType, err := objutil.GetStringEntry(obj, "vol_type")
+	volType, err := jsonutil.GetStringEntry(obj, "vol_type")
 	if err != nil {
 		return err
 	}
@@ -495,7 +495,7 @@ func (v *Volume) Unmarshal(obj map[string]interface{}, volType string, selector 
 		v.StorageOS = &StorageOSVolume{}
 		return v.StorageOS.Unmarshal(obj, selector)
 	default:
-		return util.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
+		return serrors.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
 }
 
@@ -595,7 +595,7 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 	}
 
 	if marshalledVolume == nil {
-		return nil, util.InvalidInstanceErrorf(v, "empty volume definition")
+		return nil, serrors.InvalidInstanceErrorf(v, "empty volume definition")
 	}
 
 	if len(marshalledVolume.ExtraFields) == 0 {
@@ -615,7 +615,7 @@ func (v Volume) MarshalJSON() ([]byte, error) {
 
 func (s *HostPathVolume) Unmarshal(selector []string) error {
 	if len(selector) > 2 || len(selector) == 0 {
-		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypeHostPath)
+		return serrors.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypeHostPath)
 	}
 
 	s.Path = selector[0]
@@ -632,7 +632,7 @@ func (s *HostPathVolume) Unmarshal(selector []string) error {
 		case HostPathCharDev:
 		case HostPathBlockDev:
 		default:
-			return util.InvalidValueErrorf(hostPathType, "invalid 'vol_type' selector for %s", VolumeTypeHostPath)
+			return serrors.InvalidValueErrorf(hostPathType, "invalid 'vol_type' selector for %s", VolumeTypeHostPath)
 		}
 
 		s.Type = hostPathType
@@ -657,12 +657,12 @@ func (s HostPathVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalEmptyDirVolume(obj map[string]interface{}, selector []string) error {
 	source := EmptyDirVolume{}
 	if len(selector) > 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeEmptyDir)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeEmptyDir)
 	}
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeEmptyDir)
+		return serrors.ContextualizeErrorf(err, VolumeTypeEmptyDir)
 	}
 
 	v.EmptyDir = &source
@@ -670,9 +670,9 @@ func (v *Volume) UnmarshalEmptyDirVolume(obj map[string]interface{}, selector []
 }
 
 func (s EmptyDirVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeEmptyDir)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeEmptyDir)
 	}
 
 	return &MarshalledVolume{
@@ -683,26 +683,26 @@ func (s EmptyDirVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *GcePDVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeGcePD)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (disk name) for %s", VolumeTypeGcePD)
 	}
 	s.PDName = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeGcePD)
+		return serrors.ContextualizeErrorf(err, VolumeTypeGcePD)
 	}
 
 	return nil
 }
 
 func (s GcePDVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeGcePD)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeGcePD)
 	}
 
 	if len(s.PDName) == 0 {
-		return nil, util.InvalidInstanceErrorf(&s, "selector must contain disk name")
+		return nil, serrors.InvalidInstanceErrorf(&s, "selector must contain disk name")
 	}
 
 	return &MarshalledVolume{
@@ -714,26 +714,26 @@ func (s GcePDVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *AwsEBSVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (ebs uuid) for %s", VolumeTypeAwsEBS)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (ebs uuid) for %s", VolumeTypeAwsEBS)
 	}
 	s.VolumeID = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeAwsEBS)
+		return serrors.ContextualizeErrorf(err, VolumeTypeAwsEBS)
 	}
 
 	return nil
 }
 
 func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeAwsEBS)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeAwsEBS)
 	}
 
 	if len(s.VolumeID) == 0 {
-		return nil, util.InvalidInstanceErrorf(&s, "selector must contain ebs uuid")
+		return nil, serrors.InvalidInstanceErrorf(&s, "selector must contain ebs uuid")
 	}
 
 	return &MarshalledVolume{
@@ -745,29 +745,29 @@ func (s AwsEBSVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *AzureDiskVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeAzureDisk)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeAzureDisk)
 	}
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeAzureDisk)
+		return serrors.ContextualizeErrorf(err, VolumeTypeAzureDisk)
 	}
 
 	return nil
 }
 
 func (s AzureDiskVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeAzureDisk)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeAzureDisk)
 	}
 
 	if len(s.DiskName) == 0 {
-		return nil, util.InvalidInstanceErrorf(&s, "disk_name is required for %s", VolumeTypeAzureDisk)
+		return nil, serrors.InvalidInstanceErrorf(&s, "disk_name is required for %s", VolumeTypeAzureDisk)
 	}
 
 	if len(s.DataDiskURI) == 0 {
-		return nil, util.InvalidInstanceErrorf(&s, "disk_uri is required for %s", VolumeTypeAzureDisk)
+		return nil, serrors.InvalidInstanceErrorf(&s, "disk_uri is required for %s", VolumeTypeAzureDisk)
 	}
 
 	return &MarshalledVolume{
@@ -779,7 +779,7 @@ func (s AzureDiskVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalAzureFileVolume(selector []string) error {
 	source := AzureFileVolume{}
 	if len(selector) > 3 || len(selector) < 2 {
-		return util.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeAzureFile)
+		return serrors.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeAzureFile)
 	}
 
 	source.SecretName = selector[0]
@@ -790,7 +790,7 @@ func (v *Volume) UnmarshalAzureFileVolume(selector []string) error {
 		case SelectorSegmentReadOnly:
 			source.ReadOnly = true
 		default:
-			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeAzureFile)
+			return serrors.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeAzureFile)
 		}
 	}
 
@@ -814,12 +814,12 @@ func (s AzureFileVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalCephFSVolume(obj map[string]interface{}, selector []string) error {
 	source := CephFSVolume{}
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeCephFS)
+		return serrors.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeCephFS)
 	}
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeCephFS)
+		return serrors.ContextualizeErrorf(err, VolumeTypeCephFS)
 	}
 
 	v.CephFS = &source
@@ -827,9 +827,9 @@ func (v *Volume) UnmarshalCephFSVolume(obj map[string]interface{}, selector []st
 }
 
 func (s CephFSVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeCephFS)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeCephFS)
 	}
 
 	return &MarshalledVolume{
@@ -844,7 +844,7 @@ func (s *CephFSSecretFileOrRef) UnmarshalJSON(data []byte) error {
 	str := ""
 	err := json.Unmarshal(data, &str)
 	if err != nil {
-		return util.ContextualizeErrorf(err, "cephfs secret should be a string")
+		return serrors.ContextualizeErrorf(err, "cephfs secret should be a string")
 	}
 
 	matches := fileOrRefRegexp.FindStringSubmatch(str)
@@ -855,7 +855,7 @@ func (s *CephFSSecretFileOrRef) UnmarshalJSON(data []byte) error {
 			s.Ref = matches[2]
 		}
 	} else {
-		return util.InvalidValueErrorf(string(data), "unrecognized format for cephfs secret")
+		return serrors.InvalidValueErrorf(string(data), "unrecognized format for cephfs secret")
 	}
 
 	return nil
@@ -871,23 +871,23 @@ func (s CephFSSecretFileOrRef) MarshalJSON() ([]byte, error) {
 
 func (s *CinderVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 (volume ID) selector segment for %s", VolumeTypeCinder)
+		return serrors.InvalidValueErrorf(selector, "expected 1 (volume ID) selector segment for %s", VolumeTypeCinder)
 	}
 
 	s.VolumeID = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeCinder)
+		return serrors.ContextualizeErrorf(err, VolumeTypeCinder)
 	}
 
 	return nil
 }
 
 func (s CinderVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeCinder)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeCinder)
 	}
 
 	return &MarshalledVolume{
@@ -899,21 +899,21 @@ func (s CinderVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *FibreChannelVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeFibreChannel)
+		return serrors.InvalidValueErrorf(selector, "expected 0 selector segments for %s", VolumeTypeFibreChannel)
 	}
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeFibreChannel)
+		return serrors.ContextualizeErrorf(err, VolumeTypeFibreChannel)
 	}
 
 	return nil
 }
 
 func (s FibreChannelVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeFibreChannel)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeFibreChannel)
 	}
 
 	return &MarshalledVolume{
@@ -924,22 +924,22 @@ func (s FibreChannelVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *FlexVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (driver) for %s", VolumeTypeFlex)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (driver) for %s", VolumeTypeFlex)
 	}
 	s.Driver = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeFlex)
+		return serrors.ContextualizeErrorf(err, VolumeTypeFlex)
 	}
 
 	return nil
 }
 
 func (s FlexVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeFlex)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeFlex)
 	}
 
 	return &MarshalledVolume{
@@ -951,7 +951,7 @@ func (s FlexVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *FlockerVolume) Unmarshal(selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected exactly one selector segment (dataset UUID) for %s", VolumeTypeFlocker)
+		return serrors.InvalidValueErrorf(selector, "expected exactly one selector segment (dataset UUID) for %s", VolumeTypeFlocker)
 	}
 
 	s.DatasetUUID = selector[0]
@@ -968,22 +968,22 @@ func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *GlusterfsVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeGlusterfs)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeGlusterfs)
 	}
 	s.Path = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeGlusterfs)
+		return serrors.ContextualizeErrorf(err, VolumeTypeGlusterfs)
 	}
 
 	return nil
 }
 
 func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeGlusterfs)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeGlusterfs)
 	}
 
 	return &MarshalledVolume{
@@ -995,21 +995,21 @@ func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *ISCSIVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeISCSI)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeISCSI)
 	}
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeISCSI)
+		return serrors.ContextualizeErrorf(err, VolumeTypeISCSI)
 	}
 
 	return nil
 }
 
 func (s ISCSIVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeISCSI)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeISCSI)
 	}
 
 	return &MarshalledVolume{
@@ -1020,7 +1020,7 @@ func (s ISCSIVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *NFSVolume) Unmarshal(selector []string) error {
 	if len(selector) > 3 || len(selector) < 2 {
-		return util.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeNFS)
+		return serrors.InvalidValueErrorf(selector, "expected two or three selector segments for %s", VolumeTypeNFS)
 	}
 
 	s.Server = selector[0]
@@ -1031,7 +1031,7 @@ func (s *NFSVolume) Unmarshal(selector []string) error {
 		case SelectorSegmentReadOnly:
 			s.ReadOnly = true
 		default:
-			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeNFS)
+			return serrors.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypeNFS)
 		}
 	}
 
@@ -1053,7 +1053,7 @@ func (s NFSVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *PhotonPDVolume) Unmarshal(selector []string) error {
 	if len(selector) > 2 || len(selector) < 1 {
-		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePhotonPD)
+		return serrors.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePhotonPD)
 	}
 
 	s.PdID = selector[0]
@@ -1080,22 +1080,22 @@ func (s PhotonPDVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *PortworxVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypePortworx)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypePortworx)
 	}
 	s.VolumeID = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypePortworx)
+		return serrors.ContextualizeErrorf(err, VolumeTypePortworx)
 	}
 
 	return nil
 }
 
 func (s PortworxVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypePortworx)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypePortworx)
 	}
 
 	return &MarshalledVolume{
@@ -1108,7 +1108,7 @@ func (s PortworxVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalPVCVolume(selector []string) error {
 	source := PVCVolume{}
 	if len(selector) > 2 || len(selector) < 1 {
-		return util.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePVC)
+		return serrors.InvalidValueErrorf(selector, "expected one or two selector segments for %s", VolumeTypePVC)
 	}
 
 	source.ClaimName = selector[0]
@@ -1118,7 +1118,7 @@ func (v *Volume) UnmarshalPVCVolume(selector []string) error {
 		case SelectorSegmentReadOnly:
 			source.ReadOnly = true
 		default:
-			return util.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypePVC)
+			return serrors.InvalidValueErrorf(selector[2], "invalid selector segment for %s", VolumeTypePVC)
 		}
 	}
 
@@ -1141,22 +1141,22 @@ func (s PVCVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *QuobyteVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypeQuobyte)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume ID) for %s", VolumeTypeQuobyte)
 	}
 	s.Volume = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeQuobyte)
+		return serrors.ContextualizeErrorf(err, VolumeTypeQuobyte)
 	}
 
 	return nil
 }
 
 func (s QuobyteVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeQuobyte)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeQuobyte)
 	}
 
 	return &MarshalledVolume{
@@ -1169,13 +1169,13 @@ func (s QuobyteVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalScaleIOVolume(obj map[string]interface{}, selector []string) error {
 	source := ScaleIOVolume{}
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeScaleIO)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeScaleIO)
 	}
 	source.VolumeName = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+		return serrors.ContextualizeErrorf(err, VolumeTypeScaleIO)
 	}
 
 	v.ScaleIO = &source
@@ -1183,9 +1183,9 @@ func (v *Volume) UnmarshalScaleIOVolume(obj map[string]interface{}, selector []s
 }
 
 func (s ScaleIOVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeScaleIO)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeScaleIO)
 	}
 
 	return &MarshalledVolume{
@@ -1197,22 +1197,22 @@ func (s ScaleIOVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *VsphereVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume path) for %s", VolumeTypeVsphere)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume path) for %s", VolumeTypeVsphere)
 	}
 	s.VolumePath = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeVsphere)
+		return serrors.ContextualizeErrorf(err, VolumeTypeVsphere)
 	}
 
 	return nil
 }
 
 func (s VsphereVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeVsphere)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeVsphere)
 	}
 
 	return &MarshalledVolume{
@@ -1234,7 +1234,7 @@ func (m *FileMode) UnmarshalJSON(data []byte) error {
 	err = json.Unmarshal(data, &str)
 	mode, err := strconv.ParseInt(str, 8, 32)
 	if err != nil {
-		return util.InvalidValueErrorf(str, "file mode should be an octal integer, written either as string or number")
+		return serrors.InvalidValueErrorf(str, "file mode should be an octal integer, written either as string or number")
 	}
 
 	*m = FileMode(int32(mode))
@@ -1255,7 +1255,7 @@ func (k *KeyAndMode) UnmarshalJSON(data []byte) error {
 	str := ""
 	err := json.Unmarshal(data, &str)
 	if err != nil {
-		return util.InvalidValueErrorf(string(data), "expected string for key:mode")
+		return serrors.InvalidValueErrorf(string(data), "expected string for key:mode")
 	}
 
 	matches := keyAndModeRegexp.FindStringSubmatch(str)
@@ -1270,7 +1270,7 @@ func (k *KeyAndMode) UnmarshalJSON(data []byte) error {
 	i, err := strconv.ParseInt(matches[2], 8, 32)
 	if err != nil {
 		glog.V(0).Info("KeyAndMode regexp is matching non-integer file modes.")
-		return util.InvalidValueErrorf(str, "expected integer for file mode in key:mode")
+		return serrors.InvalidValueErrorf(str, "expected integer for file mode in key:mode")
 	}
 	mode := FileMode(int32(i))
 	k.Mode = &mode
@@ -1288,13 +1288,13 @@ func (k KeyAndMode) MarshalJSON() ([]byte, error) {
 func (v *Volume) UnmarshalConfigMapVolume(obj map[string]interface{}, selector []string) error {
 	source := ConfigMapVolume{}
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (config name) for %s", VolumeTypeConfigMap)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (config name) for %s", VolumeTypeConfigMap)
 	}
 	source.Name = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeConfigMap)
+		return serrors.ContextualizeErrorf(err, VolumeTypeConfigMap)
 	}
 
 	v.ConfigMap = &source
@@ -1302,9 +1302,9 @@ func (v *Volume) UnmarshalConfigMapVolume(obj map[string]interface{}, selector [
 }
 
 func (s ConfigMapVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeConfigMap)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeConfigMap)
 	}
 
 	return &MarshalledVolume{
@@ -1317,13 +1317,13 @@ func (s ConfigMapVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalSecretVolume(obj map[string]interface{}, selector []string) error {
 	source := SecretVolume{}
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (secret name) for %s", VolumeTypeSecret)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (secret name) for %s", VolumeTypeSecret)
 	}
 	source.SecretName = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeSecret)
+		return serrors.ContextualizeErrorf(err, VolumeTypeSecret)
 	}
 
 	v.Secret = &source
@@ -1331,9 +1331,9 @@ func (v *Volume) UnmarshalSecretVolume(obj map[string]interface{}, selector []st
 }
 
 func (s SecretVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeSecret)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeSecret)
 	}
 
 	return &MarshalledVolume{
@@ -1347,12 +1347,12 @@ func (s *ObjectFieldSelector) UnmarshalJSON(data []byte) error {
 	str := ""
 	err := json.Unmarshal(data, &str)
 	if err != nil {
-		return util.ContextualizeErrorf(err, "field selector should be written as a string")
+		return serrors.ContextualizeErrorf(err, "field selector should be written as a string")
 	}
 
 	segments := strings.Split(str, ":")
 	if len(segments) > 2 {
-		return util.InvalidValueErrorf(str, "field selector should contain one or two segments")
+		return serrors.InvalidValueErrorf(str, "field selector should contain one or two segments")
 	}
 
 	s.FieldPath = segments[0]
@@ -1367,7 +1367,7 @@ func (s ObjectFieldSelector) MarshalJSON() ([]byte, error) {
 	if len(s.APIVersion) == 0 {
 		b, err := json.Marshal(s.FieldPath)
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "field selector path")
+			return nil, serrors.ContextualizeErrorf(err, "field selector path")
 		}
 
 		return b, nil
@@ -1375,7 +1375,7 @@ func (s ObjectFieldSelector) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(fmt.Sprintf("%s:%s", s.FieldPath, s.APIVersion))
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "field selector")
+		return nil, serrors.ContextualizeErrorf(err, "field selector")
 	}
 
 	return b, nil
@@ -1385,12 +1385,12 @@ func (s *VolumeResourceFieldSelector) UnmarshalJSON(data []byte) error {
 	str := ""
 	err := json.Unmarshal(data, &str)
 	if err != nil {
-		return util.ContextualizeErrorf(err, "resource selector should be written as a string")
+		return serrors.ContextualizeErrorf(err, "resource selector should be written as a string")
 	}
 
 	segments := strings.Split(str, ":")
 	if len(segments) > 3 || len(segments) < 2 {
-		return util.InvalidValueErrorf(str, "resource selector should contain two or three segments")
+		return serrors.InvalidValueErrorf(str, "resource selector should contain two or three segments")
 	}
 
 	s.ContainerName = segments[0]
@@ -1398,7 +1398,7 @@ func (s *VolumeResourceFieldSelector) UnmarshalJSON(data []byte) error {
 	if len(segments) > 2 {
 		divisor, err := resource.ParseQuantity(segments[2])
 		if err != nil {
-			return util.ContextualizeErrorf(err, "resource selector divisor")
+			return serrors.ContextualizeErrorf(err, "resource selector divisor")
 		}
 		s.Divisor = divisor
 	}
@@ -1410,7 +1410,7 @@ func (s VolumeResourceFieldSelector) MarshalJSON() ([]byte, error) {
 	if reflect.DeepEqual(s.Divisor, resource.Quantity{}) {
 		b, err := json.Marshal(fmt.Sprintf("%s:%s", s.ContainerName, s.Resource))
 		if err != nil {
-			return nil, util.ContextualizeErrorf(err, "resource selector")
+			return nil, serrors.ContextualizeErrorf(err, "resource selector")
 		}
 
 		return b, nil
@@ -1418,7 +1418,7 @@ func (s VolumeResourceFieldSelector) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(fmt.Sprintf("%s:%s:%s", s.ContainerName, s.Resource, s.Divisor.String()))
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "resource selector")
+		return nil, serrors.ContextualizeErrorf(err, "resource selector")
 	}
 
 	return b, nil
@@ -1427,12 +1427,12 @@ func (s VolumeResourceFieldSelector) MarshalJSON() ([]byte, error) {
 func (v *Volume) UnmarshalDownwardAPIVolume(obj map[string]interface{}, selector []string) error {
 	source := DownwardAPIVolume{}
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeDownwardAPI)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeDownwardAPI)
 	}
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
+		return serrors.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
 	}
 
 	v.DownwardAPI = &source
@@ -1440,9 +1440,9 @@ func (v *Volume) UnmarshalDownwardAPIVolume(obj map[string]interface{}, selector
 }
 
 func (s DownwardAPIVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeDownwardAPI)
 	}
 
 	return &MarshalledVolume{
@@ -1454,12 +1454,12 @@ func (s DownwardAPIVolume) Marshal() (*MarshalledVolume, error) {
 func (v *Volume) UnmarshalProjectedVolume(obj map[string]interface{}, selector []string) error {
 	source := ProjectedVolume{}
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeProjected)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeProjected)
 	}
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeProjected)
+		return serrors.ContextualizeErrorf(err, VolumeTypeProjected)
 	}
 
 	v.Projected = &source
@@ -1467,9 +1467,9 @@ func (v *Volume) UnmarshalProjectedVolume(obj map[string]interface{}, selector [
 }
 
 func (s ProjectedVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeProjected)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeProjected)
 	}
 
 	return &MarshalledVolume{
@@ -1482,7 +1482,7 @@ func (p *VolumeProjection) UnmarshalJSON(data []byte) error {
 	obj := map[string]interface{}{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
-		return util.ContextualizeErrorf(err, "projected volume source item")
+		return serrors.ContextualizeErrorf(err, "projected volume source item")
 	}
 
 	if _, ok := obj["secret"]; ok {
@@ -1510,16 +1510,16 @@ func (p VolumeProjection) MarshalJSON() ([]byte, error) {
 		return json.Marshal(p.ConfigMap)
 	}
 
-	return nil, util.InvalidInstanceErrorf(p, "empty volume projection")
+	return nil, serrors.InvalidInstanceErrorf(p, "empty volume projection")
 }
 
 func (v *Volume) UnmarshalGitVolume(obj map[string]interface{}, selector []string) error {
 	source := GitVolume{}
 	source.Repository = strings.Join(selector, ":")
 
-	err := objutil.UnmarshalMap(obj, &source)
+	err := jsonutil.UnmarshalMap(obj, &source)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeGit)
+		return serrors.ContextualizeErrorf(err, VolumeTypeGit)
 	}
 
 	v.Git = &source
@@ -1527,9 +1527,9 @@ func (v *Volume) UnmarshalGitVolume(obj map[string]interface{}, selector []strin
 }
 
 func (s GitVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeGit)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeGit)
 	}
 
 	return &MarshalledVolume{
@@ -1541,21 +1541,21 @@ func (s GitVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *RBDVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 0 {
-		return util.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeRBD)
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeRBD)
 	}
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeRBD)
+		return serrors.ContextualizeErrorf(err, VolumeTypeRBD)
 	}
 
 	return nil
 }
 
 func (s RBDVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeRBD)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeRBD)
 	}
 
 	return &MarshalledVolume{
@@ -1566,22 +1566,22 @@ func (s RBDVolume) Marshal() (*MarshalledVolume, error) {
 
 func (s *StorageOSVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
 	if len(selector) != 1 {
-		return util.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeStorageOS)
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeStorageOS)
 	}
 	s.VolumeName = selector[0]
 
-	err := objutil.UnmarshalMap(obj, &s)
+	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
-		return util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+		return serrors.ContextualizeErrorf(err, VolumeTypeStorageOS)
 	}
 
 	return nil
 }
 
 func (s StorageOSVolume) Marshal() (*MarshalledVolume, error) {
-	obj, err := objutil.MarshalMap(&s)
+	obj, err := jsonutil.MarshalMap(&s)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, VolumeTypeStorageOS)
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeStorageOS)
 	}
 
 	return &MarshalledVolume{

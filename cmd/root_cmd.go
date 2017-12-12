@@ -12,7 +12,7 @@ import (
 
 	"github.com/koki/short/client"
 	"github.com/koki/short/parser"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 var (
@@ -30,7 +30,7 @@ Full documentation available at https://docs.koki.io/short
 			}
 
 			if err != nil {
-				return fmt.Errorf(util.PrettyError(err))
+				return fmt.Errorf(serrors.PrettyError(err))
 			}
 
 			return nil
@@ -101,7 +101,7 @@ func init() {
 
 func short(c *cobra.Command, args []string) error {
 	var err error
-	util.SetVerboseErrors(verboseErrors)
+	serrors.SetVerboseErrors(verboseErrors)
 	// validate that the user used the command correctly
 	glog.V(3).Infof("validating command %q", args)
 
@@ -109,18 +109,18 @@ func short(c *cobra.Command, args []string) error {
 		if len(args) == 1 {
 			if args[0] != "-" {
 				//this check ensures that we do not have any dangling args at the end
-				return util.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
+				return serrors.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
 			} else if len(filenames) > 0 {
 				//if '-' is specified at the end, then we expect the value to be streamed in
-				return util.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
+				return serrors.UsageErrorf(c.CommandPath(), "unexpected value [%s]", args[0])
 			}
 		} else { //more than one dangling arg left. Abort!
-			return util.UsageErrorf(c.CommandPath(), "unexpected values %q", args)
+			return serrors.UsageErrorf(c.CommandPath(), "unexpected values %q", args)
 		}
 	}
 
 	if strings.ToLower(output) != "yaml" && strings.ToLower(output) != "json" {
-		return util.UsageErrorf("unexpected value %s for -o --output", output)
+		return serrors.UsageErrorf("unexpected value %s for -o --output", output)
 	}
 
 	useStdin := false

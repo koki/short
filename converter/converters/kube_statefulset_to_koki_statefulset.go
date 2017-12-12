@@ -9,7 +9,7 @@ import (
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
-	"github.com/koki/short/util"
+	serrors "github.com/koki/structurederrors"
 )
 
 func Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet runtime.Object) (*types.StatefulSetWrapper, error) {
@@ -22,13 +22,13 @@ func Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet runtime.Object
 	// Serialize as v1beta2
 	b, err := yaml.Marshal(kubeStatefulSet)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, kubeStatefulSet, "couldn't serialize kube StatefulSet after setting apiVersion to apps/v1beta2")
+		return nil, serrors.InvalidInstanceContextErrorf(err, kubeStatefulSet, "couldn't serialize kube StatefulSet after setting apiVersion to apps/v1beta2")
 	}
 
 	// Deserialize the "generic" kube StatefulSet
 	genericStatefulSet, err := parser.ParseSingleKubeNativeFromBytes(b)
 	if err != nil {
-		return nil, util.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube StatefulSet")
+		return nil, serrors.InvalidInstanceContextErrorf(err, string(b), "couldn't deserialize 'generic' kube StatefulSet")
 	}
 
 	if genericStatefulSet, ok := genericStatefulSet.(*appsv1beta2.StatefulSet); ok {
@@ -44,7 +44,7 @@ func Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet runtime.Object
 		return kokiWrapper, nil
 	}
 
-	return nil, util.InvalidInstanceErrorf(genericStatefulSet, "didn't deserialize 'generic' kube StatefulSet as apps/v1beta2.StatefulSet")
+	return nil, serrors.InvalidInstanceErrorf(genericStatefulSet, "didn't deserialize 'generic' kube StatefulSet as apps/v1beta2.StatefulSet")
 }
 
 func Convert_Kube_v1beta2_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet *appsv1beta2.StatefulSet) (*types.StatefulSetWrapper, error) {
@@ -76,7 +76,7 @@ func Convert_Kube_v1beta2_StatefulSet_to_Koki_StatefulSet(kubeStatefulSet *appsv
 	// Build a Pod from the kube Template. Use it to set the koki Template.
 	meta, template, err := convertTemplate(kubeSpec.Template)
 	if err != nil {
-		return nil, util.ContextualizeErrorf(err, "pod template")
+		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 	kokiStatefulSet.TemplateMetadata = applyTemplateLabelsOverride(templateLabelsOverride, meta)
 	kokiStatefulSet.PodTemplate = template
@@ -119,7 +119,7 @@ func convertPodManagementPolicy(podManagementPolicy appsv1beta2.PodManagementPol
 	case appsv1beta2.ParallelPodManagement:
 		return types.ParallelPodManagement, nil
 	default:
-		return "", util.InvalidValueErrorf(podManagementPolicy, "unrecognized StatefulSet pod management policy type")
+		return "", serrors.InvalidValueErrorf(podManagementPolicy, "unrecognized StatefulSet pod management policy type")
 	}
 }
 
