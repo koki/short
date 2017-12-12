@@ -11,6 +11,7 @@ pages:
    - CronJob: resources/cron-job.md
    - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
+   - Endpoint: resources/endpoint.md
    - Job: resources/job.md
    - Pod: resources/pod.md
    - PersistentVolumeClaim: resources/persistent-volume-claim.md
