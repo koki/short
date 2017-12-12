@@ -90,3 +90,5 @@ The following types are currently supported
 | batch/v1 | Job | [Job](./job.md) | [Job Skeleton](./job.md#skeleton) | [Job Examples](./job.md#examples) |
 | extensions/v1beta1 | DaemonSet | [DaemonSet](./daemon-set.md) | [DaemonSet Skeleton](./daemon-set.md#skeleton) | [DaemonSet Examples](./daemon-set.md#examples) |
 | apps/v1beta2 | DaemonSet | [DaemonSet](./daemon-set.md) | [DaemonSet Skeleton](./daemon-set.md#skeleton) | [DaemonSet Examples](./daemon-set.md#examples) |
+| batch/v2alpha1 | CronJob | [CronJob](./cron-job.md) | [CronJob Skeleton](./cron-job.md#skeleton) | [CronJob Examples](./cron-job.md#examples) |
+| batch/v1beta1 | CronJob | [CronJob](./cron-job.md) | [CronJob Skeleton](./cron-job.md#skeleton) | [CronJob Examples](./cron-job.md#examples) |

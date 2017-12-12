@@ -15,6 +15,7 @@ pages:
    - ReplicationController: resources/replication-controller.md
    - Job: resources/job.md
    - DaemonSet: resources/daemon-set.md
+   - CronJob: resources/cron-job.md
  - Modules:
    - Introduction: modules/index.md
 theme: readthedocs
