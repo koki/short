@@ -95,3 +95,4 @@ The following types are currently supported
 | apps/v1beta1 | StatefulSet | [StatefulSet](./stateful-set.md) | [StatefulSet Skeleton](./stateful-set.md#skeleton) | [StatefulSet Examples](./stateful-set.md#examples) |
 | apps/v1beta2 | StatefulSet |  [StatefulSet](./stateful-set.md) | [StatefulSet Skeleton](./stateful-set.md#skeleton) | [StatefulSet Examples](./stateful-set.md#examples) |
 | core/v1 | PersistentVolumeClaim | [PersistentVolumeClaim](./persistent-volume-claim.md) | [PersistentVolumeClaim Skeleton](./persistent-volume-claim.md#skeleton) | [PersistentVolumeClaim Examples](./persistent-volume-claim.md#examples) |
+| storage/v1 | StorageClass | [StorageClass](./storage-class.md) | [StorageClass Skeleton](./storage-class.md#skeleton) | [StorageClass Examples](./storage-class.md#examples) |

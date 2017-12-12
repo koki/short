@@ -8,16 +8,17 @@ pages:
    - Best Practices: user-guide/best-practices.md
  - Resources: 
    - Introduction: resources/index.md
-   - Pod: resources/pod.md
-   - Service: resources/service.md
+   - CronJob: resources/cron-job.md
+   - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
+   - Job: resources/job.md
+   - Pod: resources/pod.md
+   - PersistentVolumeClaim: resources/persistent-volume-claim.md
    - ReplicaSet: resources/replica-set.md
    - ReplicationController: resources/replication-controller.md
-   - Job: resources/job.md
-   - DaemonSet: resources/daemon-set.md
-   - CronJob: resources/cron-job.md
+   - Service: resources/service.md
    - StatefulSet: resources/stateful-set.md
-   - PersistentVolumeClaim: resources/persistent-volume-claim.md
+   - StorageClass: resources/storage-class.md
  - Modules:
    - Introduction: modules/index.md
 theme: readthedocs
