@@ -9,7 +9,7 @@ pod:
   version: v1
   volumes:
     test_volume:
-      directory: testdata
-      revision: master
+      dir: testdata
+      rev: master
       vol_id: github.com/koki
       vol_type: git

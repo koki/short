@@ -366,8 +366,8 @@ type DownwardAPIProjection struct {
 
 type GitVolume struct {
 	Repository string `json:"-"`
-	Revision   string `json:"revision,omitempty"`
-	Directory  string `json:"directory,omitempty"`
+	Revision   string `json:"rev,omitempty"`
+	Directory  string `json:"dir,omitempty"`
 }
 
 type RBDVolume struct {
