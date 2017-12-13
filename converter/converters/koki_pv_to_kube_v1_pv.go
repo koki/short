@@ -243,6 +243,10 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 	}
 	if kokiSource.ScaleIO != nil {
 		source := kokiSource.ScaleIO
+		mode, err := revertScaleIOStorageMode(source.StorageMode)
+		if err != nil {
+			return v1.PersistentVolumeSource{}, serrors.ContextualizeErrorf(err, "ScaleIO storage mode")
+		}
 		return v1.PersistentVolumeSource{
 			ScaleIO: &v1.ScaleIOPersistentVolumeSource{
 				Gateway:          source.Gateway,
@@ -251,7 +255,7 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 				SSLEnabled:       source.SSLEnabled,
 				ProtectionDomain: source.ProtectionDomain,
 				StoragePool:      source.StoragePool,
-				StorageMode:      source.StorageMode,
+				StorageMode:      mode,
 				VolumeName:       source.VolumeName,
 				FSType:           source.FSType,
 				ReadOnly:         source.ReadOnly,

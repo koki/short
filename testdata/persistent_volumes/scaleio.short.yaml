@@ -20,7 +20,7 @@ persistent_volume:
   ssl: true
   storage: 10Gi
   storage_class: storageClass
-  storage_mode: ThickProvisioned
+  storage_mode: thick
   storage_pool: sp01
   system: scaleio
   version: v1
