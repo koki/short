@@ -1,0 +1,23 @@
+{
+ "storage_class": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "provisioner": "",
+  "params": {
+   " ": " "
+  },
+  "reclaim": " ",
+  "mount_opts": [
+   ""
+  ],
+  "allow_expansion": false
+ }
+}

@@ -9,7 +9,7 @@
   "uid": "",
   "resourceVersion": "",
   "generation": 0,
-  "creationTimestamp": null,
+  "creationTimestamp": "0001-01-01T00:00:00Z",
   "deletionTimestamp": null,
   "deletionGracePeriodSeconds": 0,
   "labels": {
@@ -69,7 +69,9 @@
  },
  "spec": {
   "capacity": {
-   " ": "0"
+   " ": {
+    "Format": ""
+   }
   },
   "gcePersistentDisk": {
    "pdName": "",

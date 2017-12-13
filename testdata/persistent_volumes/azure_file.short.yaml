@@ -8,7 +8,7 @@ persistent_volume:
   labels:
     labelKey: labelValue
   modes: rw-once
-  mount_options: option 1,option 2,option 3
+  mount_opts: option 1,option 2,option 3
   name: vol-name
   namespace: namespace
   reclaim: recycle

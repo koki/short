@@ -1,0 +1,53 @@
+{
+ "endpoints": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "subsets": [
+   {
+    "addrs": [
+     {
+      "ip": "",
+      "hostname": "",
+      "node": " ",
+      "target": {
+       "kind": "",
+       "namespace": "",
+       "name": "",
+       "uid": "",
+       "version": "",
+       "resource_version": "",
+       "field_path": ""
+      }
+     }
+    ],
+    "unready_addrs": [
+     {
+      "ip": "",
+      "hostname": "",
+      "node": " ",
+      "target": {
+       "kind": "",
+       "namespace": "",
+       "name": "",
+       "uid": "",
+       "version": "",
+       "resource_version": "",
+       "field_path": ""
+      }
+     }
+    ],
+    "ports": [
+     ""
+    ]
+   }
+  ]
+ }
+}

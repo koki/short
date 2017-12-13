@@ -14,7 +14,7 @@ persistent_volume:
   monitors:
   - 1.2.3.4:6789
   - 1.2.3.5:6789
-  mount_options: option 1,option 2,option 3
+  mount_opts: option 1,option 2,option 3
   name: vol-name
   namespace: namespace
   pool: kube

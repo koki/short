@@ -37,7 +37,7 @@ type PersistentVolumeMeta struct {
 	StorageClass  string                        `json:"storage_class,omitempty"`
 
 	// comma-separated list of options
-	MountOptions string `json:"mount_options,omitempty" protobuf:"bytes,7,opt,name=mountOptions"`
+	MountOptions string `json:"mount_opts,omitempty"`
 
 	PersistentVolumeStatus `json:",inline"`
 }
