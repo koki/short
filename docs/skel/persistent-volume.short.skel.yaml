@@ -1,0 +1,162 @@
+{
+ "persistent_volume": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "storage": {
+   "Format": ""
+  },
+  "modes": {
+   "Modes": [
+    ""
+   ]
+  },
+  "claim": {
+   "kind": "",
+   "namespace": "",
+   "name": "",
+   "uid": "",
+   "apiVersion": "",
+   "resourceVersion": "",
+   "fieldPath": ""
+  },
+  "reclaim": "",
+  "storage_class": "",
+  "mount_options": "",
+  "status": "",
+  "status_message": "",
+  "status_reason": "",
+  "GcePD": {
+   "fs": "",
+   "partition": 0,
+   "ro": false
+  },
+  "AwsEBS": {
+   "fs": "",
+   "partition": 0,
+   "ro": false
+  },
+  "HostPath": {},
+  "Glusterfs": {
+   "endpoints": "",
+   "ro": false
+  },
+  "NFS": {},
+  "ISCSI": {
+   "target_portal": "",
+   "iqn": "",
+   "lun": 0,
+   "iscsi_interface": "",
+   "fs": "",
+   "ro": false,
+   "portals": [
+    ""
+   ],
+   "chap_discovery": false,
+   "chap_session": false,
+   "secret": "",
+   "initiator": ""
+  },
+  "Cinder": {
+   "fs": "",
+   "ro": false
+  },
+  "FibreChannel": {
+   "wwn": [
+    ""
+   ],
+   "lun": 0,
+   "fs": "",
+   "ro": false,
+   "wwid": [
+    ""
+   ]
+  },
+  "Flocker": {},
+  "Flex": {
+   "fs": "",
+   "secret": "",
+   "ro": false,
+   "options": {}
+  },
+  "Vsphere": {
+   "fs": "",
+   "policy": {
+    "name": "",
+    "id": ""
+   }
+  },
+  "Quobyte": {
+   "registry": "",
+   "ro": false,
+   "user": "",
+   "group": ""
+  },
+  "AzureDisk": {
+   "disk_name": "",
+   "disk_uri": "",
+   "cache": " ",
+   "fs": "",
+   "ro": false,
+   "kind": " "
+  },
+  "PhotonPD": {},
+  "Portworx": {
+   "fs": "",
+   "ro": false
+  },
+  "RBD": {
+   "monitors": [
+    ""
+   ],
+   "image": "",
+   "fs": "",
+   "pool": "",
+   "user": "",
+   "keyring": "",
+   "secret": {},
+   "ro": false
+  },
+  "CephFS": {
+   "monitors": [
+    ""
+   ],
+   "path": "",
+   "user": "",
+   "secret": {},
+   "ro": false
+  },
+  "AzureFile": {
+   "secret": {},
+   "share": "",
+   "ro": false
+  },
+  "ScaleIO": {
+   "gateway": "",
+   "system": "",
+   "secret": {},
+   "ssl": false,
+   "protection_domain": "",
+   "storage_pool": "",
+   "storage_mode": "",
+   "fs": "",
+   "ro": false
+  },
+  "Local": {
+   "path": ""
+  },
+  "StorageOS": {
+   "vol_namespace": "",
+   "fs": "",
+   "ro": false,
+   "secret": {}
+  }
+ }
+}

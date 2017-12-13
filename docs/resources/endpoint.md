@@ -49,7 +49,7 @@ The following sections contain detailed information about each field in Short sy
 | ip       |`string`    | `ip`               | IP of this endpoint        |
 | hostname |`string`    | `hostname`         | hostname of this endpoint  |
 | nodename |`string`    | `nodename`         | node hosting this endpoint |
-| target   |`ObjectRef` | `targetRef`        | Reference to object providing the endpoint. See [Object Reference](./persistent-volume.md#object-reference) |
+| target   |`ObjectReference` | `targetRef`        | Reference to object providing the endpoint. See [Object Reference](./persistent-volume.md#object-reference) |
 
 #### Endpoint Port
 

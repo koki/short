@@ -15,6 +15,7 @@ pages:
    - Ingress: resources/ingress.md
    - Job: resources/job.md
    - Pod: resources/pod.md
+   - PersistentVolume: resources/persistent-volume.md
    - PersistentVolumeClaim: resources/persistent-volume-claim.md
    - ReplicaSet: resources/replica-set.md
    - ReplicationController: resources/replication-controller.md
