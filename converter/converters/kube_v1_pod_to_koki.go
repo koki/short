@@ -531,6 +531,21 @@ func convertQuobyteVolume(source *v1.QuobyteVolumeSource) *types.QuobyteVolume {
 	}
 }
 
+func convertScaleIOStorageMode(mode string) (types.ScaleIOStorageMode, error) {
+	if len(mode) == 0 {
+		return "", nil
+	}
+
+	switch mode {
+	case "ThickProvisioned":
+		return types.ScaleIOStorageModeThick, nil
+	case "ThinProvisioned":
+		return types.ScaleIOStorageModeThin, nil
+	default:
+		return "", serrors.InvalidValueErrorf(mode, "unrecognized ScaleIO storage mode")
+	}
+}
+
 func convertAzureDiskVolume(source *v1.AzureDiskVolumeSource) (*types.AzureDiskVolume, error) {
 	fstype := util.FromStringPtr(source.FSType)
 	readOnly := util.FromBoolPtr(source.ReadOnly)
@@ -693,6 +708,10 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 	}
 	if kubeVolume.ScaleIO != nil {
 		source := kubeVolume.ScaleIO
+		mode, err := convertScaleIOStorageMode(source.StorageMode)
+		if err != nil {
+			return name, nil, err
+		}
 		return name, &types.Volume{
 			ScaleIO: &types.ScaleIOVolume{
 				Gateway:          source.Gateway,
@@ -701,7 +720,7 @@ func convertVolume(kubeVolume v1.Volume) (string, *types.Volume, error) {
 				SSLEnabled:       source.SSLEnabled,
 				ProtectionDomain: source.ProtectionDomain,
 				StoragePool:      source.StoragePool,
-				StorageMode:      source.StorageMode,
+				StorageMode:      mode,
 				VolumeName:       source.VolumeName,
 				FSType:           source.FSType,
 				ReadOnly:         source.ReadOnly,
