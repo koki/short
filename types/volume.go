@@ -73,7 +73,7 @@ const (
 	VolumeTypeVsphere      = "vsphere"
 	VolumeTypeConfigMap    = "config-map"
 	VolumeTypeSecret       = "secret"
-	VolumeTypeDownwardAPI  = "downward-api"
+	VolumeTypeDownwardAPI  = "downward_api"
 	VolumeTypeProjected    = "projected"
 	VolumeTypeGit          = "git"
 	VolumeTypeRBD          = "rbd"
