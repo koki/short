@@ -147,7 +147,7 @@ func convertPodSpec(kubeSpec v1.PodSpec) (*types.PodTemplate, error) {
 		kokiPod.GIDs = securityContext.SupplementalGroups
 		kokiPod.FSGID = securityContext.FSGroup
 		for i := range kokiPod.Containers {
-			container := kokiPod.Containers[i]
+			container := &kokiPod.Containers[i]
 			if container.SELinux == nil {
 				container.SELinux = convertSELinux(securityContext.SELinuxOptions)
 			}
