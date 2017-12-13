@@ -1196,20 +1196,17 @@ func revertServiceAccount(account string) (string, *bool, error) {
 		return "", nil, nil
 	}
 
-	var auto bool
 	fields := strings.Split(account, ":")
 	if len(fields) == 2 {
 		if fields[1] == "auto" {
-			auto = true
-		} else {
-			return "", &auto, serrors.InvalidValueErrorf(account, "unexpected service account automount value (%s)", fields[1])
+			return fields[0], util.BoolPtr(true), nil
 		}
-		return fields[1], &auto, nil
+		return "", nil, serrors.InvalidValueErrorf(account, "unexpected service account automount value (%s)", fields[1])
 	} else if len(fields) == 1 {
-		return fields[0], &auto, nil
+		return fields[0], nil, nil
 	}
 
-	return "", &auto, serrors.InvalidValueErrorf(account, "unexpected service account automount value")
+	return "", nil, serrors.InvalidValueErrorf(account, "unexpected service account automount value")
 }
 
 func revertDNSPolicy(dnsPolicy types.DNSPolicy) (v1.DNSPolicy, error) {

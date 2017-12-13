@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    meta: _test
+  clusterName: test_cluster
+  creationTimestamp: null
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+spec:
+  containers:
+  - image: gcr.io/busybox
+    name: dummy
+    resources: {}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 8
+      seLinuxOptions:
+        level: level
+        role: role
+        type: type
+        user: user
+  securityContext:
+    fsGroup: 8
+    supplementalGroups:
+    - 1
+    - 2
+    - 3
+status: {}
+

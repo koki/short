@@ -19,14 +19,7 @@ import (
 )
 
 var temporarilyIgnoredResourceIDs = map[string]bool{
-	"../testdata/pods/pod_spec_with_service_account": true,
-	"../testdata/pods/pod_spec_with_automount":       true,
-	"../testdata/pods/pod_spec_with_volume_name":     true,
-
-	// Security context bug:
-	"../testdata/pods/pod_spec_with_security_context": true,
-	//"../testdata/pods/pod_spec_with_status":           true,
-	//"../testdata/pods/pod_spec_with_init_containers":  true,
+	"../testdata/pods/pod_spec_with_volume_name": true,
 }
 
 var cmp *equalfile.Cmp

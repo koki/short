@@ -9,7 +9,10 @@ metadata:
   namespace: test
   clusterName: test_cluster
 spec:
-  securityContext: 
+  containers:
+  - name: dummy
+    image: gcr.io/busybox
+  securityContext:
     seLinuxOptions:
       user: user
       role: role
@@ -17,7 +20,7 @@ spec:
       level: level
     runAsUser: 8
     runAsNonRoot: true
-    supplementGroups: 
+    supplementalGroups:
     - 1
     - 2
     - 3

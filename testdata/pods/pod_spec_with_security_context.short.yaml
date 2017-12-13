@@ -1,0 +1,25 @@
+pod:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  containers:
+  - force_non_root: true
+    image: gcr.io/busybox
+    name: dummy
+    selinux:
+      level: level
+      role: role
+      type: type
+      user: user
+    uid: 8
+  fs_gid: 8
+  gids:
+  - 1
+  - 2
+  - 3
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+
