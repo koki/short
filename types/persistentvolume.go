@@ -148,7 +148,7 @@ type LocalVolume struct {
 
 type StorageOSPersistentVolume struct {
 	VolumeName      string           `json:"-"`
-	VolumeNamespace string           `json:"vol_namespace,omitempty"`
+	VolumeNamespace string           `json:"vol_ns,omitempty"`
 	FSType          string           `json:"fs,omitempty"`
 	ReadOnly        bool             `json:"ro,omitempty"`
 	SecretRef       *SecretReference `json:"secret,omitempty"`

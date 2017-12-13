@@ -13,5 +13,5 @@ pod:
       ro: true
       secret: secret_name
       vol_id: storageOS.VolName
-      vol_namespace: storageOS.VolNamespace
+      vol_ns: storageOS.VolNamespace
       vol_type: storageos

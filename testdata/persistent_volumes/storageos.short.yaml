@@ -19,5 +19,5 @@ persistent_volume:
   storage_class: storageClass
   version: v1
   vol_id: vol-0
-  vol_namespace: namespace-0
+  vol_ns: namespace-0
   vol_type: storageos
