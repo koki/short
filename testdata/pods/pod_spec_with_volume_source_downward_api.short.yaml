@@ -17,4 +17,4 @@ pod:
           mode: "0644"
           resource: container-name:limits.cpu:1m
       mode: "0644"
-      vol_type: downward-api
+      vol_type: downward_api

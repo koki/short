@@ -245,6 +245,10 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 	}
 	if kubeSource.ScaleIO != nil {
 		source := kubeSource.ScaleIO
+		mode, err := convertScaleIOStorageMode(source.StorageMode)
+		if err != nil {
+			return types.PersistentVolumeSource{}, err
+		}
 		secret := convertSecretReference(source.SecretRef)
 		if secret == nil {
 			return types.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(source, "secret is required for ScaleIO volume")
@@ -257,7 +261,7 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 				SSLEnabled:       source.SSLEnabled,
 				ProtectionDomain: source.ProtectionDomain,
 				StoragePool:      source.StoragePool,
-				StorageMode:      source.StorageMode,
+				StorageMode:      mode,
 				VolumeName:       source.VolumeName,
 				FSType:           source.FSType,
 				ReadOnly:         source.ReadOnly,

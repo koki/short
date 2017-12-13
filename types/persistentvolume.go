@@ -130,16 +130,16 @@ type AzureFilePersistentVolume struct {
 }
 
 type ScaleIOPersistentVolume struct {
-	Gateway          string          `json:"gateway"`
-	System           string          `json:"system"`
-	SecretRef        SecretReference `json:"secret"`
-	SSLEnabled       bool            `json:"ssl,omitempty"`
-	ProtectionDomain string          `json:"protection_domain,omitempty"`
-	StoragePool      string          `json:"storage_pool,omitempty"`
-	StorageMode      string          `json:"storage_mode,omitempty"`
-	VolumeName       string          `json:"-"`
-	FSType           string          `json:"fs,omitempty"`
-	ReadOnly         bool            `json:"ro,omitempty"`
+	Gateway          string             `json:"gateway"`
+	System           string             `json:"system"`
+	SecretRef        SecretReference    `json:"secret"`
+	SSLEnabled       bool               `json:"ssl,omitempty"`
+	ProtectionDomain string             `json:"protection_domain,omitempty"`
+	StoragePool      string             `json:"storage_pool,omitempty"`
+	StorageMode      ScaleIOStorageMode `json:"storage_mode,omitempty"`
+	VolumeName       string             `json:"-"`
+	FSType           string             `json:"fs,omitempty"`
+	ReadOnly         bool               `json:"ro,omitempty"`
 }
 
 type LocalVolume struct {
@@ -148,7 +148,7 @@ type LocalVolume struct {
 
 type StorageOSPersistentVolume struct {
 	VolumeName      string           `json:"-"`
-	VolumeNamespace string           `json:"vol_namespace,omitempty"`
+	VolumeNamespace string           `json:"vol_ns,omitempty"`
 	FSType          string           `json:"fs,omitempty"`
 	ReadOnly        bool             `json:"ro,omitempty"`
 	SecretRef       *SecretReference `json:"secret,omitempty"`

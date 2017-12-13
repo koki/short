@@ -19,7 +19,7 @@ spec:
       sslEnabled: true
       protectionDomain: domain
       storagePool: storage.pool
-      storageMode: storage.mode
+      storageMode: ThinProvisioned
       volumeName: volName
       fsType: xfs
       readOnly: true      

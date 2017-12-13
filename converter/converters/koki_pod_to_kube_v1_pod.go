@@ -595,6 +595,21 @@ func revertQuobyteVolume(source *types.QuobyteVolume) *v1.QuobyteVolumeSource {
 	}
 }
 
+func revertScaleIOStorageMode(mode types.ScaleIOStorageMode) (string, error) {
+	if len(mode) == 0 {
+		return "", nil
+	}
+
+	switch mode {
+	case types.ScaleIOStorageModeThick:
+		return "ThickProvisioned", nil
+	case types.ScaleIOStorageModeThin:
+		return "ThinProvisioned", nil
+	default:
+		return "", serrors.InvalidInstanceError(mode)
+	}
+}
+
 func revertAzureDiskVolume(source *types.AzureDiskVolume) (*v1.AzureDiskVolumeSource, error) {
 	kind, err := revertAzureDiskKind(source.Kind)
 	if err != nil {
@@ -810,6 +825,10 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 	}
 	if kokiVolume.ScaleIO != nil {
 		source := kokiVolume.ScaleIO
+		mode, err := revertScaleIOStorageMode(source.StorageMode)
+		if err != nil {
+			return nil, serrors.ContextualizeErrorf(err, "ScaleIO storage mode")
+		}
 		return &v1.Volume{
 			Name: name,
 			VolumeSource: v1.VolumeSource{
@@ -820,7 +839,7 @@ func revertVolume(name string, kokiVolume types.Volume) (*v1.Volume, error) {
 					SSLEnabled:       source.SSLEnabled,
 					ProtectionDomain: source.ProtectionDomain,
 					StoragePool:      source.StoragePool,
-					StorageMode:      source.StorageMode,
+					StorageMode:      mode,
 					VolumeName:       source.VolumeName,
 					FSType:           source.FSType,
 					ReadOnly:         source.ReadOnly,

@@ -15,7 +15,7 @@ pod:
       ro: true
       secret: secret
       ssl: true
-      storage_mode: storage.mode
+      storage_mode: thin
       storage_pool: storage.pool
       system: system
       vol_id: volName
