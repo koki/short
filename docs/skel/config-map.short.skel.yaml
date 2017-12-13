@@ -1,0 +1,17 @@
+{
+ "config_map": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "data": {
+   " ": " "
+  }
+ }
+}

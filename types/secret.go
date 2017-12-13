@@ -19,7 +19,7 @@ type Secret struct {
 type SecretType string
 
 const (
-	SecretTypeOpaque              SecretType = "Opaque"
+	SecretTypeOpaque              SecretType = "opaque"
 	SecretTypeServiceAccountToken SecretType = "kubernetes.io/service-account-token"
 	SecretTypeDockercfg           SecretType = "kubernetes.io/dockercfg"
 	SecretTypeDockerConfigJson    SecretType = "kubernetes.io/dockerconfigjson"

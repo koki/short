@@ -99,3 +99,5 @@ The following types are currently supported
 | core/v1 | Endpoint | [Endpoint](./endpoint.md) | [Endpoint Skeleton](./endpoint.md#skeleton) | [Endpoint Examples](./endpoint.md#examples) |
 | core/v1 | PersistentVolume | [PersistentVolume](./persistent-volume.md) | [PersistentVolume Skeleton](./persistent-volume.md#skeleton) | [PersistentVolume Examples](./persistent-volume.md#examples) |
 | extensions/v1beta1 | Ingress | [Ingress](./ingress.md) | [Ingress Skeleton](./ingress.md#skeleton) | [Ingress Examples](./ingress.md#examples) |
+| core/v1 | ConfigMap | [ConfigMap](./config-map.md) | [ConfigMap Skeleton](./config-map.md#skeleton) | [ConfigMap Examples](./config-map.md#examples) |
+| core/v1 | Secret | [Secret](./secret.md) | [Secret Skeleton](./secret.md#skeleton) | [Secret Examples](./secret.md#examples) |

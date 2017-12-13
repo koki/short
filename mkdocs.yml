@@ -8,6 +8,7 @@ pages:
    - Best Practices: user-guide/best-practices.md
  - Resources: 
    - Introduction: resources/index.md
+   - ConfigMap: resources/config-map.md
    - CronJob: resources/cron-job.md
    - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
@@ -19,6 +20,7 @@ pages:
    - PersistentVolumeClaim: resources/persistent-volume-claim.md
    - ReplicaSet: resources/replica-set.md
    - ReplicationController: resources/replication-controller.md
+   - Secret: resources/secret.md
    - Service: resources/service.md
    - StatefulSet: resources/stateful-set.md
    - StorageClass: resources/storage-class.md
