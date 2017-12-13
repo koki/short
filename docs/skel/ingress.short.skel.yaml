@@ -1,0 +1,50 @@
+{
+ "ingress": {
+  "version": "",
+  "cluster": "",
+  "name": "",
+  "namespace": "",
+  "labels": {
+   " ": " "
+  },
+  "annotations": {
+   " ": " "
+  },
+  "backend": "",
+  "backend_port": {
+   "Type": 0,
+   "IntVal": 0,
+   "StrVal": ""
+  },
+  "tls": [
+   {
+    "hosts": [
+     ""
+    ],
+    "secret": ""
+   }
+  ],
+  "rules": [
+   {
+    "host": "",
+    "paths": [
+     {
+      "path": "",
+      "service": "",
+      "port": {
+       "Type": 0,
+       "IntVal": 0,
+       "StrVal": ""
+      }
+     }
+    ]
+   }
+  ],
+  "endpoints": [
+   {
+    "IP": "",
+    "Hostname": ""
+   }
+  ]
+ }
+}

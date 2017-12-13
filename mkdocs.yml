@@ -12,6 +12,7 @@ pages:
    - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
    - Endpoint: resources/endpoint.md
+   - Ingress: resources/ingress.md
    - Job: resources/job.md
    - Pod: resources/pod.md
    - PersistentVolumeClaim: resources/persistent-volume-claim.md

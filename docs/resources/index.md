@@ -97,3 +97,4 @@ The following types are currently supported
 | core/v1 | PersistentVolumeClaim | [PersistentVolumeClaim](./persistent-volume-claim.md) | [PersistentVolumeClaim Skeleton](./persistent-volume-claim.md#skeleton) | [PersistentVolumeClaim Examples](./persistent-volume-claim.md#examples) |
 | storage/v1 | StorageClass | [StorageClass](./storage-class.md) | [StorageClass Skeleton](./storage-class.md#skeleton) | [StorageClass Examples](./storage-class.md#examples) |
 | core/v1 | Endpoint | [Endpoint](./endpoint.md) | [Endpoint Skeleton](./endpoint.md#skeleton) | [Endpoint Examples](./endpoint.md#examples) |
+| extensions/v1beta1 | Ingress | [Ingress](./ingress.md) | [Ingress Skeleton](./ingress.md#skeleton) | [Ingress Examples](./ingress.md#examples) |
