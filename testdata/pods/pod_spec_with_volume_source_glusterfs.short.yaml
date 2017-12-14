@@ -10,6 +10,6 @@ pod:
   volumes:
     test_volume:
       endpoints: endpointsName
+      path: kube_vol
       ro: true
-      vol_id: kube_vol
       vol_type: glusterfs
