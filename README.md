@@ -180,9 +180,9 @@ If you'd like to get started with contributing to Koki Short, read our [Roadmap]
 
 ## Important Links
 
-- [Releases](https://github.com/koki/short/releases) 
+- [Releases](https://github.com/koki/short/releases)
 - [Docs](https://docs.koki.io/short)
-- [Roadmap](https://github.com/koki/short/projects)
+- [Roadmap](https://github.com/koki/short/tree/master/releases/ROADMAP.md)
 - [Issues](https://github.com/koki/short/issues)
 
 ## LICENSE
