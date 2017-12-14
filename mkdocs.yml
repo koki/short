@@ -30,3 +30,4 @@ theme: cinder
 extra_css:
    - custom/tweaks.css
 repo_url: https://github.com/koki/short
+site_favicon: favicon.ico
