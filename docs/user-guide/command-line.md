@@ -9,7 +9,6 @@ Usage:
 
 Available Commands:
   help        Help about any command
-  man         Reference and Examples for resources and conversions
   version     Prints the version of short
 
 Flags:

@@ -167,9 +167,6 @@ $$ short -k -f koki_spec.yaml
 
 #-k flag denotes that it should output Kubernetes manifest
 
-#find out how koki transforms a particular resource type
-short man pod
-
 ```
 
 For more information, refer to our [getting started guide.](https://docs.koki.io/user-guide#getting-started)

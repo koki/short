@@ -10,7 +10,7 @@ Each of the commands, and sub-commands in the Short project support the help fla
 
 ## YAML Skeletons
 
-We encourage users to write Short syntax instead of native Kubernetes syntax. In order to facilitate this, we provide skeletons for every Short resource type. They are available in the man pages, as well under the [Resources](../resources/index.md#resources) section under each resource. Users can copy these and use them as a starting point for writing their spec files.
+We encourage users to write Short syntax instead of native Kubernetes syntax. In order to facilitate this, we provide skeletons for every Short resource type. They are available in the [Resources](../resources/index.md#resources) section under each resource. Users can copy these and use them as a starting point for writing their spec files.
 
 ## Github Issues
 
