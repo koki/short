@@ -198,7 +198,7 @@ type GlusterfsVolume struct {
 	EndpointsName string `json:"endpoints"`
 
 	// Path is the Glusterfs volume name.
-	Path     string `json:"-"`
+	Path     string `json:"path"`
 	ReadOnly bool   `json:"ro,omitempty"`
 }
 
@@ -974,10 +974,9 @@ func (s FlockerVolume) Marshal() (*MarshalledVolume, error) {
 }
 
 func (s *GlusterfsVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
-	if len(selector) != 1 {
-		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume name) for %s", VolumeTypeGlusterfs)
+	if len(selector) != 0 {
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeGlusterfs)
 	}
-	s.Path = selector[0]
 
 	err := jsonutil.UnmarshalMap(obj, &s)
 	if err != nil {
@@ -995,7 +994,6 @@ func (s GlusterfsVolume) Marshal() (*MarshalledVolume, error) {
 
 	return &MarshalledVolume{
 		Type:        VolumeTypeGlusterfs,
-		Selector:    []string{s.Path},
 		ExtraFields: obj,
 	}, nil
 }

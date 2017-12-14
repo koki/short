@@ -12,10 +12,10 @@ persistent_volume:
   mount_opts: option 1,option 2,option 3
   name: vol-name
   namespace: namespace
+  path: kube_vol
   reclaim: recycle
   ro: true
   storage: 10Gi
   storage_class: storageClass
   version: v1
-  vol_id: kube_vol
   vol_type: glusterfs
