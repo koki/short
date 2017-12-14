@@ -72,7 +72,7 @@ type PersistentVolumeSource struct {
 	HostPath     *HostPathVolume
 	Glusterfs    *GlusterfsVolume
 	NFS          *NFSVolume
-	ISCSI        *ISCSIVolume
+	ISCSI        *ISCSIPersistentVolume
 	Cinder       *CinderVolume
 	FibreChannel *FibreChannelVolume
 	Flocker      *FlockerVolume
@@ -93,6 +93,22 @@ type PersistentVolumeSource struct {
 const (
 	VolumeTypeLocal = "local"
 )
+
+type ISCSIPersistentVolume struct {
+	TargetPortal   string   `json:"target_portal"`
+	IQN            string   `json:"iqn"`
+	Lun            int32    `json:"lun"`
+	ISCSIInterface string   `json:"iscsi_interface,omitempty"`
+	FSType         string   `json:"fs,omitempty"`
+	ReadOnly       bool     `json:"ro,omitempty"`
+	Portals        []string `json:"portals,omitempty"`
+	// TODO: should this actually be "chap_auth"?
+	DiscoveryCHAPAuth bool             `json:"chap_discovery,omitempty"`
+	SessionCHAPAuth   bool             `json:"chap_session,omitempty"`
+	SecretRef         *SecretReference `json:"secret,omitempty"`
+	// NOTE: InitiatorName is a pointer in k8s
+	InitiatorName string `json:"initiator,omitempty"`
+}
 
 type RBDPersistentVolume struct {
 	CephMonitors []string         `json:"monitors"`
@@ -326,7 +342,7 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 		v.NFS = &NFSVolume{}
 		return v.NFS.Unmarshal(selector)
 	case VolumeTypeISCSI:
-		v.ISCSI = &ISCSIVolume{}
+		v.ISCSI = &ISCSIPersistentVolume{}
 		return v.ISCSI.Unmarshal(obj, selector)
 	case VolumeTypeCinder:
 		v.Cinder = &CinderVolume{}
@@ -499,6 +515,31 @@ func (s SecretReference) MarshalString() string {
 
 func (s SecretReference) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.MarshalString())
+}
+
+func (s *ISCSIPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 0 {
+		return serrors.InvalidValueErrorf(selector, "expected zero selector segments for %s", VolumeTypeISCSI)
+	}
+
+	err := jsonutil.UnmarshalMap(obj, &s)
+	if err != nil {
+		return serrors.ContextualizeErrorf(err, VolumeTypeISCSI)
+	}
+
+	return nil
+}
+
+func (s ISCSIPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := jsonutil.MarshalMap(&s)
+	if err != nil {
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeISCSI)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeISCSI,
+		ExtraFields: obj,
+	}, nil
 }
 
 func (s *RBDPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {

@@ -149,8 +149,21 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 		}, nil
 	}
 	if kubeSource.ISCSI != nil {
+		source := kubeSource.ISCSI
 		return types.PersistentVolumeSource{
-			ISCSI: convertISCSIVolume(kubeSource.ISCSI),
+			ISCSI: &types.ISCSIPersistentVolume{
+				TargetPortal:      source.TargetPortal,
+				IQN:               source.IQN,
+				Lun:               source.Lun,
+				ISCSIInterface:    source.ISCSIInterface,
+				FSType:            source.FSType,
+				ReadOnly:          source.ReadOnly,
+				Portals:           source.Portals,
+				DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+				SessionCHAPAuth:   source.SessionCHAPAuth,
+				SecretRef:         convertSecretReference(source.SecretRef),
+				InitiatorName:     util.FromStringPtr(source.InitiatorName),
+			},
 		}, nil
 	}
 	if kubeSource.Cinder != nil {

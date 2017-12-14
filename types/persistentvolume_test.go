@@ -33,7 +33,25 @@ var kokiPersistentNFSVolume0 = PersistentVolumeSource{
 }
 
 var kokiPersistentISCSIVolume0 = PersistentVolumeSource{
-	ISCSI: kokiISCSIVolume0.ISCSI,
+	ISCSI: &ISCSIPersistentVolume{
+		TargetPortal:   "1.2.3.4:3260",
+		IQN:            "iqn.2015-02.example.com:test",
+		Lun:            0,
+		ISCSIInterface: "default",
+		FSType:         "ext4",
+		ReadOnly:       true,
+		Portals: []string{
+			"1.2.3.5:3260",
+			"1.2.3.6:3260",
+		},
+		DiscoveryCHAPAuth: true,
+		SessionCHAPAuth:   true,
+		SecretRef: &SecretReference{
+			Namespace: "secret-ns",
+			Name:      "secret-name",
+		},
+		InitiatorName: "iqn.1996-04.de.suse:linux-host1",
+	},
 }
 
 var kokiPersistentCinderVolume0 = PersistentVolumeSource{

@@ -234,8 +234,8 @@ func revertStorageMedium(kokiMedium types.StorageMedium) (v1.StorageMedium, erro
 		return v1.StorageMediumDefault, nil
 	case types.StorageMediumMemory:
 		return v1.StorageMediumMemory, nil
-	case types.StorageMediumHugepages:
-		return v1.StorageMediumHugepages, nil
+	case types.StorageMediumHugePages:
+		return v1.StorageMediumHugePages, nil
 	default:
 		return v1.StorageMediumDefault, serrors.InvalidValueErrorf(kokiMedium, "unrecognized storage medium")
 	}
