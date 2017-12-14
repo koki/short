@@ -3,7 +3,7 @@
 Endpoints is a collection of endpoints that implement the actual service
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1  | Endpoints |  [skel](../skel/endpoints.kube.skel.yaml)         |
 
 Here's an example Kubernetes Endpoints:
@@ -24,7 +24,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Endpoints is present |
 |name | `string` | `metadata.name`| The name of the Endpoints| 
@@ -36,7 +36,7 @@ The following sections contain detailed information about each field in Short sy
 #### Subsets
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 |addrs| `[]EndpointAddress` | `addresses` | IP addresses which offer the related ports that are marked ready. See [Endpoint Address](#endpoint-address) |
 |unready_addrs | `[]EndpointAddress` | `notReadyAddresses` | IP adddresses which offer the related ports that are NOT marked ready. See [Endpoint Addres](#endpoint-address)|
 |ports | `[]string` | `ports` | Port numbers available on the related IP addresses. See [Endpoint Ports](#endpoint-ports) |
@@ -45,7 +45,7 @@ The following sections contain detailed information about each field in Short sy
 #### Endpoint Address
 
 | Field    | Type       | K8s counterpart(s) | Description | 
-|:--------:|:----------:|:------------------:|:-----------:|
+|:---------|:-----------|:-------------------|:------------|
 | ip       |`string`    | `ip`               | IP of this endpoint        |
 | hostname |`string`    | `hostname`         | hostname of this endpoint  |
 | nodename |`string`    | `nodename`         | node hosting this endpoint |
@@ -83,7 +83,7 @@ endpoints:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | Endpoints           | [skel](../skel/endpoints.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short Endpoints.

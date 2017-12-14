@@ -3,7 +3,7 @@
  Job is a declarative interface to denote a set of Pods that are expected to run to completion.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | batch/v1  | Job |  [skel](../skel/job.batch.v1.kube.skel.yaml)         |
 
 Here's an example Kubernetes Job:
@@ -30,7 +30,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Job is running |
 |name | `string` | `metadata.name`| The name of the Job | 
@@ -82,7 +82,7 @@ Selector can be a map value or a string value. If it is a string value, then it 
 Valid Operators are 
 
 | Operator | Syntax | Description         |
-|:-----:|:----:|:----------------------:|
+|:------|:-----|:-----------------------|
 | Eq| `=` | Key should be equal to value |
 | Exists| N/A | Key should exist | 
 | NotExists| N/A | Key should not exist |
@@ -106,7 +106,7 @@ If the selector is a map, then the values in the map are expected to match direc
 #### Template Metadata
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
 |name | `string` | `metadata.name`| The name of the Pod | 
 |namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
@@ -169,7 +169,7 @@ job:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | Job                  | [skel](../skel/job.short.skel.yaml)            |
 
 Here's a starter skeleton of a Short Job.

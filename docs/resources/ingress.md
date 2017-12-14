@@ -3,7 +3,7 @@
 Ingress is a collection of rules that allow inbound connections to reach endpoints defined by a backend.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | extensions/v1beta1   | Ingress  |  [skel](../skel/ingress.extensions.v1beta1.kube.skel.yaml)         |
 
 Here's an example Kubernetes Ingress spec:
@@ -32,7 +32,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.` `clusterName` | The name of the cluster on which this Ingress is running |
 |name | `string` | `metadata.name`| The name of the Ingress | 
@@ -47,21 +47,21 @@ The following sections contain detailed information about each field in Short sy
 #### Ingress TLS
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:-----:|:-----------------:|:-----------:|
+|:------|:------|:------------------|:------------|
 |hosts | `[]string` | `hosts` | List of hosts included in the TLS cert |
 |secret | `string` | `secretName` | Name of the secret used to terminate SSL |
 
 #### Ingress Rule
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 |host | `string` | `host` | FQDN of the host that should match incoming traffic and be processed by this rule |
 |paths | `IngressPath` | `ingressRuleValue` | Paths and their respective backends. See [Ingress Path](#ingress-path) |
 
 #### Ingress Path
 
 | Field | Type | Description |
-|:-----:|:----:|:-----------:|
+|:------|:-----|:------------|
 |path | `string` | Path of the specified HTTP URL |
 |service | `string` | Name of the service which should receive this traffic |
 |port | `int` or `string` | Port of the Service at which it should receive traffic |
@@ -108,7 +108,7 @@ ingress:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | Ingress                  | [skel](../skel/ingress.short.skel.yaml)            |
 
 Here's a starter skeleton of a Short Ingress.

@@ -26,4 +26,7 @@ pages:
    - StorageClass: resources/storage-class.md
  - Modules:
    - Introduction: modules/index.md
-theme: readthedocs
+theme: cinder
+extra_css:
+   - custom/tweaks.css
+repo_url: https://github.com/koki/short

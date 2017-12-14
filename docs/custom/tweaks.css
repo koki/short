@@ -1,0 +1,11 @@
+.bs-sidebar.well {
+    padding: 0;
+    max-height:85vh;
+    overflow-y: auto;
+}
+
+.dropdown-menu {
+    max-height: 400px;
+    max-width: 500px;
+    overflow: auto;
+}

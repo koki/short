@@ -3,7 +3,7 @@
  PersistentVolume is a storage resource
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1  | PersistentVolume |  [skel](../skel/persistent-volume.kube.skel.yaml)         |
 
 Here's an example Kubernetes PersistentVolume:
@@ -32,7 +32,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this PersistentVolumeClaim is running |
 |name | `string` | `metadata.name`| The name of the PersistentVolumeClaim | 
@@ -51,7 +51,7 @@ The following sections contain detailed information about each field in Short sy
 #### Volume Sources
 
 | Volume Source | Volume Type | Link | 
-|:-------------:|:-----------:|:----:|
+|:--------------|:------------|:-----|
 | AWS Elastic Block Store | aws_ebs | [aws_ebs](pod#aws-elastic-block-store) |
 | Azure Disk | azure_disk | [azure_disk](pod#azure-disk) |
 | Azure File | azure_file | [azure_file](pod#azure-file) |
@@ -78,7 +78,7 @@ The next section describes the short syntax for each of the volume source types
 #### Access Modes 
 
 | Access Mode | Description |
-|:---------------------:|:-----------:|
+|:----------------------|:------------|
 | rw_once | Can be mounted read/write mode to exactly 1 host |
 | ro_many | Can be mounted read only mode to many hosts |
 | rw_many | Can be mounted read/write mode to many hosts |
@@ -86,7 +86,7 @@ The next section describes the short syntax for each of the volume source types
 #### Object Reference
 
 | Field            | Type   | K8s counterpart(s) |
-|:----------------:|:------:|:------------------:|
+|:-----------------|:-------|:-------------------|
 | kind             |`string`| `kind`             |
 | namespace        |`string`| `namespace`        | 
 | name             |`string`| `name`             |
@@ -130,7 +130,7 @@ persistent_volume:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | PersistentVolume           | [skel](../skel/persistent-volume.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short PersistentVolume.

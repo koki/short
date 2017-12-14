@@ -3,7 +3,7 @@
 A Service is an umbrella over a group of pods and policies that define how to access them.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1   | Service  |  [skel](../skel/service.kube.skel.yaml)         |
 
 Here's an example Kubernetes Service spec:
@@ -26,7 +26,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.` `clusterName` | The name of the cluster on which this Service is running |
 |name | `string` | `metadata.name`| The name of the Service | 
@@ -51,7 +51,7 @@ The following sections contain detailed information about each field in Short sy
 The following fields are status fields, and cannot be set
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | endpoints | `[]string` | `status.loadBalancer.ingress` | A list of hostnames or IP addresses that reflect the ip address/hostname of the created LB |
 
 The `port` and `node_port` keys are used to specify the unnamed port for the Service. Kubernetes only allows one unnamed port. Therefore, there is only one field for unnamed port. The unnamed `port` should be of the format
@@ -143,7 +143,7 @@ service:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | Service                  | [skel](../skel/service.short.skel.yaml)            |
 
 Here's a starter skeleton of a Short Service.

@@ -3,7 +3,7 @@
  ReplicaSet ensures that a specified number of Pod Replicas are running at any one given time.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | extensions/v1beta1  | ReplicaSet |  [skel](../skel/replica-set.extensions.v1beta1.kube.skel.yaml)         |
 | apps/v1beta2  | ReplicaSet |  [skel](../skel/replica-set.apps.v1beta2.kube.skel.yaml)         |
 
@@ -48,7 +48,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this ReplicaSet is running |
 |name | `string` | `metadata.name`| The name of the ReplicaSet | 
@@ -125,7 +125,7 @@ replica_set:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | ReplicaSet           | [skel](../skel/replica-set.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short ReplicaSet.

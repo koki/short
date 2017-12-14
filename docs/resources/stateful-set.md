@@ -3,7 +3,7 @@
  StatefulSet is a declarative interface to deploy and manage a set of stateful pod which need guarantees about uniqueness and ordering.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | apps/v1beta1  | StatefulSet |  [skel](../skel/stateful-set.apps.v1beta1.kube.skel.yaml)         |
 | apps/v1beta2  | StatefulSet |  [skel](../skel/stateful-set.apps.v1beta2.kube.skel.yaml)         |
 
@@ -64,7 +64,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this StatefulSet is running |
 |name | `string` | `metadata.name`| The name of the StatefulSet | 
@@ -111,7 +111,7 @@ The following sections contain detailed information about each field in Short sy
 #### Pod Management Policy 
 
 | Pod Management Policy | Description |
-|:---------------------:|:-----------:|
+|:----------------------|:------------|
 | ordered | Create pods in strictly increasing order on scale up and strictly decreasing order on scale down  |
 | parallel | Create all pods in parallel, and update or delete in parallel |
 
@@ -124,7 +124,7 @@ Selector can be a map value or a string value. If it is a string value, then it 
 Valid Operators are 
 
 | Operator | Syntax | Description         |
-|:-----:|:----:|:----------------------:|
+|:------|:-----|:-----------------------|
 | Eq| `=` | Key should be equal to value |
 | Exists| N/A | Key should exist | 
 | NotExists| N/A | Key should not exist |
@@ -148,7 +148,7 @@ If the selector is a map, then the values in the map are expected to match direc
 #### Template Metadata
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
 |name | `string` | `metadata.name`| The name of the Pod | 
 |namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
@@ -231,7 +231,7 @@ storage_class:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | StatefulSet           | [skel](../skel/stateful-set.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short StatefulSet.

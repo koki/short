@@ -3,7 +3,7 @@
 StorageClass describes the parameters for a class of storage for which PersistentVolumes can be dynamically provisioned. 
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | storage/v1  | StorageClass |  [skel](../skel/storage-class.storage.v1.kube.skel.yaml)         |
 
 Here's an example Kubernetes StorageClass:
@@ -25,7 +25,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this StorageClass is running |
 |name | `string` | `metadata.name`| The name of the StorageClass | 
@@ -41,7 +41,7 @@ The following sections contain detailed information about each field in Short sy
 #### Reclaim Policy
 
 | Recalim Policy | Description |
-|:---------------------:|:-----------:|
+|:----------------------|:------------|
 | recycle | Recycle back volume into unbound pool on release from claim |
 | delete | Delete volume on release from claim |
 | retain | Leave volume in current phase (Released) for manual reclamation by an admin |
@@ -83,7 +83,7 @@ storage_class:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | StorageClass           | [skel](../skel/storage-class.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short StorageClass.
