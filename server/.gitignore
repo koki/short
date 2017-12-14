@@ -1,5 +1,0 @@
-server
-env.short.yaml
-deployment.yaml
-service.yaml
-pod.yaml

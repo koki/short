@@ -1,4 +1,0 @@
-service:
-  cname: externalDnsName
-  name: example
-  version: v1
