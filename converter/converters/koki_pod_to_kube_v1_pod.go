@@ -1144,7 +1144,11 @@ func revertTolerations(tolerations []types.Toleration) ([]v1.Toleration, error) 
 
 		fields := strings.Split(superFields[0], "=")
 		if len(fields) == 1 {
-			kubeToleration.Key = fields[0]
+			if fields[0] == "*" {
+				kubeToleration.Key = ""
+			} else {
+				kubeToleration.Key = fields[0]
+			}
 			kubeToleration.Operator = v1.TolerationOpExists
 		} else if len(fields) == 2 {
 			kubeToleration.Key = fields[0]

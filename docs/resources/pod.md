@@ -502,6 +502,8 @@ The selector string selects Taints using the following formats
 - selector: TaintKey=TaintValue:Effect # tolerate the taint if key exists on node, matches value and effect
 - selector: TaintKey:Effect  # tolerate the taint if key exists on node and effect matches
 - selector: TaintKey  # tolerate the taint if the key exists on node
+- selector: '*:Effect' # tolerate any taint with the given effect. quotes are needed for YAML to parse correctly.
+- selector: '*' # tolerate any taint.
 ```
 
 #### Priority

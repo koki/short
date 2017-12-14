@@ -7,6 +7,9 @@ pod:
   name: meta_test
   namespace: test
   tolerations:
-  - Selector: key=value:NoSchedule
-  - Selector: key:NoSchedule
+  - selector: key=value:NoSchedule
+  - selector: key:NoSchedule
+  - selector: '*:NoExecute'
+  - selector: key=value:NoExecute
+  - selector: '*'
   version: v1

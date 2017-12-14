@@ -21,6 +21,7 @@ spec:
     operator: "Exists"
     effect: "NoExecute"
   - key: "key"
+    operator: "Equal"
     value: "value"
     effect: "NoExecute"
   - key: ""
