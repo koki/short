@@ -1640,10 +1640,20 @@ func convertTolerations(tolerations []v1.Toleration) ([]types.Toleration, error)
 		tol := types.Toleration{}
 		tol.ExpiryAfter = toleration.TolerationSeconds
 		tolExpr := ""
-		if toleration.Operator == v1.TolerationOpEqual {
+		// Toleration operator defaults to "Equal".
+		if toleration.Operator == v1.TolerationOpEqual || len(toleration.Operator) == 0 {
+			if len(toleration.Key) == 0 {
+				return nil, serrors.ContextualizeErrorf(
+					serrors.InvalidInstanceErrorf(toleration, "key can only be empty for Exists operator"),
+					"tolerations[%d]", i)
+			}
 			tolExpr = fmt.Sprintf("%s=%s", toleration.Key, toleration.Value)
 		} else if toleration.Operator == v1.TolerationOpExists {
-			tolExpr = fmt.Sprintf("%s", toleration.Key)
+			if len(toleration.Key) == 0 {
+				tolExpr = "*"
+			} else {
+				tolExpr = toleration.Key
+			}
 		} else {
 			return nil, serrors.InvalidInstanceErrorf(toleration, "unsupported operator")
 		}
