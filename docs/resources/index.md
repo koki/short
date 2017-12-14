@@ -78,7 +78,7 @@ The fields within `Spec` and `Status` are Short'ed using similar principles appl
 The following types are currently supported
 
 | Kubernetes API Group | Kubernetes Type   | Short Type   | Skeleton   | Examples |
-|:--------------------:|:-----------------:|:------------:|:----------:|:--------:|
+|:---------------------|:------------------|:-------------|:-----------|:---------|
 | core/v1 | Pod            | [Pod](./pod.md)| [Pod Skeleton](./pod.md#skeleton)  | [Pod Examples](./pod.md#examples) |
 | core/v1 | Service        | [Service](./service.md)| [Service Skeleton](./service.md#skeleton) | [Service Examples](./service.md#examples) |
 | extensions/v1beta1 | Deployment | [Deployment](./deployment.md) | [Deployment Skeleton](./deployment.md#skeleton) | [Deployment Examples](./deployment.md#examples) |

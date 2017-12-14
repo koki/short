@@ -3,7 +3,7 @@
  ReplicationController ensures that a specified number of Pod Replicas are running at any one given time.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1 | ReplicationController |  [skel](../skel/replication-controller.kube.skel.yaml)         |
 
 Here's an example Kubernetes ReplicationController:
@@ -34,7 +34,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this ReplicationController is running |
 |name | `string` | `metadata.name`| The name of the ReplicationController | 
@@ -112,7 +112,7 @@ replication_controller:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | ReplicationController           | [skel](../skel/replication-controller.short.skel.yaml)     |
 
 Here's a starter skeleton of a ReplicationController

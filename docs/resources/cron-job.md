@@ -3,7 +3,7 @@
 A CronJob is a declarative interface to describe time based Jobs.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | batch/v1beta1  | CronJob |  [skel](../skel/cron-job.batch.v1beta1.kube.skel.yaml)         |
 | batch/v2alpha1  | CronJob |  [skel](../skel/cron-job.batch.v2alpha1.kube.skel.yaml)         |
 
@@ -34,7 +34,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this CronJob is running |
 |name | `string` | `metadata.name`| The name of the CronJob | 
@@ -86,7 +86,7 @@ The following sections contain detailed information about each field in Short sy
 #### Concurrency Policy
 
 | Concurrency Policy | Description | 
-|:------------------:|:-----------:|
+|:-------------------|:------------|
 | allow | Allows cron jobs to run concurrently |
 | forbid | forbids cron jobs from running concurrently, skipping next execution if the previous hasn't finished |
 | replace | replace cancels current job, to run the next one | 
@@ -100,7 +100,7 @@ Selector can be a map value or a string value. If it is a string value, then it 
 Valid Operators are 
 
 | Operator | Syntax | Description         |
-|:-----:|:----:|:----------------------:|
+|:------|:-----|:-----------------------|
 | Eq| `=` | Key should be equal to value |
 | Exists| N/A | Key should exist | 
 | NotExists| N/A | Key should not exist |
@@ -124,7 +124,7 @@ If the selector is a map, then the values in the map are expected to match direc
 #### Template Metadata
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
 |name | `string` | `metadata.name`| The name of the Pod | 
 |namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
@@ -190,7 +190,7 @@ cron_job:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | CronJob                  | [skel](../skel/cron-job.short.skel.yaml)            |
 
 Here's a starter skeleton of a Short CronJob.

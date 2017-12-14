@@ -3,7 +3,7 @@
  PersistentVolumeClaim is a request for storage by a user
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1  | PersistentVolumeClaim |  [skel](../skel/persistent-volume-claim.kube.skel.yaml)         |
 
 Here's an example Kubernetes PersistentVolumeClaim:
@@ -31,7 +31,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this PersistentVolumeClaim is running |
 |name | `string` | `metadata.name`| The name of the PersistentVolumeClaim | 
@@ -47,7 +47,7 @@ The following sections contain detailed information about each field in Short sy
 #### Access Modes 
 
 | Access Mode | Description |
-|:---------------------:|:-----------:|
+|:----------------------|:------------|
 | rw_once | Can be mounted read/write mode to exactly 1 host |
 | ro_many | Can be mounted read only mode to many hosts |
 | rw_many | Can be mounted read/write mode to many hosts |
@@ -61,7 +61,7 @@ Selector can be a map value or a string value. If it is a string value, then it 
 Valid Operators are 
 
 | Operator | Syntax | Description         |
-|:-----:|:----:|:----------------------:|
+|:------|:-----|:-----------------------|
 | Eq| `=` | Key should be equal to value |
 | Exists| N/A | Key should exist | 
 | NotExists| N/A | Key should not exist |
@@ -85,7 +85,7 @@ If the selector is a map, then the values in the map are expected to match direc
 #### Template Metadata
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
 |name | `string` | `metadata.name`| The name of the Pod | 
 |namespace | `string` | `metadata.namespace` | The K8s namespace this Pod will be a member of | 
@@ -121,7 +121,7 @@ pvc:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | PersistentVolumeClaim           | [skel](../skel/persistent-volume-claim.short.skel.yaml)     |
 
 Here's a starter skeleton of a Short PersistentVolumeClaim.

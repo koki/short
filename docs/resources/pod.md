@@ -3,7 +3,7 @@
 A Pod is the unit of execution in Kubernetes. It consists of a set of co-located containers that share the same fate. The Pod definition in Kubernetes includes information about the containers, their runtime characteristics, and metadata about the pod.
 
 | API group | Resource | Kube Skeleton                                   |
-|:---------:|:--------:|:-----------------------------------------------:|
+|:----------|:---------|:------------------------------------------------|
 | core/v1   | Pod      |  [skel](../skel/pod.kube.skel.yaml)             |
 
 Here's an example Kubernetes Pod spec:
@@ -42,7 +42,7 @@ The following sections contain detailed information about each field in Short sy
 # API Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 |version| `string` | `apiVersion` | The version of the resource object | 
 |cluster| `string` | `metadata.clusterName` | The name of the cluster on which this Pod is running |
 |name | `string` | `metadata.name`| The name of the Pod | 
@@ -80,7 +80,7 @@ The following sections contain detailed information about each field in Short sy
 #### Affinity Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | node | `string` | `affinity.nodeAffinity` | The Pod's affinity for certain nodes. More information below | 
 | pod | `string` | `affinity.podAffinity` | The Pod's affinity for certain other other Pods in the cluster. More information below |
 | anti_pod | `string` | `affinity.podAntiAffinity` | The Pod's anti-affinity for certain other Pods in the cluster. More information below |
@@ -94,7 +94,7 @@ The following sections contain detailed information about each field in Short sy
 An expression is a set of sub-expressions that are ANDed(`&`) together. Sub-expressions select on labels using `=`, `!=`, `Exists`, `Does not Exist`, `Greater than` and `Less than` operators.
 
 | Operator | Symbol | Validity | Example |
-|:--------:|:------:|:--------:|:--------:|
+|:---------|:-------|:---------|:---------|
 | Equals   | `=`   | node, pod and anti_pod | `k8s.io/failure-domain=us-east1` |
 | Not Equal | `!=`  | node, pod and anti_pod | `k8s.io/failure-domain!=us-east-1`  |
 | Exists | N/A  |  node, pod and anti_pod | `k8s.io/cloud-provider` |
@@ -121,7 +121,7 @@ If the list of `affinity` items contains multiple `soft` node affinity selectors
 Here are some example node affinity expressions
 
 | Expression | Affinity Type | Description |
-|:----------|:-------------:|:-----------:|
+|:----------|:--------------|:------------|
 |-node:`failure-domain=us-east1&instance-type=t2.large` | `node` hard affinity  | run the pod on a node that is in failure domain `us-east1` and whose instance type is `t2.large` |
 |-node:`failure-domain=us-east1&instance-type=t2.large`<br/>-node:`failure-domain=us-east2&instance-type=t2.large` | `node` hard affinity | run the pod on a node that is in failure-domain `us-east1` and the instance type is `t2.large` <br/> or <br/> on a node in `us-east2` and instance type is `t2.large`|
 |-node:`failure-domain=us-east1&instance-type=t2.large:soft` | `node` soft affinity | prefer to run the pod on a node that is in failure-domain `us-east1` and whose instance type is `t2.large` |
@@ -140,7 +140,7 @@ as possible, where "many" is measured by the sum of the selectors' weights.
 Here are some example pod affinity expressions
 
 | Expression | Affinity Type | Description |
-|:----------|:-------------:|:-----------:|
+|:----------|:--------------|:------------|
 |-pod:`app=front-end` | `pod` hard affinity  | run the pod on alongside another pod which has label `app=front-end` |
 |-pod:`app=front-end`<br/>-pod:`name=react` | `pod` hard affinity | run the pod alongside another pod that has labels `app=front-end` and `name=react` |
 |-pod:`app=front-end&name=react:soft` | `pod` soft affinity | prefer to run the pod alongside another pod that has labels `app=front-end` and `name=react` |
@@ -153,7 +153,7 @@ The syntax and mechanism of pod anti affinity is the same as pod affinity, excep
 Here are some example pod anti affinity expressions
 
 | Expression | Affinity Type | Description |
-|:----------|:-------------:|:-----------:|
+|:----------|:--------------|:------------|
 |-anti_pod:`app=front-end` | `pod` hard anti-affinity  | never run the pod on alongside another pod which has label `app=front-end` |
 |-anti_pod:`app=front-end`<br/>-anti_pod:`name=react` | `pod` hard anti-affinity | never run the pod alongside another pod that has labels `app=front-end` and `name=react` |
 |-anti_pod:`app=front-end&name=react:soft` | `pod` soft anti-affinity | prefer to NOT run the pod alongside another pod that has labels `app=front-end` and `name=react` |
@@ -163,7 +163,7 @@ Here are some example pod anti affinity expressions
 #### Container Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | command | `[]string` | `command` | The command that runs as the entrypoint to the container | 
 | args | `[]floatOrString` | `args` | The arguments to the command. Accepts both float and string values |
 | env | `[]Env` | `env` or `envFrom` | The environment variables that get set in the container. See [Environment Overview](#environment-overview) |
@@ -195,7 +195,7 @@ Here are some example pod anti affinity expressions
 The following fields are status fields and cannot be set
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | container_id | `string` | `status.containerStatus` | The ID of the container as UUID |
 | image_id | `string` | `status.imageId` | The ID of the image as UUID |
 | ready | `bool` | `status.ready` | Whether the container is ready or not|
@@ -206,7 +206,7 @@ The following fields are status fields and cannot be set
 cpu and mem both can contain two fields
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | min | `string` | The minimum amount of resource for the container to run| 
 | max | `string` | The maximum amount of resource that the container can use|
 
@@ -229,7 +229,7 @@ mem:
 SELinux options can take these following fields
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | user| `string` | SELinux user label |
 | role| `string` | SELinux role label | 
 | type | `string` | SELinux type label |
@@ -238,7 +238,7 @@ SELinux options can take these following fields
 #### Container State
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | waiting| `ContainerStateWaiting` | Details about a waiting container |
 | running| `ContainerStateRunning` | Details about a running container |
 | terminated| `ContainerStateTerminated` | Details about a terminated container |
@@ -247,20 +247,20 @@ SELinux options can take these following fields
 ContainerStateWaiting
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | reason| `string` | Reason for waiting |
 | msg | `string` | Message |
 
 ContainerStateRunning
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | start_time| `time` | Time of the last start of the container |
 
 ContainerStateTerminated
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | reason| `string` | Reason for termination |
 | msg | `string` | Message |
 | exit_code | `int32` | Exit code from the container process |
@@ -271,7 +271,7 @@ ContainerStateTerminated
 #### Volume Mounts
 
 | Field | Type | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | mount | `string` | Path at which the volume should be mounted |
 | store | `string` | Name of the volume to be mounted |
 | propagation| `MountPropagation` | Directionality of the mount propagation between host and container (See below.)| 
@@ -280,7 +280,7 @@ MountPropagation
 
 
 | MountPropagationType | K8s counterpart | Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | host-to-container| HostToContainer| Mounts from host are propagated into container. Not the other way around|
 | bidirectional | Bidirectional | Mounts from host are propagated into container and mounts from container are propagated to host|
 
@@ -318,7 +318,7 @@ If the struct syntax is used, then the port can be named.
 #### Probe Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | action | `Action` | `probe.handler` | An action that determines the state of the container. See [Action Overview](#action-overview) |
 | delay | `int32`| `probe.initialDelaySeconds`| Number of seconds to wait before probing initially |
 | timeout | `int32` | `probe.timeoutSeconds` | Number of seconds after which the probe times out (default 1)|
@@ -331,7 +331,7 @@ If the struct syntax is used, then the port can be named.
 Env variables in Short can be a string or a struct. If it is a struct, then the keys are:
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | from | `string` | `container.EnvFrom` | Obtain environment from k8s resource. Can start with `config:` or `secret:` |
 | key | `string` | `container.EnvFrom` | Key of the environment variable or prefix to keys in k8s resource |
 | required | `bool` | `container.EnvFrom` | States whether the resource should exist before the creation of container | 
@@ -384,7 +384,7 @@ Otherwise, each field in the named resource is added to the environment, and the
 #### Action Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | command | `[]string` | `container.lifecycle.postStar.exec` | The command to execute as the action |
 | net | `NetAction`  | `container.lifecycle.postStart.httpGet` and `container.lifecycle.postStart.tcpSocket` | The network call to make as the action. See [NetAction Overview](#netaction-overview) | 
 
@@ -404,7 +404,7 @@ action:
 #### NetAction Overview
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | headers | `[]string` | `container.lifecycle.postStart.httpGet.headers` | The headers that get sent as a part of the network call |
 | url | `string` | `container.lifecycle.postStart.httpGet.(path|port|host|scheme)` | The url of the network call |
 
@@ -436,7 +436,7 @@ action:
 The Termination Policy to use when handling Container Termination
 
 | Short Termination Policy | K8s counterpart(s) | Description            |
-|:----------------:|:------------------:|:----------------------:|
+|:-----------------|:-------------------|:-----------------------|
 | file | File | Read the container's status message from the file in termination_msg_path |
 | fallback-to-logs-on-error | FallbackToLogsOnError | Read the container's status message from logs if file in termination_msg_path is empty |
 
@@ -445,7 +445,7 @@ The Termination Policy to use when handling Container Termination
 The DNS Policy supported by Short are the same DNS Policies as Kubernetes. 
 
 | Short DNS Policy | K8s counterpart(s) | Description            |
-|:----------------:|:------------------:|:----------------------:|
+|:-----------------|:-------------------|:-----------------------|
 | cluster-first | ClusterFirst | Pod uses cluster DNS unless HostNetwork is true, then fallback to default DNS |
 | cluster-first-with-host-net | ClusterFirstWithHostNet | Pod uses cluster DNS first, then fallback to default DNS |
 | default | Default | Pod should use default DNS settings, as set in Kubelet |
@@ -473,7 +473,7 @@ This is the format followed in Short syntax. The following are valid Host Aliase
 `host_mode` expects a list of strings. The list items can take any of the following values.
 
 | Value | K8s counterpart(s) | Description         |
-|:-----:|:-----------:|:--------------------------:|
+|:------|:------------|:---------------------------|
 | net | `spec.hostNetwork=true` | Use the host's network namespace for the pod|
 | pid | `spec.hostPID=true` | Use the host's PID namespace for the pod|
 | ipc | `spec.hostIPC=true` | Use the host's IPC namespace for the pod|
@@ -492,7 +492,7 @@ account: apiAccess:auto  # service account apiAccess. Automount it.
 #### Toleration Conversion
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | selector | `string` | `spec.toleration`| A string that selects the taint to tolerate. More information below |
 | expiry_after | `int64` | `spec.toleration` | The number of seconds after which the toleration tolerates the taint |
 
@@ -507,14 +507,14 @@ The selector string selects Taints using the following formats
 #### Priority
 
 | Field | Type | K8s counterpart(s) | Description         |
-|:-----:|:----:|:-------:|:----------------------:|
+|:------|:-----|:--------|:-----------------------|
 | class | `string` | `spec.PriorityClassName`| Indicates the Pod's priority. `SYSTEM` is a reserved keyword with the highest priority  |
 | value | `int32` | `spec.Priority` | The priority value |
 
 #### Pod Condition
 
 | Field | Type |  Description         |
-|:-----:|:----:|:-------:|
+|:------|:-----|:--------|
 | reason| `string` | One word camel case reason for pod's last transition |
 | msg | `string` | Human readable message about the pod's last transition |
 | status | `ConditionStatus` | String value that represents the status of the condition. Can be "True", "False" or "Unknown" |
@@ -629,7 +629,7 @@ pod:
 The following volume sources are defined in Short syntax
 
 | Volume Source | Link | 
-|:-------------:|:----:|
+|:--------------|:-----|
 | Empty Directory | [empty_dir](#empty-directory) |
 | AWS Elastic Block Store | [aws_ebs](#aws-elastic-block-store) |
 | Azure Disk | [azure_disk](#azure-disk) |
@@ -662,7 +662,7 @@ The next section describes the short syntax for each of the volume source types
 ##### Empty Directory
 
 | Field | Type | K8s counterpart(s) | Description | 
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 |max_size|`string`|`SizeLimit`| The maximum amount of data that can be stored in this volume|
 |medium| `string` | `Medium` | The mechanism by which the storage is allocated to the volume|
 |vol_type| `string` | - | This should always be set to `empty_dir` for volumes of type `empty_dir` |
@@ -670,7 +670,7 @@ The next section describes the short syntax for each of the volume source types
 Medium can take the following values
 
 | Medium Type | Description | 
-|:-----------:|:-----------:|
+|:------------|:------------|
 |      | `<empty value>` Use the node default| 
 | memory      | Store the data in memory (tmpfs) |
 | huge-pages   | Store the data in huge pages |
@@ -703,7 +703,7 @@ pod:
 ##### AWS Elastic Block Store
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | vol_id | `string` | `VolumeID` |  Unique ID of the persistent disk resource in AWS (Amazon EBS volume) |
@@ -740,7 +740,7 @@ pod:
 ##### Azure Disk
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | cache | `string` | `CachingMode` | Host Caching mode |
 | disk_uri | `string` | `DataDiskURI` | The URI the data disk in the blob storage |
@@ -751,7 +751,7 @@ pod:
 Azure disks can be of the following Kinds
 
 | Azure disk Kind | Description | 
-|:---------------:|:-----------:|
+|:----------------|:------------|
 | dedicated | This denotes single blob disks per storage account |
 | shared    | This is the default value. This denotes multiple blob disks per storage account |
 | managed   | Azure data disk (only in managed availability set) | 
@@ -759,7 +759,7 @@ Azure disks can be of the following Kinds
 Azure disk cache can take the following values 
 
 | Azure Disk Caching Mode | Description | 
-|:-----------------------:|:-----------:|
+|:------------------------|:------------|
 | none | No caching |
 | ro | Cache reads |
 | rw | Cache reads and writes |
@@ -805,7 +805,7 @@ where, `secret_name` and `share_name` are required fields and `ro` is optional
 The description for each of the fields are provided in this table
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | secret_name | `string` | `SecretName` | The name of secret that contains Azure Storage Account Name and Key  |
 | share_name | `string` | `ShareName` | Name of the share  |
 | ro | `string` | `ReadOnly` | This is an **optional** field and should only be set if this volume is read-only. When it is not set, then the volume defaults to read-write|
@@ -838,7 +838,7 @@ pod:
 ##### Ceph FS
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | monitors | `[]string` | `Monitors` | A list of Ceph monitors |
 | ro | `bool` | `ReadOnly` | Denote that the volume should be read only |
 | secret | `string` | `SecretFile`, `SecretRef`  | Authentication secret for the user |
@@ -848,7 +848,7 @@ pod:
 The `secret` field is used to denote both `SecretFile` and `SecretRef` in the Kubernetes API resource. This is done by using one of the two prefixes for the value of the `secret` field.
 
 | Secret Field Prefix | Description | 
-|:-------------------:|:-----------:|
+|:--------------------|:------------|
 | `ref:${secret_name}`| If the `ref` prefix is used, then it is a reference to a secret name |
 | `file:${/path/to/file}` | A path to keyring for the user. Defaults to `/etc/ceph/user.secret` |
 
@@ -885,7 +885,7 @@ pod:
 ##### Cinder
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | vol_id | `string` | `VolumeID` | Identifier to reference the volume in Cinder |
@@ -920,7 +920,7 @@ pod:
 ##### Downward API
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | items | `map[string]items` | `Items` | A list of downward api sources |
 | mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
 | vol_type| `string` | - | This should always be set to `downward_api` for volumes of type `downward_api` |
@@ -930,7 +930,7 @@ The items map is a special map. The keys to the map are file paths of the files 
 The value to the file path key is a resource with the following fields
 
 | Field | Type | K8s counterpart(s) | Description | 
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | field | `string` | `FieldRef` | Selects a field of the pod: only annotations, labels, name and namespace are supported |
 | resource | `string` | `ResourceFieldRef` | Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported |
 | mode | `int32` | `Mode` | Mode bits to use on this file. Overrides default mode |
@@ -975,13 +975,13 @@ pod:
 ##### Fibre Channel
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | lun | `int32` | `Lun` | FC target lun number |
 | ro | `bool` | `ReadOnly` | Denote that the volume is read only. Defaults to `false` | 
 | wwid | `[]string` | `WWIDs` |  FC volume world wide identifiers  |
 | wwn | `[]string` | `TargetWWNs` | FC target worldwide names |
-| vol_type| `string` | - | This should always be set to `azure_disk` for volumes of type `azure_disk` |
+| vol_type| `string` | - | This should always be set to `fc` for volumes of type `fc` |
 
 Here's an example pod with fibre channel volume source 
 
@@ -1018,7 +1018,7 @@ pod:
 ##### Flex
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | driver | `string` | `Driver` |  Name of the flex driver for this volume |
@@ -1095,7 +1095,7 @@ pod:
 ##### GCE Persistent Disk
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | vol_id | `string` | `PDName` |  Unique ID of the persistent disk resource in GCE (GCE PD volume) |
@@ -1132,7 +1132,7 @@ pod:
 ##### GIT Repository 
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | dir | `string`| `Directory`   | Target directory name |
 | rev | `string`  | `Revision` | Commit hash for the specfied revision |
 | vol_id | `string` | `Repository` |  URL of the git repository |
@@ -1167,7 +1167,7 @@ pod:
 ##### Gluster FS
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | ro | `bool`| `ReadOnly`   | Denotes that the volume is read-only |
 | endpoints | `string`  | `Endpoints` | Endpoint name that details GlusterFS topology |
 | path | `string` | `Path` |  GlusterFS volume path |
@@ -1214,7 +1214,7 @@ and `host_path` is the volume type (mandatory constant)
 Host Path Type can take the following values
 
 | Host Path Type | Description |
-|:--------------:|:-----------:|
+|:---------------|:------------|
 |                | `<empty value>` for backwards compatibility. This is also the default value |
 | `dir-or-create` | If nothing exists at the given path, an empty directory will be created there as needed with file mode 0755, having the same group and ownership with Kubelet |
 | `dir` | A directory must exist at the given path |
@@ -1251,7 +1251,7 @@ pod:
 ##### ISCSI
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | portals | `[]string` | `Portals` | iSCSI Target Portal List. The portal is either an IP or ip_addr:port if the port is other than default (typically TCP ports 860 and 3260) |
@@ -1314,7 +1314,7 @@ where, `server_addr` and `/path/to/dir` are required fields and `ro` is optional
 The descriptions for the above fields are provided in the table below
 
 | Fields | Type | K8s counterpart(s) | Description |
-|:-----:|:------:|:-----------------:|:-----------:|
+|:------|:-------|:------------------|:------------|
 | server_addr | `string` | `Server` | Server is the hostname or IP address of the NFS server |
 | /path/to/vol | `string` | `Path` | Path that is exported by the NFS server |
 | ro | `bool`  | `ReadOnly` | Make the volume read only. Defaults to `false` |
@@ -1357,7 +1357,7 @@ where, `pvc_name` is a required field and `ro` is optional
 The descriptions for the above fields are provided in the table below
 
 | Fields | Type | K8s counterpart(s) | Description |
-|:-----:|:------:|:-----------------:|:-----------:|
+|:------|:-------|:------------------|:------------|
 | pvc_name | `string` | `ClaimName` | Name of a PersistentVolumeClaim in the same namespace as the pod using this volume |
 | ro | `bool`  | `ReadOnly` | Make the volume read only. Defaults to `false` |
 | vol_type| `string` | - | This should always be set to `pvc` for volumes of type `pvc` |
@@ -1399,7 +1399,7 @@ where, `photon_id` is a required field and `fs` is optional
 The descriptions for the above fields are provided in the table below
 
 | Fields | Type | K8s counterpart(s) | Description |
-|:-----:|:------:|:-----------------:|:-----------:|
+|:------|:-------|:------------------|:------------|
 | photon_id | `string` | `pdID` | Identifier for Photon Controller Persistent Disk |
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | vol_type| `string` | - | This should always be set to `photon` for volumes of type `photon` |
@@ -1431,7 +1431,7 @@ pod:
 ##### Projected
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | sources | `[]source` | `Sources` | A list of Projected Sources |
 | mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
 | vol_type| `string` | - | This should always be set to `projected` for volumes of type `projected` |
@@ -1439,7 +1439,7 @@ pod:
 Source is a special structure that takes on different forms based on the type of `source`. There are three types of sources
 
 | Source Type | Description | 
-|:-----------:|:-----------:|
+|:------------|:------------|
 | Secret Source | secret to project |
 | Config Map Source | configMap to project |
 | Downward API Source | downwardAPI to project |
@@ -1449,7 +1449,7 @@ Source is a special structure that takes on different forms based on the type of
 ###### Secret Source
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | items | `map[string]item` | `Items` | A list of secret projections |
 | secret | `string` | `LocalObjectReference` | Name of the secret to project from |
 
@@ -1464,7 +1464,7 @@ where `key` is a key that should exist in the secret object being referenced, an
 ###### Config Map Source
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | items | `map[string]item` | `Items` | A list of secret projections |
 | config | `string` | `LocalObjectReference` | Name of the Config Map to project from |
 
@@ -1479,7 +1479,7 @@ where `key` is a key that should exist in the config map object being referenced
 ###### Downward API Source
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | items | `map[string]item` | `Items` | A list of downward api projections |
 
 The items map for downward api source is a special map, and different from the items map for secret and configmap. The keys to the map are file paths of the files that will be created from the downward_api source. This key directly corresponds to the `Path` key in the `DownwardAPIVolumeFile` resource in the Kubernetes API.
@@ -1487,7 +1487,7 @@ The items map for downward api source is a special map, and different from the i
 The value to the file path key for downward api source is a resource with the following fields
 
 | Field | Type | K8s counterpart(s) | Description | 
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | field | `string` | `FieldRef` | Selects a field of the pod: only annotations, labels, name and namespace are supported |
 | resource | `string` | `ResourceFieldRef` | Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported |
 | mode | `int32` | `Mode` | Mode bits to use on this file. Overrides default mode |
@@ -1537,7 +1537,7 @@ pod:
 ##### Portworx
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | vol_id | `string` | `VolumeID` | Unique identifier a Portworx volume |  
@@ -1572,7 +1572,7 @@ pod:
 ##### QuoByte
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | vol_id | `string` | `Volume` | Reference to already created QuoByte volume by name |  
 | user | `string` | `User` | User to map volume access to. Defaults to serviceaccount user | 
@@ -1611,7 +1611,7 @@ pod:
 ##### RBD 
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | user | `string` | `RadosUser` | Rados user name. Default is `admin` | 
@@ -1658,7 +1658,7 @@ pod:
 ##### ScaleIO
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | gateway | `string` | `Gateway` | The host address of the ScaleIO API Gateway | 
@@ -1674,7 +1674,7 @@ pod:
 Where, the storage mode can be
 
 | Storage Mode Type |  Description |
-|:-----------------:|:------------:|
+|:------------------|:-------------|
 | thick-provisioned | Disk is allocated on creation |
 | thin-provisioned | Space required is allocated on demand |
 
@@ -1714,7 +1714,7 @@ pod:
 ##### Secret 
 
 | Field | Type| K8s counterpart(s) | Description |
-|:-----:|:---:|:------------------:|:-----------:|
+|:------|:----|:-------------------|:------------|
 | required | `bool` | `Optional` | Denotes that the secret should exist if set to `true` |
 | mode | `int32` | `DefaultMode` | Mode bits to use for created files that don't have mode set. Defaults to `0644` |
 | items | `map[string]item` | `Items` | A list of secret projections |
@@ -1761,7 +1761,7 @@ pod:
 ##### Storage OS
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | ro | `bool`  | `ReadOnly` | Make the volume read only |
 | secret | `string` | `SecretRef` | Name of the secret to use for obtaining the StorageOS API credentials.  If not specified, default values will be attempted |
@@ -1799,7 +1799,7 @@ pod:
 ##### VSphere Volume
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | fs | `string`| `FSType`   | Filesystem type of the volume that you want to mount |
 | policy | `policy`  | `StoragePolicyName`, `StoragePolicyID` | Policy for policy based management |
 | vol_id | `string` | `VolumeName` | The path that identifies vsphere volume vmdk |
@@ -1808,7 +1808,7 @@ pod:
 where the policy struct has the following fields
 
 | Field | Type | K8s counterpart(s) | Description |
-|:-----:|:----:|:------------------:|:-----------:|
+|:------|:-----|:-------------------|:------------|
 | id | `string`| `StoragePolicyID`   | Storage Policy Based Management (SPBM) profile ID associated with the StoragePolicyName |
 | name | `string` | `StoragePolictName` |  Storage Policy Based Management (SPBM) profile name |
 
@@ -1944,7 +1944,7 @@ pod:
 # Skeleton
 
 | Short Type           | Skeleton                                       |
-|:--------------------:|:----------------------------------------------:|
+|:---------------------|:-----------------------------------------------|
 | Pod                  | [skel](../skel/pod.short.skel.yaml)            |
 
 Here's a starter skeleton of a Short Pod.
