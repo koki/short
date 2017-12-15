@@ -148,8 +148,21 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 		}, nil
 	}
 	if kokiSource.ISCSI != nil {
+		source := kokiSource.ISCSI
 		return v1.PersistentVolumeSource{
-			ISCSI: revertISCSIVolume(kokiSource.ISCSI),
+			ISCSI: &v1.ISCSIPersistentVolumeSource{
+				TargetPortal:      source.TargetPortal,
+				IQN:               source.IQN,
+				Lun:               source.Lun,
+				ISCSIInterface:    source.ISCSIInterface,
+				FSType:            source.FSType,
+				ReadOnly:          source.ReadOnly,
+				Portals:           source.Portals,
+				DiscoveryCHAPAuth: source.DiscoveryCHAPAuth,
+				SessionCHAPAuth:   source.SessionCHAPAuth,
+				SecretRef:         revertSecretReference(source.SecretRef),
+				InitiatorName:     util.StringPtrOrNil(source.InitiatorName),
+			},
 		}, nil
 	}
 	if kokiSource.Cinder != nil {

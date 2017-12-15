@@ -13,7 +13,10 @@ import (
 
 func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageClassWrapper) (interface{}, error) {
 	// Perform version-agnostic conversion into storage/v1 StorageClass.
-	kubeStorageClass := Convert_Koki_StorageClass_to_Kube_storage_v1_StorageClass(storageClass)
+	kubeStorageClass, err := Convert_Koki_StorageClass_to_Kube_storage_v1_StorageClass(storageClass)
+	if err != nil {
+		return nil, err
+	}
 
 	// Serialize the "generic" kube StorageClass.
 	b, err := yaml.Marshal(kubeStorageClass)
@@ -39,7 +42,8 @@ func Convert_Koki_StorageClass_to_Kube_StorageClass(storageClass *types.StorageC
 	return versionedStorageClass, nil
 }
 
-func Convert_Koki_StorageClass_to_Kube_storage_v1_StorageClass(storageClass *types.StorageClassWrapper) *storagev1.StorageClass {
+func Convert_Koki_StorageClass_to_Kube_storage_v1_StorageClass(storageClass *types.StorageClassWrapper) (*storagev1.StorageClass, error) {
+	var err error
 	kubeStorageClass := &storagev1.StorageClass{}
 	kokiStorageClass := &storageClass.StorageClass
 
@@ -56,11 +60,32 @@ func Convert_Koki_StorageClass_to_Kube_storage_v1_StorageClass(storageClass *typ
 
 	kubeStorageClass.MountOptions = kokiStorageClass.MountOptions
 	kubeStorageClass.AllowVolumeExpansion = kokiStorageClass.AllowVolumeExpansion
+	kubeStorageClass.VolumeBindingMode, err = revertVolumeBindingMode(kokiStorageClass.VolumeBindingMode)
+	if err != nil {
+		return nil, serrors.ContextualizeErrorf(err, "binding_mode")
+	}
 
 	if kokiStorageClass.Reclaim != nil {
 		reclaimPolicy := revertReclaimPolicy(*kokiStorageClass.Reclaim)
 		kubeStorageClass.ReclaimPolicy = &reclaimPolicy
 	}
 
-	return kubeStorageClass
+	return kubeStorageClass, nil
+}
+
+func revertVolumeBindingMode(mode *types.VolumeBindingMode) (*storagev1.VolumeBindingMode, error) {
+	if mode == nil {
+		return nil, nil
+	}
+
+	var newmode storagev1.VolumeBindingMode
+	switch *mode {
+	case types.VolumeBindingImmediate:
+		newmode = storagev1.VolumeBindingImmediate
+	case types.VolumeBindingWaitForFirstConsumer:
+		newmode = storagev1.VolumeBindingWaitForFirstConsumer
+	default:
+		return nil, serrors.InvalidInstanceError(mode)
+	}
+	return &newmode, nil
 }
