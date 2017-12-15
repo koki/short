@@ -47,6 +47,7 @@ func Convert_Kube_StorageClass_to_Koki_StorageClass(kubeStorageClass runtime.Obj
 }
 
 func Convert_Kube_storage_v1_StorageClass_to_Koki_StorageClass(kubeStorageClass *storagev1.StorageClass) (*types.StorageClassWrapper, error) {
+	var err error
 	kokiStorageClass := &types.StorageClass{}
 
 	kokiStorageClass.Name = kubeStorageClass.Name
@@ -60,6 +61,10 @@ func Convert_Kube_storage_v1_StorageClass_to_Koki_StorageClass(kubeStorageClass 
 	kokiStorageClass.Parameters = kubeStorageClass.Parameters
 	kokiStorageClass.MountOptions = kubeStorageClass.MountOptions
 	kokiStorageClass.AllowVolumeExpansion = kubeStorageClass.AllowVolumeExpansion
+	kokiStorageClass.VolumeBindingMode, err = convertVolumeBindingMode(kubeStorageClass.VolumeBindingMode)
+	if err != nil {
+		return nil, err
+	}
 
 	if kubeStorageClass.ReclaimPolicy != nil {
 		reclaimPolicy := convertReclaimPolicy(*kubeStorageClass.ReclaimPolicy)
@@ -69,4 +74,21 @@ func Convert_Kube_storage_v1_StorageClass_to_Koki_StorageClass(kubeStorageClass 
 	return &types.StorageClassWrapper{
 		StorageClass: *kokiStorageClass,
 	}, nil
+}
+
+func convertVolumeBindingMode(mode *storagev1.VolumeBindingMode) (*types.VolumeBindingMode, error) {
+	if mode == nil {
+		return nil, nil
+	}
+
+	var newmode types.VolumeBindingMode
+	switch *mode {
+	case storagev1.VolumeBindingImmediate:
+		newmode = types.VolumeBindingImmediate
+	case storagev1.VolumeBindingWaitForFirstConsumer:
+		newmode = types.VolumeBindingWaitForFirstConsumer
+	default:
+		return nil, serrors.InvalidInstanceError(mode)
+	}
+	return &newmode, nil
 }

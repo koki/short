@@ -17,4 +17,12 @@ type StorageClass struct {
 	Reclaim              *PersistentVolumeReclaimPolicy `json:"reclaim,omitempty"`
 	MountOptions         []string                       `json:"mount_opts,omitempty"`
 	AllowVolumeExpansion *bool                          `json:"allow_expansion,omitempty"`
+	VolumeBindingMode    *VolumeBindingMode             `json:"binding_mode,omitempty"`
 }
+
+type VolumeBindingMode string
+
+const (
+	VolumeBindingImmediate            VolumeBindingMode = "immediate"
+	VolumeBindingWaitForFirstConsumer VolumeBindingMode = "wait-for-first-consumer"
+)
