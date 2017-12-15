@@ -295,6 +295,16 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 			},
 		}, nil
 	}
+	if kokiSource.CSI != nil {
+		source := kokiSource.CSI
+		return v1.PersistentVolumeSource{
+			CSI: &v1.CSIPersistentVolumeSource{
+				Driver:       source.Driver,
+				VolumeHandle: source.VolumeHandle,
+				ReadOnly:     source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return v1.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
 }

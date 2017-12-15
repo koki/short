@@ -88,10 +88,12 @@ type PersistentVolumeSource struct {
 	ScaleIO      *ScaleIOPersistentVolume
 	Local        *LocalVolume
 	StorageOS    *StorageOSPersistentVolume
+	CSI          *CSIPersistentVolume
 }
 
 const (
 	VolumeTypeLocal = "local"
+	VolumeTypeCSI   = "csi"
 )
 
 type ISCSIPersistentVolume struct {
@@ -168,6 +170,12 @@ type StorageOSPersistentVolume struct {
 	FSType          string           `json:"fs,omitempty"`
 	ReadOnly        bool             `json:"ro,omitempty"`
 	SecretRef       *SecretReference `json:"secret,omitempty"`
+}
+
+type CSIPersistentVolume struct {
+	Driver       string `json:"driver"`
+	VolumeHandle string `json:"-"`
+	ReadOnly     bool   `json:"ro,omitempty"`
 }
 
 // comma-separated list of modes
@@ -389,6 +397,9 @@ func (v *PersistentVolumeSource) Unmarshal(obj map[string]interface{}, volType s
 	case VolumeTypeStorageOS:
 		v.StorageOS = &StorageOSPersistentVolume{}
 		return v.StorageOS.Unmarshal(obj, selector)
+	case VolumeTypeCSI:
+		v.CSI = &CSIPersistentVolume{}
+		return v.CSI.Unmarshal(obj, selector)
 	default:
 		return serrors.InvalidValueErrorf(volType, "unsupported volume type (%s)", volType)
 	}
@@ -459,6 +470,9 @@ func (v PersistentVolumeSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.StorageOS != nil {
 		marshalledVolume, err = v.StorageOS.Marshal()
+	}
+	if v.CSI != nil {
+		marshalledVolume, err = v.CSI.Marshal()
 	}
 
 	if err != nil {
@@ -722,6 +736,33 @@ func (s StorageOSPersistentVolume) Marshal() (*MarshalledVolume, error) {
 	return &MarshalledVolume{
 		Type:        VolumeTypeStorageOS,
 		Selector:    []string{s.VolumeName},
+		ExtraFields: obj,
+	}, nil
+}
+
+func (s *CSIPersistentVolume) Unmarshal(obj map[string]interface{}, selector []string) error {
+	if len(selector) != 1 {
+		return serrors.InvalidValueErrorf(selector, "expected 1 selector segment (volume handle) for %s", VolumeTypeCSI)
+	}
+	s.VolumeHandle = selector[0]
+
+	err := jsonutil.UnmarshalMap(obj, &s)
+	if err != nil {
+		return serrors.ContextualizeErrorf(err, VolumeTypeCSI)
+	}
+
+	return nil
+}
+
+func (s CSIPersistentVolume) Marshal() (*MarshalledVolume, error) {
+	obj, err := jsonutil.MarshalMap(&s)
+	if err != nil {
+		return nil, serrors.ContextualizeErrorf(err, VolumeTypeCSI)
+	}
+
+	return &MarshalledVolume{
+		Type:        VolumeTypeCSI,
+		Selector:    []string{s.VolumeHandle},
 		ExtraFields: obj,
 	}, nil
 }
