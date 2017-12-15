@@ -182,8 +182,8 @@ func convertStorageMedium(kubeMedium v1.StorageMedium) (types.StorageMedium, err
 		return types.StorageMediumDefault, nil
 	case v1.StorageMediumMemory:
 		return types.StorageMediumMemory, nil
-	case v1.StorageMediumHugepages:
-		return types.StorageMediumHugepages, nil
+	case v1.StorageMediumHugePages:
+		return types.StorageMediumHugePages, nil
 	default:
 		return types.StorageMediumDefault, serrors.InvalidValueErrorf(kubeMedium, "unrecognized storage medium")
 	}

@@ -110,7 +110,7 @@ type StorageMedium string
 const (
 	StorageMediumDefault   StorageMedium = ""           // use whatever the default is for the node
 	StorageMediumMemory    StorageMedium = "memory"     // use memory (tmpfs)
-	StorageMediumHugepages StorageMedium = "huge-pages" // use hugepages
+	StorageMediumHugePages StorageMedium = "huge-pages" // use hugepages
 )
 
 type GcePDVolume struct {
