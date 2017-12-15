@@ -1,7 +1,0 @@
-imports:
-- pod: ./bad-pod0.yaml
-  params:
-    name: doot
-exports:
-- default: "the application's pod"
-  value: ${pod}
