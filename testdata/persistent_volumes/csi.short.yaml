@@ -1,0 +1,21 @@
+persistent_volume:
+  annotations:
+    annotationKey: annotationValue
+  claim:
+    name: claimName
+    namespace: claimNamespace
+  cluster: cluster
+  labels:
+    labelKey: labelValue
+  modes: rw-once
+  mount_opts: option 1,option 2,option 3
+  name: vol-name
+  namespace: namespace
+  reclaim: recycle
+  storage: 10Gi
+  storage_class: storageClass
+  version: v1
+  driver: aws-ebs
+  vol_id: ebshandle
+  vol_type: csi
+  ro: true
