@@ -301,6 +301,16 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 			},
 		}, nil
 	}
+	if kubeSource.CSI != nil {
+		source := kubeSource.CSI
+		return types.PersistentVolumeSource{
+			CSI: &types.CSIPersistentVolume{
+				Driver:       source.Driver,
+				VolumeHandle: source.VolumeHandle,
+				ReadOnly:     source.ReadOnly,
+			},
+		}, nil
+	}
 
 	return types.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
 }
