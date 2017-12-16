@@ -64,31 +64,26 @@ For more information on Koki Short transformations, please refer to [Resources.]
 
 Koki Short introduces the concept of modules, which are reusable collections of Short resources. Any resource can be reused multiple times in other resources and linked resources can be managed as a single unit on the Koki platform. 
 
-Any valid koki resource object can be reused. This includes subtypes of top-level resource types. For example, here's module called `pod-affinity-us-east-1.yaml`:
+Any valid koki resource object can be reused. This includes subtypes of top-level resource types. For example, here's module called `affinity_east1.yaml`:
 
 ```yaml
-exports:
-- default: node affinity for us-east-1
-  value:
-  - node: k8s.io/failure-domain=us-east-1
+affinity:
+- node: k8s.io/failure-domain=us-east-1
 ```
 
 This affinity value can be reused in any pod spec:
 
 ```yaml
 imports:
-- affinity: pod-affinity-us-east-1.yaml
-exports:
-- default: an nginx pod
-  value:
-    pod:
-      name: nginx
-      labels:
-        app: nginx
-      containers:
-      - name: nginx
-        image: nginx-latest
-      affinity: ${affinity}  # re-use the affinity resource here
+- affinity: affinity_east1.yaml
+pod:
+  name: nginx
+  labels:
+    app: nginx
+  containers:
+  - name: nginx
+    image: nginx-latest
+  affinity: ${affinity}  # re-use the affinity resource here
 ```
 
 For more information on Koki Modules, please refer to [Modules.](https://docs.koki.io/short/modules)
