@@ -6,6 +6,7 @@ pages:
    - Command Line: user-guide/command-line.md
    - Getting Help: user-guide/getting-help.md
    - Best Practices: user-guide/best-practices.md
+   - Integrating with Drone: user-guide/drone.md
  - Resources: 
    - Introduction: resources/index.md
    - ConfigMap: resources/config-map.md
