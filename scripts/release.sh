@@ -5,7 +5,7 @@ set -e
 script_dir=$(dirname $0)
 
 #import version details
-source $script_dir/version.sh
+source $script_dir/build.sh
 
 #build from parent dir
 cd $script_dir/..
@@ -13,4 +13,14 @@ cd $script_dir/..
 #create output dir if none exists
 mkdir -p bin
 
-docker run -v $GOPATH:/go -t kokster/gox gox -ldflags "-X github.com/koki/short/cmd.GITCOMMIT=$VERSION" -output="src/github.com/koki/short/bin/short_{{.OS}}_{{.Arch}}" -os="linux darwin" -arch="386 amd64" github.com/koki/short
+GOOS=linux GOARCH=amd64 ./scripts/build.sh 
+mv bin/short bin/short_linux_amd64
+
+GOOS=linux GOARCH=386 ./scripts/build.sh
+mv bin/short bin/short_linux_386
+
+GOOS=darwin GOARCH=amd64 ./scripts/build.sh
+mv bin/short bin/short_darwin_amd64
+
+GOOS=darwin GOARCH=386 ./scripts/build.sh
+mv bin/short bin/short_darwin_386
