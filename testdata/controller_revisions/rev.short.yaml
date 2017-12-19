@@ -1,0 +1,6 @@
+controller_revision:
+  name: test_rev
+  data:
+    key: value
+  revision: 1
+  version: apps/v1

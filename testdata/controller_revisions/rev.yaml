@@ -1,0 +1,7 @@
+apiVersion: apps/v1
+kind: ControllerRevision
+metadata:
+  name: test_rev
+data:
+  key: value
+revision: 1

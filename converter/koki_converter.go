@@ -5,6 +5,7 @@ import (
 	"github.com/koki/short/types"
 	serrors "github.com/koki/structurederrors"
 
+	apps "k8s.io/api/apps/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	batchv1 "k8s.io/api/batch/v1"
@@ -21,6 +22,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
+	case *types.ControllerRevisionWrapper:
+		return converters.Convert_Koki_ControllerRevision_to_Kube(kokiObj)
 	case *types.CronJobWrapper:
 		return converters.Convert_Koki_CronJob_to_Kube_CronJob(kokiObj)
 	case *types.DaemonSetWrapper:
@@ -62,19 +65,13 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
-	case *batchv1beta1.CronJob:
+	case *apps.ControllerRevision, *appsv1beta1.ControllerRevision, *appsv1beta2.ControllerRevision:
+		return converters.Convert_Kube_ControllerRevision_to_Koki(kubeObj)
+	case *batchv1beta1.CronJob, *batchv2alpha1.CronJob:
 		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
-	case *batchv2alpha1.CronJob:
-		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
-	case *appsv1beta2.DaemonSet:
+	case *appsv1beta2.DaemonSet, *exts.DaemonSet:
 		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
-	case *exts.DaemonSet:
-		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
-	case *appsv1beta1.Deployment:
-		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
-	case *appsv1beta2.Deployment:
-		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
-	case *exts.Deployment:
+	case *appsv1beta1.Deployment, *appsv1beta2.Deployment, *exts.Deployment:
 		return converters.Convert_Kube_Deployment_to_Koki_Deployment(kubeObj)
 	case *v1.Endpoints:
 		return converters.Convert_Kube_v1_Endpoints_to_Koki_Endpoints(kubeObj)
@@ -90,21 +87,15 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_Pod_to_Koki_Pod(kubeObj)
 	case *v1.ReplicationController:
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
-	case *appsv1beta2.ReplicaSet:
-		return converters.Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
-	case *exts.ReplicaSet:
+	case *appsv1beta2.ReplicaSet, *exts.ReplicaSet:
 		return converters.Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
 	case *v1.Secret:
 		return converters.Convert_Kube_v1_Secret_to_Koki_Secret(kubeObj)
 	case *v1.Service:
 		return converters.Convert_Kube_v1_Service_to_Koki_Service(kubeObj)
-	case *appsv1beta1.StatefulSet:
+	case *appsv1beta1.StatefulSet, *appsv1beta2.StatefulSet:
 		return converters.Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeObj)
-	case *appsv1beta2.StatefulSet:
-		return converters.Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeObj)
-	case *storagev1.StorageClass:
-		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
-	case *storagev1beta1.StorageClass:
+	case *storagev1.StorageClass, *storagev1beta1.StorageClass:
 		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
 
 	default:
