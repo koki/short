@@ -148,6 +148,10 @@ func ExtraneousAnyPaths(prefix []string, before interface{}, after interface{}) 
 }
 
 func FieldValIsEmpty(fieldVal interface{}) bool {
+	if fieldVal == nil {
+		return true
+	}
+
 	switch fieldVal := fieldVal.(type) {
 	case string:
 		if len(fieldVal) == 0 {

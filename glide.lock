@@ -1,10 +1,6 @@
-hash: bbaaed95acc86c9791611d6bd51628c7533020dc1112ecbba1b9f27241590f95
-updated: 2017-12-11T23:56:56.705277535-08:00
+hash: 6d8845cfb002ac2d181243ea639b640424148708481ef8253266a14d5f1c22a8
+updated: 2017-12-18T21:25:51.640274183-08:00
 imports:
-- name: github.com/davecgh/go-spew
-  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
-  subpackages:
-  - spew
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
@@ -26,32 +22,16 @@ imports:
   - sortkeys
 - name: github.com/golang/glog
   version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
-- name: github.com/golang/protobuf
-  version: 4bd1920723d7b7c925de087aa32e2187708897f7
-  subpackages:
-  - proto
-- name: github.com/google/go-github
-  version: fbfee053c26dab3772adfc7799d995eed379133e
-  subpackages:
-  - github
-- name: github.com/google/go-querystring
-  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
-  subpackages:
-  - query
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
-- name: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
-- name: github.com/gorilla/securecookie
-  version: e59506cc896acb7f7bf732d4fdf5e25f7ccd8983
-- name: github.com/gorilla/sessions
-  version: a3acf13e802c358d65f249324d14ed24aac11370
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/json-iterator/go
   version: 36b14963da70d11297d313183d7e6388c8510e1e
 - name: github.com/koki/json
-  version: c882976e358f566e064a70904d33a19b38709199
+  version: a4e41af5279e11d16f4fbe4a340aa82615df8c91
+  subpackages:
+  - jsonutil
 - name: github.com/koki/structurederrors
   version: 5a728381eca193d3a3c364256d01295346519936
 - name: github.com/kr/pretty
@@ -72,31 +52,17 @@ imports:
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
-- name: github.com/rs/cors
-  version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
 - name: github.com/spf13/cobra
   version: b3426bbac13d7110c4d8fce456ea0012f79f3b8b
 - name: github.com/spf13/pflag
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
-- name: github.com/stripe/stripe-go
-  version: 626a2f7ffabf5c754bed054b3ac7eefd8bf8a2ec
-  subpackages:
-  - form
-  - orderitem
-  - sub
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
-  - context
-  - context/ctxhttp
   - http2
   - http2/hpack
   - idna
   - lex/httplex
-- name: golang.org/x/oauth2
-  version: e585185218a1268736da499ab73c9a930e94a2a3
-  subpackages:
-  - internal
 - name: golang.org/x/text
   version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:
@@ -111,16 +77,6 @@ imports:
   - unicode/bidi
   - unicode/norm
   - width
-- name: google.golang.org/appengine
-  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
-  subpackages:
-  - internal
-  - internal/base
-  - internal/datastore
-  - internal/log
-  - internal/remote_api
-  - internal/urlfetch
-  - urlfetch
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
@@ -153,16 +109,16 @@ imports:
   - settings/v1alpha1
   - storage/v1
   - storage/v1beta1
+- name: k8s.io/apiextensions-apiserver
+  version: 98ecf7bbd60f9f11a72000e4f05203f542136219
 - name: k8s.io/apimachinery
-  version: 18a564baac720819100827c16fdebcadb05b2d0d
+  version: 180eddb345a5be3a157cea1c624700ad5bd27b8f
   subpackages:
-  - pkg/api/equality
   - pkg/api/resource
   - pkg/apis/meta/v1
   - pkg/apis/meta/v1/unstructured
   - pkg/conversion
   - pkg/conversion/queryparams
-  - pkg/conversion/unstructured
   - pkg/fields
   - pkg/labels
   - pkg/runtime
@@ -174,7 +130,6 @@ imports:
   - pkg/runtime/serializer/versioning
   - pkg/selection
   - pkg/types
-  - pkg/util/diff
   - pkg/util/errors
   - pkg/util/framer
   - pkg/util/intstr
@@ -189,7 +144,7 @@ imports:
   - pkg/watch
   - third_party/forked/golang/reflect
 - name: k8s.io/kube-openapi
-  version: 61b46af70dfed79c6d24530cd23b41440a7f22a5
+  version: 39a7bf85c140f972372c2a0d1ee40adbf0c8bfe1
   subpackages:
   - pkg/common
 testImports:
