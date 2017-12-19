@@ -24,8 +24,6 @@ spec:
       creationTimestamp: null
       labels:
         koki.io/selector.name: meta_test
-    spec:
-      containers: null
 status:
   availableReplicas: 1
   collisionCount: 1

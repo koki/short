@@ -40,7 +40,7 @@ type Optionals struct {
 	Uo uint `json:"uo,omitempty"`
 
 	Str struct{} `json:"str"`
-	Sto struct{} `json:"sto,omitempty"`
+	Sto struct{} `json:"sto,omitempty"` // zero-value struct gets omitted
 }
 
 var optionalsExpected = `{
@@ -51,8 +51,7 @@ var optionalsExpected = `{
  "fr": 0,
  "br": false,
  "ur": 0,
- "str": {},
- "sto": {}
+ "str": {}
 }`
 
 func TestOmitEmpty(t *testing.T) {

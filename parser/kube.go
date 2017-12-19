@@ -2,7 +2,6 @@ package parser
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	unstructuredconversion "k8s.io/apimachinery/pkg/conversion/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/ghodss/yaml"
@@ -30,7 +29,7 @@ func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
 		return nil, serrors.InvalidValueContextErrorf(err, u, "unsupported apiVersion/kind (is the manifest kube-native format?)")
 	}
 
-	if err := unstructuredconversion.DefaultConverter.FromUnstructured(obj, typedObj); err != nil {
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj, typedObj); err != nil {
 		return nil, serrors.InvalidValueForTypeContextErrorf(err, obj, typedObj, "couldn't convert to typed kube obj")
 	}
 

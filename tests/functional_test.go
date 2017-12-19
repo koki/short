@@ -127,6 +127,13 @@ func TestIngress(t *testing.T) {
 	}
 }
 
+func TestControllerRevision(t *testing.T) {
+	err := testResource("controller_revisions", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
