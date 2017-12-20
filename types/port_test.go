@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
 
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

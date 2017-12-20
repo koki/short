@@ -1,0 +1,24 @@
+action: action
+apiVersion: v1
+count: 1
+eventTime: 2017-01-01T00:00:00.000000Z
+firstTimestamp: 2017-01-01T00:00:00Z
+involvedObject:
+  kind: InvolvedKind
+  name: involved-object-name
+kind: Event
+lastTimestamp: 2017-01-01T00:00:00Z
+message: reason for event
+metadata: {}
+reason: ReasonForEvent
+reportingComponent: controller-name
+reportingInstance: controller-id
+series:
+  count: 5
+  lastObservedTime: 2017-01-01T00:00:00.000000Z
+  state: Ongoing
+source:
+  component: source-component
+  host: source-host
+type: event-type
+

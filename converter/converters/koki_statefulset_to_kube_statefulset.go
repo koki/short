@@ -5,10 +5,9 @@ import (
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	"k8s.io/api/core/v1"
 
-	"github.com/ghodss/yaml"
-
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

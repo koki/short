@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ghodss/yaml"
+	"github.com/koki/short/yaml"
 )
 
 var template0 = `

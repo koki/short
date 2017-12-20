@@ -29,6 +29,7 @@ import (
 	settingsv1alpha1 "k8s.io/api/settings/v1alpha1"
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 )
@@ -47,6 +48,7 @@ func init() {
 
 func AddToScheme(scheme *runtime.Scheme) {
 	admissionregistrationv1alpha1.AddToScheme(scheme)
+	apiext.AddToScheme(scheme)
 	appsv1beta1.AddToScheme(scheme)
 	appsv1beta2.AddToScheme(scheme)
 	appsv1.AddToScheme(scheme)

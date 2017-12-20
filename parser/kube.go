@@ -4,8 +4,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/ghodss/yaml"
-
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

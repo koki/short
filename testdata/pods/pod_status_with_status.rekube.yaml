@@ -4,7 +4,6 @@ metadata:
   annotations:
     meta: _test
   clusterName: test_cluster
-  creationTimestamp: null
   labels:
     app: meta_test
   name: meta_test
@@ -29,7 +28,6 @@ spec:
     - name: key
       valueFrom:
         resourceFieldRef:
-          divisor: "0"
           resource: requests.cpu
     - name: key
       valueFrom:
@@ -75,7 +73,7 @@ spec:
         - name: X-Custom-Header
           value: Awesome
         path: /healthz
-        port: 0
+        port: 8080
         scheme: HTTP
       initialDelaySeconds: 3
       periodSeconds: 3
@@ -89,7 +87,7 @@ spec:
       initialDelaySeconds: 5
       periodSeconds: 10
       tcpSocket:
-        port: 0
+        port: 8080
     resources:
       limits:
         cpu: "1"
@@ -150,5 +148,4 @@ spec:
       path: /path/to/host/vol
       type: Directory
     name: host_path_test_volume
-status: {}
 
