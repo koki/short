@@ -101,3 +101,4 @@ The following types are currently supported
 | extensions/v1beta1 | Ingress | [Ingress](./ingress.md) | [Ingress Skeleton](./ingress.md#skeleton) | [Ingress Examples](./ingress.md#examples) |
 | core/v1 | ConfigMap | [ConfigMap](./config-map.md) | [ConfigMap Skeleton](./config-map.md#skeleton) | [ConfigMap Examples](./config-map.md#examples) |
 | core/v1 | Secret | [Secret](./secret.md) | [Secret Skeleton](./secret.md#skeleton) | [Secret Examples](./secret.md#examples) |
+| apps/v1   | ControllerRevision | [ControllerRevision](./controller-revision.md) | [ControllerRevision Skeleton](./controller-revision.md#examples-skeleton) | [ControllerRevision Examples](./controller-revision.md#examples-skeleton) |

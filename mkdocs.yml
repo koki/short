@@ -10,6 +10,7 @@ pages:
  - Resources: 
    - Introduction: resources/index.md
    - ConfigMap: resources/config-map.md
+   - ControllerRevision: resources/controller-revision.md
    - CronJob: resources/cron-job.md
    - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
