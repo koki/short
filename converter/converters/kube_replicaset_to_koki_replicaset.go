@@ -7,11 +7,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/ghodss/yaml"
-
 	"github.com/koki/short/parser"
 	"github.com/koki/short/parser/expressions"
 	"github.com/koki/short/types"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

@@ -5,10 +5,9 @@ import (
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/ghodss/yaml"
-
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

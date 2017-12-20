@@ -1,12 +1,12 @@
 package converters
 
 import (
-	"github.com/ghodss/yaml"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/koki/short/parser"
 	"github.com/koki/short/types"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

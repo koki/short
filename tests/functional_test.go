@@ -134,6 +134,13 @@ func TestControllerRevision(t *testing.T) {
 	}
 }
 
+func TestCRDs(t *testing.T) {
+	err := testResource("crds", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
@@ -142,6 +149,11 @@ type filePair struct {
 
 func objectsEqual(a, b interface{}, aBytes, bBytes []byte) bool {
 	if reflect.DeepEqual(a, b) {
+		return true
+	}
+
+	diff := pretty.Diff(a, b)
+	if len(diff) == 0 {
 		return true
 	}
 

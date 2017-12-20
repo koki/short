@@ -1,5 +1,4 @@
 crd:
-  accepted: {}
   meta:
     group: stable.example.com
     kind: CronTab

@@ -1603,36 +1603,21 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 		if err != nil {
 			return nil, serrors.InvalidInstanceContextErrorf(err, probe, "parsing URL")
 		}
+		fields := strings.Split(urlStruct.Host, ":")
+		if len(fields) != 2 && len(fields) != 1 {
+			return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
+		}
+		host := fields[0]
+		port := intstr.FromString("80")
+		if len(fields) == 2 {
+			port = intstr.Parse(fields[1])
+		}
 		if strings.ToUpper(urlStruct.Scheme) == "TCP" {
-			hostPort := urlStruct.Host
-			fields := strings.Split(hostPort, ":")
-			if len(fields) != 2 && len(fields) != 1 {
-				return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
-			}
-			host := fields[0]
-			port := "80"
-			if len(fields) == 2 {
-				port = fields[1]
-			}
 			kubeProbe.TCPSocket = &v1.TCPSocketAction{
 				Host: host,
-				Port: intstr.IntOrString{
-					StrVal: port,
-				},
+				Port: port,
 			}
 		} else if strings.ToUpper(urlStruct.Scheme) == "HTTP" || strings.ToUpper(urlStruct.Scheme) == "HTTPS" {
-
-			hostPort := urlStruct.Host
-			fields := strings.Split(hostPort, ":")
-			if len(fields) != 2 && len(fields) != 1 {
-				return nil, serrors.InvalidInstanceErrorf(urlStruct, "unrecognized Probe Host")
-			}
-			host := fields[0]
-			port := "80"
-			if len(fields) == 2 {
-				port = fields[1]
-			}
-
 			var scheme v1.URIScheme
 
 			if strings.ToLower(urlStruct.Scheme) == "http" {
@@ -1646,10 +1631,8 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 			kubeProbe.HTTPGet = &v1.HTTPGetAction{
 				Scheme: scheme,
 				Path:   urlStruct.Path,
-				Port: intstr.IntOrString{
-					StrVal: port,
-				},
-				Host: host,
+				Host:   host,
+				Port:   port,
 			}
 
 			var headers []v1.HTTPHeader

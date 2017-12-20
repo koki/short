@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/yaml"
 )
 
 var modules = map[string]string{

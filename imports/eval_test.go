@@ -5,8 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
+
+	"github.com/koki/short/yaml"
 )
 
 var evalModules = map[string]string{

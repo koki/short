@@ -1,15 +1,13 @@
 package cmd
 
 import (
-	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
 
-	// Just make sure we also build the client package.
 	"github.com/koki/json/jsonutil"
-	_ "github.com/koki/short/client"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/imports"
 	"github.com/koki/short/parser"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

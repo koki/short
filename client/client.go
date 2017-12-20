@@ -3,12 +3,11 @@ package client
 import (
 	"io"
 
-	"github.com/ghodss/yaml"
-
 	"github.com/koki/json"
 	"github.com/koki/json/jsonutil"
 	"github.com/koki/short/converter"
 	"github.com/koki/short/parser"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 

@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/resource"
 
-	"github.com/ghodss/yaml"
 	"github.com/kr/pretty"
 
 	"github.com/koki/short/util"
+	"github.com/koki/short/yaml"
 	serrors "github.com/koki/structurederrors"
 )
 
