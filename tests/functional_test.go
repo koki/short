@@ -141,6 +141,13 @@ func TestCRDs(t *testing.T) {
 	}
 }
 
+func TestEvents(t *testing.T) {
+	err := testResource("events", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
