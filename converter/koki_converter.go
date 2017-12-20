@@ -15,6 +15,7 @@ import (
 	exts "k8s.io/api/extensions/v1beta1"
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -26,6 +27,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_ControllerRevision_to_Kube(kokiObj)
 	case *types.CronJobWrapper:
 		return converters.Convert_Koki_CronJob_to_Kube_CronJob(kokiObj)
+	case *types.CRDWrapper:
+		return converters.Convert_Koki_CRD_to_Kube(kokiObj)
 	case *types.DaemonSetWrapper:
 		return converters.Convert_Koki_DaemonSet_to_Kube_DaemonSet(kokiObj)
 	case *types.DeploymentWrapper:
@@ -69,6 +72,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_ControllerRevision_to_Koki(kubeObj)
 	case *batchv1beta1.CronJob, *batchv2alpha1.CronJob:
 		return converters.Convert_Kube_CronJob_to_Koki_CronJob(kubeObj)
+	case *apiext.CustomResourceDefinition:
+		return converters.Convert_Kube_CRD_to_Koki(kubeObj)
 	case *appsv1beta2.DaemonSet, *exts.DaemonSet:
 		return converters.Convert_Kube_DaemonSet_to_Koki_DaemonSet(kubeObj)
 	case *appsv1beta1.Deployment, *appsv1beta2.Deployment, *exts.Deployment:

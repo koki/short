@@ -39,6 +39,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, rev)
 			}
 			return rev, nil
+		case "crd":
+			result := &types.CRDWrapper{}
+			err := json.Unmarshal(bytes, result)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
+			}
+			return result, nil
 		case "cron_job":
 			cronJob := &types.CronJobWrapper{}
 			err := json.Unmarshal(bytes, cronJob)
