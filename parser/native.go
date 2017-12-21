@@ -116,6 +116,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, job)
 			}
 			return job, nil
+		case "limit_range":
+			result := &types.LimitRangeWrapper{}
+			err := json.Unmarshal(bytes, result)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
+			}
+			return result, nil
 		case "namespace":
 			namespace := &types.NamespaceWrapper{}
 			err := json.Unmarshal(bytes, namespace)

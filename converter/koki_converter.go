@@ -53,6 +53,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_InitializerConfig_to_Kube_InitializerConfig(kokiObj)
 	case *types.JobWrapper:
 		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
+	case *types.LimitRangeWrapper:
+		return converters.Convert_Koki_LimitRange_to_Kube(kokiObj)
 	case *types.NamespaceWrapper:
 		return converters.Convert_Koki_Namespace_to_Kube_Namespace(kokiObj)
 	case *types.PersistentVolumeClaimWrapper:
@@ -116,6 +118,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_InitializerConfig_to_Koki_InitializerConfig(kubeObj)
 	case *batchv1.Job:
 		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
+	case *v1.LimitRange:
+		return converters.Convert_Kube_LimitRange_to_Koki(kubeObj)
 	case *v1.Namespace:
 		return converters.Convert_Kube_Namespace_to_Koki_Namespace(kubeObj)
 	case *v1.PersistentVolume:
