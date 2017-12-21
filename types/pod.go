@@ -71,7 +71,7 @@ type PodCondition struct {
 type PodConditionType string
 
 const (
-	PodScheduled           PodConditionType = "pod-scheduled"
+	PodScheduled           PodConditionType = "scheduled"
 	PodReady               PodConditionType = "ready"
 	PodInitialized         PodConditionType = "initialized"
 	PodReasonUnschedulable                  = "unschedulable"

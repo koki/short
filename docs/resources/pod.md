@@ -520,7 +520,7 @@ The selector string selects Taints using the following formats
 | reason| `string` | One word camel case reason for pod's last transition |
 | msg | `string` | Human readable message about the pod's last transition |
 | status | `ConditionStatus` | String value that represents the status of the condition. Can be "True", "False" or "Unknown" |
-| type | `PodConditionType` | String value that represents the type of condition. Can be "PodScheduled", "Ready" or "Initialized" |
+| type | `PodConditionType` | String value that represents the type of condition. Can be "scheduled", "ready" or "initialized" |
 | last_probe_time | `time` | Last time the condition was probed |
 | last_transition_time | `time` | Last time the condition transitioned |
 
