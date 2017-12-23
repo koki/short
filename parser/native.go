@@ -102,6 +102,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, job)
 			}
 			return job, nil
+		case "pdb":
+			pdb := &types.PodDisruptionBudgetWrapper{}
+			err := json.Unmarshal(bytes, pdb)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, pdb)
+			}
+			return pdb, nil
 		case "persistent_volume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)

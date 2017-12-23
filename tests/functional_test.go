@@ -155,6 +155,13 @@ func TestInitializerConfiguration(t *testing.T) {
 	}
 }
 
+func TestPodDisruptionPolicy(t *testing.T) {
+	err := testResource("pod_disruption_policy", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
