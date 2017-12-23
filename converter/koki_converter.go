@@ -15,6 +15,7 @@ import (
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -54,6 +55,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_PodDisruptionBudget_to_Kube_PodDisruptionBudget(kokiObj)
 	case *types.PodWrapper:
 		return converters.Convert_Koki_Pod_to_Kube_v1_Pod(kokiObj)
+	case *types.PriorityClassWrapper:
+		return converters.Convert_Koki_PriorityClass_to_Kube_PriorityClass(kokiObj)
 	case *types.ReplicationControllerWrapper:
 		return converters.Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(kokiObj)
 	case *types.ReplicaSetWrapper:
@@ -101,6 +104,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.PersistentVolumeClaim:
 		return converters.Convert_Kube_PVC_to_Koki_PVC(kubeObj)
+	case *schedulingv1alpha1.PriorityClass:
+		return converters.Convert_Kube_PriorityClass_to_Koki_PriorityClass(kubeObj)
 	case *v1.Pod:
 		return converters.Convert_Kube_v1_Pod_to_Koki_Pod(kubeObj)
 	case *policyv1beta1.PodDisruptionBudget:
