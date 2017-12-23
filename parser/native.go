@@ -88,6 +88,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, ingress)
 			}
 			return ingress, nil
+		case "initializer_config":
+			initConfig := &types.InitializerConfigWrapper{}
+			err := json.Unmarshal(bytes, initConfig)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, initConfig)
+			}
+			return initConfig, nil
 		case "job":
 			job := &types.JobWrapper{}
 			err := json.Unmarshal(bytes, job)

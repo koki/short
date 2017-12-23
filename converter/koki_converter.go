@@ -5,6 +5,7 @@ import (
 	"github.com/koki/short/types"
 	serrors "github.com/koki/structurederrors"
 
+	admissionregv1alpha1 "k8s.io/api/admissionregistration/v1alpha1"
 	apps "k8s.io/api/apps/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
@@ -16,6 +17,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,6 +41,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_Event_to_Kube(kokiObj)
 	case *types.IngressWrapper:
 		return converters.Convert_Koki_Ingress_to_Kube_Ingress(kokiObj)
+	case *types.InitializerConfigWrapper:
+		return converters.Convert_Koki_InitializerConfig_to_Kube_InitializerConfig(kokiObj)
 	case *types.JobWrapper:
 		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
 	case *types.PersistentVolumeClaimWrapper:
@@ -86,6 +90,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_Event_to_Koki(kubeObj)
 	case *exts.Ingress:
 		return converters.Convert_Kube_Ingress_to_Koki_Ingress(kubeObj)
+	case *admissionregv1alpha1.InitializerConfiguration:
+		return converters.Convert_Kube_InitializerConfig_to_Koki_InitializerConfig(kubeObj)
 	case *batchv1.Job:
 		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
 	case *v1.PersistentVolume:

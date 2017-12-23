@@ -1,0 +1,14 @@
+apiVersion: admissionregistration.k8s.io/v1alpha1
+initializers:
+- name: podimage.example.com
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    resources:
+    - pods
+kind: InitializerConfiguration
+metadata:
+  name: example-config
+

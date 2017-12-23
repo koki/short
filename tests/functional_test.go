@@ -148,6 +148,13 @@ func TestEvents(t *testing.T) {
 	}
 }
 
+func TestInitializerConfiguration(t *testing.T) {
+	err := testResource("initializer_config", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
