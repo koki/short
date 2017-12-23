@@ -5,6 +5,7 @@ import (
 	"github.com/koki/short/types"
 	serrors "github.com/koki/structurederrors"
 
+	admissionregv1alpha1 "k8s.io/api/admissionregistration/v1alpha1"
 	apps "k8s.io/api/apps/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
@@ -13,9 +14,13 @@ import (
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
+	settingsv1alpha1 "k8s.io/api/settings/v1alpha1"
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,14 +44,22 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_Event_to_Kube(kokiObj)
 	case *types.IngressWrapper:
 		return converters.Convert_Koki_Ingress_to_Kube_Ingress(kokiObj)
+	case *types.InitializerConfigWrapper:
+		return converters.Convert_Koki_InitializerConfig_to_Kube_InitializerConfig(kokiObj)
 	case *types.JobWrapper:
 		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
 	case *types.PersistentVolumeClaimWrapper:
 		return converters.Convert_Koki_PVC_to_Kube_PVC(kokiObj)
 	case *types.PersistentVolumeWrapper:
 		return converters.Convert_Koki_PersistentVolume_to_Kube_v1_PersistentVolume(kokiObj)
+	case *types.PodDisruptionBudgetWrapper:
+		return converters.Convert_Koki_PodDisruptionBudget_to_Kube_PodDisruptionBudget(kokiObj)
+	case *types.PodPresetWrapper:
+		return converters.Convert_Koki_PodPreset_to_Kube_PodPreset(kokiObj)
 	case *types.PodWrapper:
 		return converters.Convert_Koki_Pod_to_Kube_v1_Pod(kokiObj)
+	case *types.PriorityClassWrapper:
+		return converters.Convert_Koki_PriorityClass_to_Kube_PriorityClass(kokiObj)
 	case *types.ReplicationControllerWrapper:
 		return converters.Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(kokiObj)
 	case *types.ReplicaSetWrapper:
@@ -86,14 +99,22 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_Event_to_Koki(kubeObj)
 	case *exts.Ingress:
 		return converters.Convert_Kube_Ingress_to_Koki_Ingress(kubeObj)
+	case *admissionregv1alpha1.InitializerConfiguration:
+		return converters.Convert_Kube_InitializerConfig_to_Koki_InitializerConfig(kubeObj)
 	case *batchv1.Job:
 		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
 	case *v1.PersistentVolume:
 		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.PersistentVolumeClaim:
 		return converters.Convert_Kube_PVC_to_Koki_PVC(kubeObj)
+	case *schedulingv1alpha1.PriorityClass:
+		return converters.Convert_Kube_PriorityClass_to_Koki_PriorityClass(kubeObj)
 	case *v1.Pod:
 		return converters.Convert_Kube_v1_Pod_to_Koki_Pod(kubeObj)
+	case *policyv1beta1.PodDisruptionBudget:
+		return converters.Convert_Kube_PodDisruptionBudget_to_Koki_PodDisruptionBudget(kubeObj)
+	case *settingsv1alpha1.PodPreset:
+		return converters.Convert_Kube_PodPreset_to_Koki_PodPreset(kubeObj)
 	case *v1.ReplicationController:
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
 	case *appsv1beta2.ReplicaSet, *exts.ReplicaSet:

@@ -1,0 +1,7 @@
+pdb:
+  min_pods: 2
+  name: zk-pdb
+  selector:
+    app: zookeeper
+  version: policy/v1beta1
+

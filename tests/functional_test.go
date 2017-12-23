@@ -148,6 +148,34 @@ func TestEvents(t *testing.T) {
 	}
 }
 
+func TestInitializerConfiguration(t *testing.T) {
+	err := testResource("initializer_config", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPodDisruptionPolicy(t *testing.T) {
+	err := testResource("pod_disruption_policy", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPriorityClass(t *testing.T) {
+	err := testResource("priority_class", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPodPreset(t *testing.T) {
+	err := testResource("pod_preset", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

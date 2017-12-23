@@ -88,6 +88,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, ingress)
 			}
 			return ingress, nil
+		case "initializer_config":
+			initConfig := &types.InitializerConfigWrapper{}
+			err := json.Unmarshal(bytes, initConfig)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, initConfig)
+			}
+			return initConfig, nil
 		case "job":
 			job := &types.JobWrapper{}
 			err := json.Unmarshal(bytes, job)
@@ -95,6 +102,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, job)
 			}
 			return job, nil
+		case "pdb":
+			pdb := &types.PodDisruptionBudgetWrapper{}
+			err := json.Unmarshal(bytes, pdb)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, pdb)
+			}
+			return pdb, nil
 		case "persistent_volume":
 			pv := &types.PersistentVolumeWrapper{}
 			err := json.Unmarshal(bytes, pv)
@@ -109,6 +123,20 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, pod)
 			}
 			return pod, nil
+		case "pod_preset":
+			podPreset := &types.PodPresetWrapper{}
+			err = json.Unmarshal(bytes, podPreset)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, podPreset)
+			}
+			return podPreset, nil
+		case "priority_class":
+			priorityClass := &types.PriorityClassWrapper{}
+			err := json.Unmarshal(bytes, priorityClass)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, priorityClass)
+			}
+			return priorityClass, nil
 		case "pvc":
 			pvc := &types.PersistentVolumeClaimWrapper{}
 			err := json.Unmarshal(bytes, pvc)

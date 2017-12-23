@@ -1,0 +1,7 @@
+priority_class:
+  default: false
+  description: This priority class should be used for XYZ service pods only.
+  name: high-priority
+  priority: 1000000
+  version: scheduling.k8s.io/v1alpha1
+
