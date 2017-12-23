@@ -1,0 +1,14 @@
+pod_security_policy:
+  fsgid_policy:
+    policy: '*'
+  gid_policy:
+    policy: '*'
+  name: example
+  selinux_policy:
+    policy: '*'
+  uid_policy:
+    policy: '*'
+  version: extensions/v1beta1
+  vol_plugins:
+  - '*'
+
