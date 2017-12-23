@@ -51,7 +51,6 @@ func revertKokiPDBSpec(kokiPDB *types.PodDisruptionBudget) (policyv1beta1.PodDis
 	if err != nil {
 		return kubeSpec, err
 	}
-
 	kubeSpec.Selector = selector
 
 	return kubeSpec, nil

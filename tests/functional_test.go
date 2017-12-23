@@ -169,6 +169,13 @@ func TestPriorityClass(t *testing.T) {
 	}
 }
 
+func TestPodPreset(t *testing.T) {
+	err := testResource("pod_preset", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

@@ -1,0 +1,13 @@
+pod_preset:
+  env:
+  - DB_PORT=6379
+  mounts:
+  - mount: /cache
+    store: cache-volume
+  name: allow-database
+  selector:
+    role: frontend
+  version: settings.k8s.io/v1alpha1
+  volumes:
+    cache-volume: empty_dir
+

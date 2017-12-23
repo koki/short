@@ -47,8 +47,7 @@ func convertPDBSpec(kubeSpec policyv1beta1.PodDisruptionBudgetSpec, kokiPDB *typ
 		kokiPDB.MinPodsRequired = floatstr.Parse(kubeSpec.MinAvailable.String())
 	}
 
-	// Fill out the Selector and Template.Labels.
-	// If kubeRS only has Template.Labels, we pull it up to Selector.
+	// Fill out the Selector
 	selector, _, err := convertRSLabelSelector(kubeSpec.Selector, nil)
 	if err != nil {
 		return err
