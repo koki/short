@@ -1,0 +1,12 @@
+hpa:
+  name: test-hpa
+  ref: core.v1.Pod:test-pod
+  min: 1
+  max: 5
+  percent_cpu: 70
+  generation_observed: 10
+  last_scaling: 2017-01-01T00:00:00Z
+  current: 2
+  desired: 3
+  current_percent_cpu: 80
+  version: autoscaling/v1

@@ -9,6 +9,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
+	autoscaling "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
@@ -47,6 +48,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_Endpoints_to_Kube_v1_Endpoints(kokiObj)
 	case *types.EventWrapper:
 		return converters.Convert_Koki_Event_to_Kube(kokiObj)
+	case *types.HorizontalPodAutoscalerWrapper:
+		return converters.Convert_Koki_HPA_to_Kube(kokiObj)
 	case *types.IngressWrapper:
 		return converters.Convert_Koki_Ingress_to_Kube_Ingress(kokiObj)
 	case *types.InitializerConfigWrapper:
@@ -112,6 +115,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_Endpoints_to_Koki_Endpoints(kubeObj)
 	case *v1.Event:
 		return converters.Convert_Kube_Event_to_Koki(kubeObj)
+	case *autoscaling.HorizontalPodAutoscaler:
+		return converters.Convert_Kube_HPA_to_Koki(kubeObj)
 	case *exts.Ingress:
 		return converters.Convert_Kube_Ingress_to_Koki_Ingress(kubeObj)
 	case *admissionregv1alpha1.InitializerConfiguration:

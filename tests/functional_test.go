@@ -190,6 +190,13 @@ func TestLimitRange(t *testing.T) {
 	}
 }
 
+func TestHorizontalPodAutoscaler(t *testing.T) {
+	err := testResource("hpas", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

@@ -95,6 +95,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
 			}
 			return result, nil
+		case "hpa":
+			result := &types.HorizontalPodAutoscalerWrapper{}
+			err := json.Unmarshal(bytes, result)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
+			}
+			return result, nil
 		case "ingress":
 			ingress := &types.IngressWrapper{}
 			err := json.Unmarshal(bytes, ingress)
