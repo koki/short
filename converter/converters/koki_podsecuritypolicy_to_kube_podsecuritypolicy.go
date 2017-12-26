@@ -122,6 +122,11 @@ func revertPodSecurityPolicySELinuxPolicy(kokiSELinuxPolicy types.SELinuxPolicy)
 	}
 	kubeSELinuxPolicy.Rule = policyType
 
+	SELinux := kokiSELinuxPolicy.SELinux
+	if SELinux.User == "" && SELinux.Role == "" && SELinux.Role == "" && SELinux.Level == "" {
+		return kubeSELinuxPolicy, nil
+	}
+
 	kubeSELinuxPolicy.SELinuxOptions = &v1.SELinuxOptions{
 		User:  kokiSELinuxPolicy.SELinux.User,
 		Role:  kokiSELinuxPolicy.SELinux.Role,

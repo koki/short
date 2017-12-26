@@ -10,7 +10,7 @@ import:
 - package: k8s.io/api
   version: af4bc157c3a209798fc897f6d4aaaaeb6c2e0d6a
 - package: k8s.io/apimachinery
-  version: 180eddb345a5be3a157cea1c624700ad5bd27b8f
+  version: bc1325710437b54535daa5d6877ca62df7bd76db
 - package: k8s.io/apiextensions-apiserver
   version: 98ecf7bbd60f9f11a72000e4f05203f542136219
 

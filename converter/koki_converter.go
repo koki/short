@@ -20,12 +20,15 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiregistrationv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.APIServiceWrapper:
+		return converters.Convert_Koki_APIService_to_Kube_APIService(kokiObj)
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
 	case *types.ControllerRevisionWrapper:
@@ -83,6 +86,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *apiregistrationv1beta1.APIService:
+		return converters.Convert_Kube_APIService_to_Koki_APIService(kubeObj)
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
 	case *apps.ControllerRevision, *appsv1beta1.ControllerRevision, *appsv1beta2.ControllerRevision:

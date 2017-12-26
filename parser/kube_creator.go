@@ -32,6 +32,7 @@ import (
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	apiregistrationv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 )
 
 var (
@@ -73,5 +74,5 @@ func AddToScheme(scheme *runtime.Scheme) {
 	settingsv1alpha1.AddToScheme(scheme)
 	storagev1beta1.AddToScheme(scheme)
 	storagev1.AddToScheme(scheme)
-
+	apiregistrationv1beta1.AddToScheme(scheme)
 }
