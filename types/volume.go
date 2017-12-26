@@ -78,6 +78,7 @@ const (
 	VolumeTypeGit          = "git"
 	VolumeTypeRBD          = "rbd"
 	VolumeTypeStorageOS    = "storageos"
+	VolumeTypeAny          = "*"
 
 	SelectorSegmentReadOnly = "ro"
 )

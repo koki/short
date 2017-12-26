@@ -25,6 +25,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 
 	for k := range objMap {
 		switch k {
+		case "api_service":
+			apiService := &types.APIService{}
+			err := json.Unmarshal(bytes, apiService)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, apiService)
+			}
+			return apiService, nil
 		case "config_map":
 			configMap := &types.ConfigMapWrapper{}
 			err := json.Unmarshal(bytes, configMap)
@@ -130,6 +137,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, podPreset)
 			}
 			return podPreset, nil
+		case "pod_security_policy":
+			podSecurityPolicy := &types.PodSecurityPolicyWrapper{}
+			err = json.Unmarshal(bytes, podSecurityPolicy)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, podSecurityPolicy)
+			}
+			return podSecurityPolicy, nil
 		case "priority_class":
 			priorityClass := &types.PriorityClassWrapper{}
 			err := json.Unmarshal(bytes, priorityClass)

@@ -18,7 +18,7 @@
 # overall flow
 # 1. fetch the current level of k8s.io/kubernetes
 # 2. check out the k8s.io/kubernetes HEAD into a separate branch
-# 3. rewrite the history on that branch to *only* include staging/src/k8s.io/apimachinery
+# 3. rewrite the history on that branch to *only* include staging/src/k8s.io/kube-aggregator
 # 4. locate all commits between the last time we sync'ed and now
 # 5. switch back to the starting branch
 # 6. for each commit, cherry-pick it (which will keep authorship) into current branch
@@ -41,13 +41,21 @@ git checkout upstream-kube/master -b kube-sync
 git reset --hard upstream-kube/master
 newKubeSHA=$(git log --oneline --format='%H' kube-sync -1)
 
-# this command rewrite git history to *only* include staging/src/k8s.io/apimachinery
-git filter-branch -f --subdirectory-filter staging/src/k8s.io/apimachinery HEAD
+# this command rewrite git history to *only* include staging/src/k8s.io/kube-aggregator
+git filter-branch -f --subdirectory-filter staging/src/k8s.io/kube-aggregator HEAD
 
 newBranchSHA=$(git log --oneline --format='%H' kube-sync -1)
 git log --no-merges --format='%H' --reverse ${previousBranchSHA}..HEAD > ${dir}/commits
 
 git checkout ${currBranch}
+
+# we must reset Godeps.json to what it looked like BEFORE the last vendor sync so that any
+# new Godep.json changes from k8s.io/kubernetes will apply cleanly.  Since its always auto-generated
+# it doesn't matter that we're removing it
+lastResyncCommit=$(git rev-list -n 1 --grep "sync: resync vendor folder" HEAD)
+cleanGodepJsonCommit=$(git rev-list -n 1 ${lastResyncCommit}^)
+git checkout ${cleanGodepJsonCommit} Godeps/Godeps.json
+git commit -m "sync: reset Godeps.json" -- Godeps/Godeps.json
 
 while read commitSHA; do
 	echo "working ${commitSHA}"
@@ -62,4 +70,3 @@ ${ROOT}/hack/godep-deps.sh
 echo ${newKubeSHA} > kubernetes-sha
 echo ${newBranchSHA} > filter-branch-sha
 git commit -m "sync(k8s.io/kubernetes): ${newKubeSHA}" -- kubernetes-sha filter-branch-sha
-

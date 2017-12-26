@@ -61,7 +61,7 @@ type Priority struct {
 
 type PodCondition struct {
 	LastProbeTime      metav1.Time      `json:"last_probe_time,omitempty"`
-	LastTransitionTime metav1.Time      `json:"last_transition_time,omitempty"`
+	LastTransitionTime metav1.Time      `json:"last_change,omitempty"`
 	Msg                string           `json:"msg,omitempty"`
 	Reason             string           `json:"reason,omitempty"`
 	Status             ConditionStatus  `json:"status,omitempty"`

@@ -20,12 +20,15 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiregistrationv1beta1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
+	case *types.APIServiceWrapper:
+		return converters.Convert_Koki_APIService_to_Kube_APIService(kokiObj)
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
 	case *types.ControllerRevisionWrapper:
@@ -56,6 +59,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_PodDisruptionBudget_to_Kube_PodDisruptionBudget(kokiObj)
 	case *types.PodPresetWrapper:
 		return converters.Convert_Koki_PodPreset_to_Kube_PodPreset(kokiObj)
+	case *types.PodSecurityPolicyWrapper:
+		return converters.Convert_Koki_PodSecurityPolicy_to_Kube_PodSecurityPolicy(kokiObj)
 	case *types.PodWrapper:
 		return converters.Convert_Koki_Pod_to_Kube_v1_Pod(kokiObj)
 	case *types.PriorityClassWrapper:
@@ -81,6 +86,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 
 func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
+	case *apiregistrationv1beta1.APIService:
+		return converters.Convert_Kube_APIService_to_Koki_APIService(kubeObj)
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
 	case *apps.ControllerRevision, *appsv1beta1.ControllerRevision, *appsv1beta2.ControllerRevision:
@@ -115,6 +122,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_PodDisruptionBudget_to_Koki_PodDisruptionBudget(kubeObj)
 	case *settingsv1alpha1.PodPreset:
 		return converters.Convert_Kube_PodPreset_to_Koki_PodPreset(kubeObj)
+	case *exts.PodSecurityPolicy:
+		return converters.Convert_Kube_PodSecurityPolicy_to_Koki_PodSecurityPolicy(kubeObj)
 	case *v1.ReplicationController:
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
 	case *appsv1beta2.ReplicaSet, *exts.ReplicaSet:

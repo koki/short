@@ -34,23 +34,36 @@ echo ${goPath}
 
 export GOPATH=${goPath}
 
-mkdir -p ${goPath}/src/k8s.io/apimachinery
-cp -R . ${goPath}/src/k8s.io/apimachinery
+mkdir -p ${goPath}/src/k8s.io/kube-aggregator
+cp -R . ${goPath}/src/k8s.io/kube-aggregator
 
-pushd ${goPath}/src/k8s.io/apimachinery
+pushd ${goPath}/src/k8s.io/kube-aggregator
 rm -rf vendor || true
 
 # restore what we have in our new manifest that we've sync
 godep restore
 
+# we have to some crazy schenanigans for client-go until it can keep its syncs up to date
+# we have to restore its old/bad deps
+go get -d k8s.io/client-go/... || true
+pushd ${goPath}/src/k8s.io/client-go
+godep restore
+rm -rf ${goPath}/src/k8s.io/apimachinery
+rm -rf ${goPath}/src/k8s.io/apiserver
+popd 
+
 # the manifest doesn't include any levels of k8s.io dependencies so load them using the go get
 # assume you sync all the repos at the same time, the leves you get will be correct
 go get -d ./... || true
+
 
 # save the new levels of dependencies
 rm -rf vendor || true
 rm -rf Godeps || true
 godep save ./...
+
+# remove the vendored k8s.io/* go files
+rm -rf vendor/k8s.io
 popd
 
 # remove the vendor dir we have and move the one we just made
@@ -58,8 +71,8 @@ rm -rf vendor || true
 rm -rf Godeps || true
 git rm -rf vendor || true
 git rm -rf Godeps || true
-mv ${goPath}/src/k8s.io/apimachinery/vendor .
-mv ${goPath}/src/k8s.io/apimachinery/Godeps .
+mv ${goPath}/src/k8s.io/kube-aggregator/vendor .
+mv ${goPath}/src/k8s.io/kube-aggregator/Godeps .
 git add vendor
 git add Godeps
 git commit -m "sync: resync vendor folder"

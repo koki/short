@@ -1,5 +1,5 @@
-hash: 6d8845cfb002ac2d181243ea639b640424148708481ef8253266a14d5f1c22a8
-updated: 2017-12-18T21:25:51.640274183-08:00
+hash: 385ae28e09b27cf5bd402826e7fff50dcfc9600b39a0dbd1dfc16792f566b35c
+updated: 2017-12-25T15:57:09.038283212-08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -111,8 +111,11 @@ imports:
   - storage/v1beta1
 - name: k8s.io/apiextensions-apiserver
   version: 98ecf7bbd60f9f11a72000e4f05203f542136219
+  subpackages:
+  - pkg/apis/apiextensions
+  - pkg/apis/apiextensions/v1beta1
 - name: k8s.io/apimachinery
-  version: 180eddb345a5be3a157cea1c624700ad5bd27b8f
+  version: bc1325710437b54535daa5d6877ca62df7bd76db
   subpackages:
   - pkg/api/resource
   - pkg/apis/meta/v1
@@ -143,6 +146,11 @@ imports:
   - pkg/util/yaml
   - pkg/watch
   - third_party/forked/golang/reflect
+- name: k8s.io/kube-aggregator
+  version: dbe4c5de52899eca980328b8754ec28804336d51
+  subpackages:
+  - pkg/apis/apiregistration
+  - pkg/apis/apiregistration/v1beta1
 - name: k8s.io/kube-openapi
   version: 39a7bf85c140f972372c2a0d1ee40adbf0c8bfe1
   subpackages:

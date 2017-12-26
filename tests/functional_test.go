@@ -176,6 +176,13 @@ func TestPodPreset(t *testing.T) {
 	}
 }
 
+func TestPodSecurityPolicy(t *testing.T) {
+	err := testResource("pod_security_policy", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
