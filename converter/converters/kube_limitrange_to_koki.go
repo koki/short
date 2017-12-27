@@ -60,6 +60,10 @@ func convertLimitRangeItem(kubeItem v1.LimitRangeItem) (types.LimitRangeItem, er
 }
 
 func convertLimitType(kubeItem v1.LimitType) (types.LimitType, error) {
+	if len(kubeItem) == 0 {
+		return "", nil
+	}
+
 	switch kubeItem {
 	case v1.LimitTypePod:
 		return types.LimitTypePod, nil

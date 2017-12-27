@@ -64,6 +64,10 @@ func revertLimitRangeItem(kokiItem types.LimitRangeItem) (v1.LimitRangeItem, err
 }
 
 func revertLimitType(kokiType types.LimitType) (v1.LimitType, error) {
+	if len(kokiType) == 0 {
+		return "", nil
+	}
+
 	switch kokiType {
 	case types.LimitTypePod:
 		return v1.LimitTypePod, nil
