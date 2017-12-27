@@ -17,6 +17,8 @@ type CustomResourceDefinition struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// Spec::CRDSpec
+	//   Group::string, Version::string, Names::CRDNames
 	CRDMeta    CRDMeta                 `json:"meta,omitempty"`
 	Scope      CRDResourceScope        `json:"scope,omitempty"`
 	Validation *apiext.JSONSchemaProps `json:"validation"`
@@ -72,5 +74,5 @@ type CRDCondition struct {
 	LastTransitionTime metav1.Time `json:"last_change,omitempty"`
 	// Unique, one-word, CamelCase reason for the condition's last transition.
 	Reason  string `json:"reason"`
-	Message string `json:"message"`
+	Message string `json:"msg"`
 }

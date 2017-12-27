@@ -10,7 +10,9 @@ pages:
  - Resources: 
    - Introduction: resources/index.md
    - ConfigMap: resources/config-map.md
+   - ControllerRevision: resources/controller-revision.md
    - CronJob: resources/cron-job.md
+   - CustomResourceDefinition: resources/custom-resource-definition.md
    - DaemonSet: resources/daemon-set.md
    - Deployment: resources/deployment.md
    - Endpoint: resources/endpoint.md

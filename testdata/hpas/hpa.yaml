@@ -1,0 +1,19 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: test-hpa
+spec:
+  maxReplicas: 5
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: core.v1
+    kind: Pod
+    name: test-pod
+  targetCPUUtilizationPercentage: 70
+status:
+  currentCPUUtilizationPercentage: 80
+  currentReplicas: 2
+  desiredReplicas: 3
+  lastScaleTime: 2017-01-01T00:00:00Z
+  observedGeneration: 10
+
