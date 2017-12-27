@@ -32,39 +32,39 @@ func Convert_Koki_LimitRange_to_Kube(wrapper *types.LimitRangeWrapper) (*v1.Limi
 	return kube, nil
 }
 
-func revertLimitRangeItems(kokis []types.LimitRangeItem) ([]v1.LimitRangeItem, error) {
-	if len(kokis) == 0 {
+func revertLimitRangeItems(kokiItems []types.LimitRangeItem) ([]v1.LimitRangeItem, error) {
+	if len(kokiItems) == 0 {
 		return nil, nil
 	}
 
 	var err error
-	kubes := make([]v1.LimitRangeItem, len(kokis))
-	for i, koki := range kokis {
-		kubes[i], err = revertLimitRangeItem(koki)
+	kubeItems := make([]v1.LimitRangeItem, len(kokiItems))
+	for i, kokiItem := range kokiItems {
+		kubeItems[i], err = revertLimitRangeItem(kokiItem)
 		if err != nil {
 			return nil, serrors.ContextualizeErrorf(err, "[%d]", i)
 		}
 	}
 
-	return kubes, nil
+	return kubeItems, nil
 }
 
-func revertLimitRangeItem(koki types.LimitRangeItem) (v1.LimitRangeItem, error) {
-	kube := v1.LimitRangeItem{
-		Max:                  koki.Max,
-		Min:                  koki.Min,
-		Default:              koki.Default,
-		DefaultRequest:       koki.DefaultRequest,
-		MaxLimitRequestRatio: koki.MaxLimitRequestRatio,
+func revertLimitRangeItem(kokiItem types.LimitRangeItem) (v1.LimitRangeItem, error) {
+	kubeItem := v1.LimitRangeItem{
+		Max:                  kokiItem.Max,
+		Min:                  kokiItem.Min,
+		Default:              kokiItem.Default,
+		DefaultRequest:       kokiItem.DefaultRequest,
+		MaxLimitRequestRatio: kokiItem.MaxLimitRequestRatio,
 	}
 
 	var err error
-	kube.Type, err = revertLimitType(koki.Type)
-	return kube, err
+	kubeItem.Type, err = revertLimitType(kokiItem.Type)
+	return kubeItem, err
 }
 
-func revertLimitType(koki types.LimitType) (v1.LimitType, error) {
-	switch koki {
+func revertLimitType(kokiType types.LimitType) (v1.LimitType, error) {
+	switch kokiType {
 	case types.LimitTypePod:
 		return v1.LimitTypePod, nil
 	case types.LimitTypeContainer:
@@ -72,6 +72,6 @@ func revertLimitType(koki types.LimitType) (v1.LimitType, error) {
 	case types.LimitTypePersistentVolumeClaim:
 		return v1.LimitTypePersistentVolumeClaim, nil
 	default:
-		return "", serrors.InvalidInstanceError(koki)
+		return "", serrors.InvalidInstanceError(kokiType)
 	}
 }
