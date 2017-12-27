@@ -29,6 +29,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	switch kokiObj := kokiObj.(type) {
 	case *types.APIServiceWrapper:
 		return converters.Convert_Koki_APIService_to_Kube_APIService(kokiObj)
+	case *types.BindingWrapper:
+		return converters.Convert_Koki_Binding_to_Kube_Binding(kokiObj)
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
 	case *types.ControllerRevisionWrapper:
@@ -51,6 +53,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_InitializerConfig_to_Kube_InitializerConfig(kokiObj)
 	case *types.JobWrapper:
 		return converters.Convert_Koki_Job_to_Kube_Job(kokiObj)
+	case *types.NamespaceWrapper:
+		return converters.Convert_Koki_Namespace_to_Kube_Namespace(kokiObj)
 	case *types.PersistentVolumeClaimWrapper:
 		return converters.Convert_Koki_PVC_to_Kube_PVC(kokiObj)
 	case *types.PersistentVolumeWrapper:
@@ -88,6 +92,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	switch kubeObj := kubeObj.(type) {
 	case *apiregistrationv1beta1.APIService:
 		return converters.Convert_Kube_APIService_to_Koki_APIService(kubeObj)
+	case *v1.Binding:
+		return converters.Convert_Kube_Binding_to_Koki_Binding(kubeObj)
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
 	case *apps.ControllerRevision, *appsv1beta1.ControllerRevision, *appsv1beta2.ControllerRevision:
@@ -110,6 +116,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_InitializerConfig_to_Koki_InitializerConfig(kubeObj)
 	case *batchv1.Job:
 		return converters.Convert_Kube_Job_to_Koki_Job(kubeObj)
+	case *v1.Namespace:
+		return converters.Convert_Kube_Namespace_to_Koki_Namespace(kubeObj)
 	case *v1.PersistentVolume:
 		return converters.Convert_Kube_v1_PersistentVolume_to_Koki_PersistentVolume(kubeObj)
 	case *v1.PersistentVolumeClaim:

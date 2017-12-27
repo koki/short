@@ -32,6 +32,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, apiService)
 			}
 			return apiService, nil
+		case "binding":
+			binding := &types.BindingWrapper{}
+			err := json.Unmarshal(bytes, binding)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, binding)
+			}
+			return binding, nil
 		case "config_map":
 			configMap := &types.ConfigMapWrapper{}
 			err := json.Unmarshal(bytes, configMap)
@@ -109,6 +116,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, job)
 			}
 			return job, nil
+		case "namespace":
+			namespace := &types.NamespaceWrapper{}
+			err := json.Unmarshal(bytes, namespace)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, namespace)
+			}
+			return namespace, nil
 		case "pdb":
 			pdb := &types.PodDisruptionBudgetWrapper{}
 			err := json.Unmarshal(bytes, pdb)

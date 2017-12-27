@@ -17,7 +17,7 @@ type Event struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// The object that this event is about.
-	InvolvedObject ObjectReference `json:"involved" protobuf:"bytes,2,opt,name=involvedObject"`
+	InvolvedObject ObjectReference `json:"involved"`
 
 	Reason  string `json:"reason,omitempty"`
 	Message string `json:"message,omitempty"`
@@ -33,7 +33,7 @@ type Event struct {
 	Count         int32       `json:"count,omitempty"`
 	Type          string      `json:"type,omitempty"`
 	// first observed
-	EventTime metav1.MicroTime `json:"first_observed,omitempty" protobuf:"bytes,10,opt,name=eventTime"`
+	EventTime metav1.MicroTime `json:"first_observed,omitempty"`
 
 	// Series::*EventSeries
 	// Number of occurrences in this series up to the last heartbeat time
