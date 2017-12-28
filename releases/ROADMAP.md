@@ -20,13 +20,15 @@ Catches typos by looking for extraneous fields in the input file.
 
 Parameterization and templating support for Short manifests.
 
-Chrome plugin and backend server for converting Kubernetes YAMLs on GitHub.
+Chrome plugin and backend server for converting Kubernetes YAMLs on GitHub: https://github.com/koki/kubernetes-viewer
+
+Drone plugin for KubeCI: https://github.com/koki/short-drone-plugin
 
 # Planned Features:
 
 * Support every Kubernetes resource type.
 * Support older versions of Kubernetes resource types.
-* Drone plugin for KubeCI.
-* Support Kops resource types.
+* Support GitHub Gists in the Chrome plugin.
+* Support Helm charts.
 
 
