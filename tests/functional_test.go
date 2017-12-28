@@ -183,6 +183,20 @@ func TestPodSecurityPolicy(t *testing.T) {
 	}
 }
 
+func TestLimitRange(t *testing.T) {
+	err := testResource("limit_range", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestHorizontalPodAutoscaler(t *testing.T) {
+	err := testResource("hpas", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

@@ -1,0 +1,19 @@
+limit_range:
+  name: test-limits
+  limits:
+  - max:
+      cpu: 2
+      memory: 16G
+    min:
+      cpu: 1m
+      memory: 128M
+    default_max:
+      cpu: 100m
+      memory: 1G
+    default_min:
+      cpu: 50m
+      memory: 500M
+    max_burst_ratio:
+      cpu: "2"
+      memory: "1.5"
+  version: v1
