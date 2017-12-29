@@ -197,6 +197,13 @@ func TestHorizontalPodAutoscaler(t *testing.T) {
 	}
 }
 
+func TestClusterRole(t *testing.T) {
+	err := testResource("cluster_roles", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

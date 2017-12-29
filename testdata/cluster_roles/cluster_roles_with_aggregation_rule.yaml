@@ -1,0 +1,50 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-role-test
+  namespace: namespace-test
+aggregationRule:
+  clusterRoleSelectors:
+  - matchExpressions:
+    - key: key1
+      operator: In
+      values:
+      - val1a
+      - val1b
+    - key: key2
+      operator: DoesNotExist
+    matchLabels:
+      key: val
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - replicationcontrollers/scale
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - extensions
+  resources:
+  - deployments/scale
+  - replicasets/scale
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - create
+- nonResourceURLs:
+  - /api
+  verbs:
+  - all
