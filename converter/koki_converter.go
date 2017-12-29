@@ -16,6 +16,7 @@ import (
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	rbac "k8s.io/api/rbac/v1"
 	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
 	settingsv1alpha1 "k8s.io/api/settings/v1alpha1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -32,6 +33,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_APIService_to_Kube_APIService(kokiObj)
 	case *types.BindingWrapper:
 		return converters.Convert_Koki_Binding_to_Kube_Binding(kokiObj)
+	case *types.ClusterRoleWrapper:
+		return converters.Convert_Koki_ClusterRole_to_Kube(kokiObj)
 	case *types.ConfigMapWrapper:
 		return converters.Convert_Koki_ConfigMap_to_Kube_v1_ConfigMap(kokiObj)
 	case *types.ControllerRevisionWrapper:
@@ -99,6 +102,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_APIService_to_Koki_APIService(kubeObj)
 	case *v1.Binding:
 		return converters.Convert_Kube_Binding_to_Koki_Binding(kubeObj)
+	case *rbac.ClusterRole:
+		return converters.Convert_Kube_ClusterRole_to_Koki(kubeObj)
 	case *v1.ConfigMap:
 		return converters.Convert_Kube_v1_ConfigMap_to_Koki_ConfigMap(kubeObj)
 	case *apps.ControllerRevision, *appsv1beta1.ControllerRevision, *appsv1beta2.ControllerRevision:

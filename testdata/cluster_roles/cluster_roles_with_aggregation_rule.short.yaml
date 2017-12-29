@@ -1,0 +1,40 @@
+cluster_role:
+  aggregation:
+  - key=val&key1=val1a,val1b&!key2
+  name: cluster-role-test
+  namespace: namespace-test
+  rules:
+  - groups:
+    - ""
+    resources:
+    - nodes
+    verbs:
+    - list
+  - groups:
+    - ""
+    resources:
+    - replicationcontrollers/scale
+    verbs:
+    - get
+    - update
+  - groups:
+    - extensions
+    resources:
+    - deployments/scale
+    - replicasets/scale
+    verbs:
+    - get
+    - update
+  - groups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - create
+  - non_resource_urls:
+    - /api
+    verbs:
+    - all
+  version: rbac.authorization.k8s.io/v1
+
