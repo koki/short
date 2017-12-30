@@ -46,6 +46,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
 			}
 			return result, nil
+		case "cluster_role_binding":
+			result := &types.ClusterRoleBindingWrapper{}
+			err := json.Unmarshal(bytes, result)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, result)
+			}
+			return result, nil
 		case "config_map":
 			configMap := &types.ConfigMapWrapper{}
 			err := json.Unmarshal(bytes, configMap)
