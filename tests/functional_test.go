@@ -204,6 +204,13 @@ func TestClusterRole(t *testing.T) {
 	}
 }
 
+func TestClusterRoleBinding(t *testing.T) {
+	err := testResource("cluster_role_bindings", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string
