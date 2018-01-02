@@ -13,6 +13,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
+	certificatesv1beta1 "k8s.io/api/certificates/v1beta1"
 	"k8s.io/api/core/v1"
 	exts "k8s.io/api/extensions/v1beta1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -33,6 +34,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_APIService_to_Kube_APIService(kokiObj)
 	case *types.BindingWrapper:
 		return converters.Convert_Koki_Binding_to_Kube_Binding(kokiObj)
+	case *types.CertificateSigningRequestWrapper:
+		return converters.Convert_Koki_CSR_to_Kube_CSR(kokiObj)
 	case *types.ClusterRoleWrapper:
 		return converters.Convert_Koki_ClusterRole_to_Kube(kokiObj)
 	case *types.ClusterRoleBindingWrapper:
@@ -104,6 +107,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_APIService_to_Koki_APIService(kubeObj)
 	case *v1.Binding:
 		return converters.Convert_Kube_Binding_to_Koki_Binding(kubeObj)
+	case *certificatesv1beta1.CertificateSigningRequest:
+		return converters.Convert_Kube_CSR_to_Koki_CSR(kubeObj)
 	case *rbac.ClusterRole:
 		return converters.Convert_Kube_ClusterRole_to_Koki(kubeObj)
 	case *rbac.ClusterRoleBinding:
