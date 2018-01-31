@@ -1,6 +1,23 @@
 # Modules
 
-Modules facilitate the reuse and composition of Koki resources.
+Modular systems are composed of separable pieces (called _modules_) that can evolve independently and be recombined in different ways for new applications.
+
+## Motivation
+
+Why do modules matter?
+
+First, modules reduce duplication. Rather than duplicating code in multiple places, put it in a single shared module.
+Wherever you'd copy-paste, simply reference the module.
+This approach often yields more maintainable code—instead of changing the same code in multiple files, just change it in the shared module.
+
+Second, modules establish boundaries between different parts of a system.
+This allows different members of a team to focus only on the parts that matter to them.
+For example, one member of the team might be responsible for a sidecar container module that is used in another team member's Pod templates.
+
+Third, existing modules can be reused and recombined to build new applications.
+It's much more costly to create a new application from scratch.
+
+## Overview
 
 Reuse comes from the ability to configure a module by supplying parameter values.
 Composition comes from the ability to import other modules into a module.
