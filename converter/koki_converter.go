@@ -90,6 +90,8 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_Secret_to_Kube_v1_Secret(kokiObj)
 	case *types.ServiceWrapper:
 		return converters.Convert_Koki_Service_To_Kube_v1_Service(kokiObj)
+	case *types.ServiceAccountWrapper:
+		return converters.Convert_Koki_ServiceAccount_to_Kube_ServiceAccount(kokiObj)
 	case *types.StatefulSetWrapper:
 		return converters.Convert_Koki_StatefulSet_to_Kube_StatefulSet(kokiObj)
 	case *types.StorageClassWrapper:
@@ -163,6 +165,8 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_Secret_to_Koki_Secret(kubeObj)
 	case *v1.Service:
 		return converters.Convert_Kube_v1_Service_to_Koki_Service(kubeObj)
+	case *v1.ServiceAccount:
+		return converters.Convert_Kube_ServiceAccount_to_Koki_ServiceAccount(kubeObj)
 	case *appsv1beta1.StatefulSet, *appsv1beta2.StatefulSet:
 		return converters.Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeObj)
 	case *storagev1.StorageClass, *storagev1beta1.StorageClass:
