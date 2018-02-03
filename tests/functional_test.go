@@ -218,6 +218,13 @@ func TestCertificateSigningRequest(t *testing.T) {
 	}
 }
 
+func TestServiceAccounts(t *testing.T) {
+	err := testResource("serviceaccounts", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

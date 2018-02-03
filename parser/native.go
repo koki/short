@@ -235,6 +235,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, service)
 			}
 			return service, nil
+		case "service_account":
+			serviceAccount := &types.ServiceAccountWrapper{}
+			err := json.Unmarshal(bytes, serviceAccount)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, serviceAccount)
+			}
+			return serviceAccount, nil
 		case "stateful_set":
 			statefulSet := &types.StatefulSetWrapper{}
 			err := json.Unmarshal(bytes, statefulSet)
