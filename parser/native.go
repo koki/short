@@ -193,6 +193,13 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, podSecurityPolicy)
 			}
 			return podSecurityPolicy, nil
+		case "pod_template":
+			podTemplate := &types.PodTemplateWrapper{}
+			err = json.Unmarshal(bytes, podTemplate)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, podTemplate)
+			}
+			return podTemplate, nil
 		case "priority_class":
 			priorityClass := &types.PriorityClassWrapper{}
 			err := json.Unmarshal(bytes, priorityClass)

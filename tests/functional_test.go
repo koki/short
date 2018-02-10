@@ -225,6 +225,13 @@ func TestServiceAccounts(t *testing.T) {
 	}
 }
 
+func TestPodTemplates(t *testing.T) {
+	err := testResource("pod_templates", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type filePair struct {
 	kubeSpec   string
 	kokiSpec   string

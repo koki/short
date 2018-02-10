@@ -1,0 +1,120 @@
+pod_template:
+  annotations:
+    meta: _test
+  cluster: test_cluster
+  labels:
+    app: meta_test
+  name: meta_test
+  namespace: test
+  version: v1
+  pod_meta:
+    annotations:
+      meta: _test_pod
+    cluster: test_pod_cluster
+    labels:
+      app: meta_pod_test
+    name: meta_pod_test
+    namespace: pod_test
+  active_deadline: 213
+  containers:
+  - allow_escalation: true
+    args:
+    - set
+    - of
+    - args
+    cap_add:
+    - NET_ADMIN
+    - PID
+    cap_drop:
+    - NET_ADMIN
+    - WALK
+    command:
+    - set
+    - of
+    - commands
+    cpu:
+      max: "1"
+      min: 250m
+    env:
+    - key=value
+    - from: status.hostIP
+      key: key
+    - from: requests.cpu
+      key: key
+    - from: config:configMapName:key.in.map
+      key: key
+      required: true
+    - from: secret:secretName:key.in.secret
+      key: key
+      required: true
+    - from: config:configMapName
+      key: FROM_CONFIG_
+      required: true
+    - from: secret:secretName
+      key: FROM_SECRET_
+    expose:
+    - port_name: 8080:80
+    force_non_root: true
+    image: container_image
+    liveness_probe:
+      delay: 3
+      interval: 3
+      net:
+        headers:
+        - X-Custom-Header:Awesome
+        url: HTTP://localhost:8080/healthz
+    mem:
+      max: 256M
+      min: 64M
+    name: container_name
+    on_start:
+      net:
+        headers:
+        - X-Custom-Header:Awesome
+        url: HTTP://localhost:8080/healthz
+    pre_stop:
+      command:
+      - cat
+      - /tmp/healthy
+    privileged: true
+    pull: always
+    readiness_probe:
+      delay: 5
+      interval: 10
+      net:
+        url: TCP://:8080
+    ro: true
+    selinux:
+      level: level
+      role: role
+      type: type
+      user: user
+    stdin: true
+    stdin_once: true
+    termination_msg_path: /path/to/termination
+    termination_msg_policy: file
+    tty: true
+    uid: 8
+    volume:
+    - mount: /var/lib/vol
+      propagation: bidirectional
+      store: host_path_test_volume:/var/lib/sub/path:ro
+    - mount: /var/lib/vol
+      propagation: host-to-container
+      store: empty_dir_test_volume:/var/lib/sub/path
+    - mount: /var/lib/vol
+      propagation: host-to-container
+      store: gce_pd_test_volume:/var/lib/sub/path
+    wd: /path/to/wd
+  volumes:
+    empty_dir_test_volume:
+      max_size: 100m
+      medium: memory
+      vol_type: empty_dir
+    gce_pd_test_volume:
+      fs: ext4
+      partition: 1
+      ro: true
+      vol_id: gce_pd_test_volume
+      vol_type: gce_pd
+    host_path_test_volume: host_path:/path/to/host/vol:dir
