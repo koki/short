@@ -29,13 +29,13 @@ pod:
       key: key
     - from: config:configMapName:key.in.map
       key: key
-      required: true
+      required: false
     - from: secret:secretName:key.in.secret
       key: key
       required: true
     - from: config:configMapName
       key: FROM_CONFIG_
-      required: true
+      required: false
     - from: secret:secretName
       key: FROM_SECRET_
     expose:

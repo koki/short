@@ -59,7 +59,7 @@ spec:
     - prefix: FROM_CONFIG_
       configMapRef: 
         name: configMapName
-        optional: true
+        optional: false
     - prefix: FROM_SECRET_
       secretRef:
         name: secretName
@@ -79,13 +79,13 @@ spec:
         configMapKeyRef:
           name: configMapName
           key: key.in.map
-          optional: true
+          optional: false
     - name: key
       valueFrom:
         secretKeyRef:
           name: secretName
           key: key.in.secret
-          optional: true
+          optional: false
     resources:
       limits:
         memory: "256M"

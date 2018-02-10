@@ -34,7 +34,7 @@ spec:
         configMapKeyRef:
           key: key.in.map
           name: configMapName
-          optional: false
+          optional: true
     - name: key
       valueFrom:
         secretKeyRef:
@@ -44,7 +44,7 @@ spec:
     envFrom:
     - configMapRef:
         name: configMapName
-        optional: false
+        optional: true
       prefix: FROM_CONFIG_
     - prefix: FROM_SECRET_
       secretRef:
