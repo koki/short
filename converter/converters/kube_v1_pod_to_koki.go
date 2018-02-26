@@ -1192,12 +1192,12 @@ func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env 
 		}
 		if v.ValueFrom.ConfigMapKeyRef != nil {
 			e.From = fmt.Sprintf("config:%s:%s", v.ValueFrom.ConfigMapKeyRef.Name, v.ValueFrom.ConfigMapKeyRef.Key)
-			required := v.ValueFrom.ConfigMapKeyRef.Optional
+			required := convertOptionalToRequired(v.ValueFrom.ConfigMapKeyRef.Optional)
 			e.Required = required
 		}
 		if v.ValueFrom.SecretKeyRef != nil {
 			e.From = fmt.Sprintf("secret:%s:%s", v.ValueFrom.SecretKeyRef.Name, v.ValueFrom.SecretKeyRef.Key)
-			required := v.ValueFrom.SecretKeyRef.Optional
+			required := convertOptionalToRequired(v.ValueFrom.SecretKeyRef.Optional)
 			e.Required = required
 		}
 		kokiEnvs = append(kokiEnvs, types.EnvWithFrom(e))
@@ -1208,12 +1208,12 @@ func convertEnvVars(env []v1.EnvVar, envFromSrc []v1.EnvFromSource) []types.Env 
 		e.Key = v.Prefix
 		if v.ConfigMapRef != nil {
 			e.From = fmt.Sprintf("config:%s", v.ConfigMapRef.Name)
-			required := v.ConfigMapRef.Optional
+			required := convertOptionalToRequired(v.ConfigMapRef.Optional)
 			e.Required = required
 		}
 		if v.SecretRef != nil {
 			e.From = fmt.Sprintf("secret:%s", v.SecretRef.Name)
-			required := v.SecretRef.Optional
+			required := convertOptionalToRequired(v.SecretRef.Optional)
 			e.Required = required
 		}
 		kokiEnvs = append(kokiEnvs, types.EnvWithFrom(e))

@@ -72,7 +72,7 @@ spec:
         secretKeyRef:
           name: secretName
           key: key.in.secret
-          optional: true
+          optional: false
     resources:
       limits:
         memory: "256M"
