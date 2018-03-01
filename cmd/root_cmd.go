@@ -12,6 +12,7 @@ import (
 
 	"github.com/koki/short/client"
 	"github.com/koki/short/parser"
+	"github.com/koki/short/plugin"
 	serrors "github.com/koki/structurederrors"
 )
 
@@ -71,6 +72,8 @@ Full documentation available at https://docs.koki.io/short
 	verboseErrors bool
 	// debugImportsDepth is the number of levels of imports to output debug info for
 	debugImportsDepth int
+	// plugin to execute for installing to kubernetes cluster
+	pluginName string
 )
 
 const (
@@ -86,6 +89,7 @@ func init() {
 	RootCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence output to stdout")
 	RootCmd.Flags().BoolVarP(&verboseErrors, "verbose-errors", "", false, "include more information in errors")
 	RootCmd.Flags().IntVarP(&debugImportsDepth, "debug-imports-depth", "", defaultDebugImportsDepth, "how many levels of imports to output debug info for")
+	RootCmd.Flags().StringVarP(&pluginName, "plugin", "p", "", "The plugin to execute for installing to kubernetes cluster")
 
 	// parse the go default flagset to get flags for glog and other packages in future
 	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
@@ -97,6 +101,7 @@ func init() {
 	flag.CommandLine.Parse([]string{})
 
 	RootCmd.AddCommand(versionCmd)
+	RootCmd.AddCommand(pluginCmd)
 }
 
 func short(c *cobra.Command, args []string) error {
@@ -203,7 +208,11 @@ func short(c *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Printf("%s\n", buf.String())
+	if pluginName != "" {
+		return plugin.Install(pluginName, buf)
+	} else {
+		fmt.Printf("%s\n", buf.String())
+	}
 
 	return nil
 }
