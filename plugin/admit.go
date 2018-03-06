@@ -1,19 +1,27 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"plugin"
 
 	"github.com/golang/glog"
+
+	"github.com/koki/short/parser"
 )
 
-func Admit(pluginName string, filename string, datas []map[string]interface{}, toKube bool, cache map[string]interface{}) ([]map[string]interface{}, error) {
-	glog.V(3).Info("loading plugin ", pluginName)
-	loadedPlugin, err := plugin.Open(filepath.Join(PluginDir, pluginName))
+func Admit(ctx context.Context, objects []map[string]interface{}) ([]map[string]interface{}, error) {
+	cfg := ctx.Value("config").(*AdmitterContext)
+	if cfg == nil {
+		return nil, fmt.Errorf("empty config for admitter")
+	}
+
+	glog.V(3).Info("loading plugin ", cfg.PluginName)
+	loadedPlugin, err := plugin.Open(filepath.Join(PluginDir, cfg.PluginName))
 	if err != nil {
-		glog.Errorf("Error loading path %s: [%v]", filepath.Join(PluginDir, pluginName), err)
+		glog.Errorf("Error loading path %s: [%v]", filepath.Join(PluginDir, cfg.PluginName), err)
 		return nil, err
 	}
 
@@ -28,25 +36,52 @@ func Admit(pluginName string, filename string, datas []map[string]interface{}, t
 		return nil, fmt.Errorf("Plugin is not of type admitter")
 	}
 
-	glog.V(3).Infof("Admitting resources from filename %s ", filename)
-	result, err := admitter.Admit(filename, datas, toKube, cache)
-	if err != nil {
-		return nil, err
+	glog.V(3).Infof("Admitting resources from filename %s ", cfg.Filename)
+
+	filteredObjs := []map[string]interface{}{}
+	for i := range objects {
+		untypedObject := objects[i]
+
+		var object interface{}
+		var err error
+
+		if cfg.KubeNative {
+			object, err = parser.ParseKokiNativeObject(untypedObject)
+		} else {
+			object, err = parser.ParseSingleKubeNative(untypedObject)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		if len(untypedObject) != 1 {
+			return nil, fmt.Errorf("Invalid input data")
+		}
+
+		for k := range untypedObject {
+			cfg.ResourceType = k
+		}
+
+		admissionCtx := context.WithValue(ctx, "config", cfg)
+		result, err := admitter.Admit(admissionCtx, object)
+		if err != nil {
+			return nil, err
+		}
+
+		b, err := json.Marshal(result)
+		if err != nil {
+			return nil, err
+		}
+
+		filteredObj := map[string]interface{}{}
+		err = json.Unmarshal(b, &filteredObj)
+		if err != nil {
+			return nil, fmt.Errorf("Error unmarshalling admitter output to map[string]interface{} %v", err)
+		}
+
+		filteredObjs = append(filteredObjs, filteredObj)
 	}
 
-	toRet := map[string]interface{}{}
-	toRets := []map[string]interface{}{}
-
-	b, err := json.Marshal(result)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(b, &toRet)
-	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling admitter output to map[string]interface{} %v", err)
-	}
-	toRets = append(toRets, toRet)
-
-	return toRets, nil
+	return filteredObjs, nil
 }

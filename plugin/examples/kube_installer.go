@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
 
+	"github.com/koki/short/plugin"
 	"github.com/koki/short/types"
 )
 
@@ -13,62 +15,24 @@ var KokiPlugin kokiPlugin
 
 type kokiPlugin struct{}
 
-func (k *kokiPlugin) Admit(filename string, data []map[string]interface{}, toKube bool, cache map[string]interface{}) (interface{}, error) {
-	if !toKube {
-		return data, nil
+func (k *kokiPlugin) Admit(ctx context.Context, resource interface{}) (interface{}, error) {
+	cfg := ctx.Value("config").(*plugin.AdmitterContext)
+	if cfg == nil {
+		return nil, fmt.Errorf("Empty context provided")
 	}
 
-	for _, resource := range data {
-		for k := range resource {
-			if k == "config_map" {
-				cm := resource[k].(map[string]interface{})
-				if _, ok := cm["data"]; !ok {
-					continue
-				}
-				resourceData := cm["data"].(map[string]interface{})
-				configMapName := ""
-				configMapMountPath := ""
-				appName := ""
-				image := ""
-				port := ""
-				cmd := ""
-
-				if cmName, ok := resourceData["config_map"]; ok {
-					configMapName = cmName.(string)
-				} else {
-					continue
-				}
-				if mountPath, ok := resourceData["config_map_mount_path"]; ok {
-					configMapMountPath = mountPath.(string)
-				} else {
-					continue
-				}
-				if appNameInterface, ok := resourceData["name"]; ok {
-					appName = appNameInterface.(string)
-				} else {
-					continue
-				}
-				if imageInterface, ok := resourceData["image"]; ok {
-					image = imageInterface.(string)
-				} else {
-					continue
-				}
-				if portInterface, ok := resourceData["port"]; ok {
-					port = portInterface.(string)
-				} else {
-					continue
-				}
-				if cmdInterface, ok := resourceData["cmd"]; ok {
-					cmd = cmdInterface.(string)
-				} else {
-					continue
-				}
-
-				return generatePodSpec(configMapName, configMapMountPath, appName, image, port, []string{cmd})
-			}
-		}
+	if cfg.KubeNative == false {
+		return resource, nil
 	}
-	return data, nil
+
+	if cfg.ResourceType == "config_map" {
+		configMap := resource.(*types.ConfigMapWrapper)
+
+		data := configMap.ConfigMap.Data
+
+		return generatePerceptorSpec(configMap.ConfigMap.Name, data["config_map_mount_path"], data["name"], data["image"], data["port"], []string{data["cmd"]})
+	}
+	return resource, nil
 }
 
 func (k *kokiPlugin) Install(buf *bytes.Buffer) error {
@@ -93,7 +57,7 @@ func (k *kokiPlugin) Install(buf *bytes.Buffer) error {
 	return nil
 }
 
-func generatePodSpec(configMapName, configMapMountPath, appName, image, port string, cmd []string) (interface{}, error) {
+func generatePerceptorSpec(configMapName, configMapMountPath, appName, image, port string, cmd []string) (interface{}, error) {
 	container := types.Container{
 		Name:    appName,
 		Image:   image,

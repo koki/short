@@ -13,5 +13,5 @@ cd $src_dir/..
 #create output dir if none exists
 mkdir -p bin
 
-#build a static go binary
-CGO_ENABLED=0 go build -ldflags "-X github.com/koki/short/cmd.GITCOMMIT=$VERSION" -o bin/short
+#using a linkable binary for plugin support
+CGO_ENABLED=1 go build -ldflags "-X github.com/koki/short/cmd.GITCOMMIT=$VERSION" -o bin/short
