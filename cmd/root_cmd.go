@@ -66,14 +66,12 @@ Full documentation available at https://docs.koki.io/short
 	filenames []string
 	// output denotes the destination of the converted data
 	output string
-	// silent denotes that the conversion output should not be printed to stdout
-	silent bool
+	// dryRun denotes that none of the activate installed should be invoked
+	dryRun bool
 	// verboseErrors denotes that error messages should contain full information instead of just a summary
 	verboseErrors bool
 	// debugImportsDepth is the number of levels of imports to output debug info for
 	debugImportsDepth int
-	// plugin to execute for installing to kubernetes cluster
-	pluginName string
 )
 
 const (
@@ -86,10 +84,9 @@ func init() {
 	RootCmd.Flags().BoolVarP(&kubeNative, "kube-native", "k", false, "convert to kube-native syntax")
 	RootCmd.Flags().StringSliceVarP(&filenames, "filenames", "f", nil, "path or url to input files to read manifests")
 	RootCmd.Flags().StringVarP(&output, "output", "o", "yaml", "output format (yaml*|json)")
-	RootCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence output to stdout")
+	RootCmd.Flags().BoolVarP(&dryRun, "dry-run", "r", false, "do not invoke any installers")
 	RootCmd.Flags().BoolVarP(&verboseErrors, "verbose-errors", "", false, "include more information in errors")
 	RootCmd.Flags().IntVarP(&debugImportsDepth, "debug-imports-depth", "", defaultDebugImportsDepth, "how many levels of imports to output debug info for")
-	RootCmd.Flags().StringVarP(&pluginName, "plugin", "p", "", "The plugin to execute for installing to kubernetes cluster")
 
 	// parse the go default flagset to get flags for glog and other packages in future
 	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
@@ -164,8 +161,16 @@ func short(c *cobra.Command, args []string) error {
 			}
 		}
 
+		admitterCache := map[string]interface{}{}
+
 		convertedData = []interface{}{}
-		for filename, data := range fileDatas {
+		for filename, unfilteredData := range fileDatas {
+			if err != nil {
+				return err
+			}
+
+			glog.Errorf("running admitters")
+			data, err := plugin.RunAdmitters(filename, unfilteredData, kubeNative, admitterCache)
 			if err != nil {
 				return err
 			}
@@ -186,11 +191,6 @@ func short(c *cobra.Command, args []string) error {
 				convertedData = append(convertedData, objs...)
 			}
 		}
-
-	}
-
-	if silent {
-		return nil
 	}
 
 	buf := &bytes.Buffer{}
@@ -208,11 +208,11 @@ func short(c *cobra.Command, args []string) error {
 		}
 	}
 
-	if pluginName != "" {
-		return plugin.Install(pluginName, buf)
-	} else {
-		fmt.Printf("%s\n", buf.String())
+	fmt.Printf("%s\n", buf.String())
+
+	if dryRun {
+		return nil
 	}
 
-	return nil
+	return plugin.RunInstallers(buf)
 }

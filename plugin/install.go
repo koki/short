@@ -17,7 +17,7 @@ func Install(pluginName string, buf *bytes.Buffer) error {
 		return err
 	}
 
-	installerPlugin, err := loadedPlugin.Lookup("InstallerPlugin")
+	installerPlugin, err := loadedPlugin.Lookup("KokiPlugin")
 	if err != nil {
 		glog.Errorf("Error looking up variable %v", err)
 		return err
