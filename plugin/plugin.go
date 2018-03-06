@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"path/filepath"
 	"plugin"
@@ -27,12 +28,18 @@ func init() {
 
 	viper.SetConfigFile(filepath.Join(PluginDir, ConfigFile))
 	viper.SetDefault("plugins", config)
-	if err := viper.ReadInConfig(); err != nil {
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		// config doesn't already exist or read error. Create if it doens't exist.
 		viper.SafeWriteConfig()
-	} else {
-		if err := viper.UnmarshalKey("plugins", &config); err != nil {
-			panic(fmt.Errorf("Invalid config file: %v", err))
-		}
+		return
+	}
+
+	// read existing config
+	err = viper.UnmarshalKey("plugins", &config)
+	if err != nil {
+		panic(fmt.Errorf("Invalid config file: %v", err))
 	}
 }
 
@@ -48,7 +55,7 @@ type Installer interface {
 
 type Admitter interface {
 	// This is called with every input file when this plugin is activated
-	Admit(string, []map[string]interface{}, bool, map[string]interface{}) (interface{}, error)
+	Admit(context.Context, interface{}) (interface{}, error)
 }
 
 type PluginConfig struct {
@@ -64,6 +71,13 @@ type InstallerConfig struct {
 type AdmitterConfig struct {
 	Enabled bool
 	Active  bool
+}
+
+type AdmitterContext struct {
+	PluginName   string
+	Filename     string
+	KubeNative   bool
+	ResourceType string
 }
 
 func RegisterPlugin(pluginName string, activate bool) error {
@@ -209,20 +223,20 @@ func RunInstallers(buf *bytes.Buffer) error {
 	return nil
 }
 
-func RunAdmitters(filename string, data []map[string]interface{}, toKubernetes bool, cache map[string]interface{}) ([]map[string]interface{}, error) {
-	filteredDatas := []map[string]interface{}{}
-	for k, v := range config {
-		if v.Admitter != nil {
-			if v.Admitter.Active == true {
-				glog.V(3).Infof("Filtering resources using pluging %s", k)
-				filteredData, err := Admit(k, filename, data, toKubernetes, cache)
-				if err != nil {
-					return nil, serrors.ContextualizeErrorf(err, "Error admitting resources with plugin %s", k)
-				}
-				glog.Errorf("filtered data %+v", filteredData)
-				filteredDatas = append(filteredDatas, filteredData...)
-			}
-		}
+func RunAdmitters(ctx context.Context, objects []map[string]interface{}) ([]map[string]interface{}, error) {
+	filtered := []map[string]interface{}{}
+	cfg := ctx.Value("config").(*AdmitterContext)
+	if cfg == nil {
+		return nil, fmt.Errorf("Empty admitter config")
 	}
-	return filteredDatas, nil
+	for _, admitter := range getActiveAdmitters() {
+		cfg.PluginName = admitter
+		admissionCtx := context.WithValue(ctx, "config", cfg)
+		filteredData, err := Admit(admissionCtx, objects)
+		if err != nil {
+			return nil, serrors.ContextualizeErrorf(err, "Error admitting resources with plugin %s", admitter)
+		}
+		filtered = append(filtered, filteredData...)
+	}
+	return filtered, nil
 }

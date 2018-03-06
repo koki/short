@@ -31,6 +31,5 @@ func ParseSingleKubeNative(obj map[string]interface{}) (runtime.Object, error) {
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj, typedObj); err != nil {
 		return nil, serrors.InvalidValueForTypeContextErrorf(err, obj, typedObj, "couldn't convert to typed kube obj")
 	}
-
 	return typedObj, nil
 }

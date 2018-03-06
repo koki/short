@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -161,16 +162,26 @@ func short(c *cobra.Command, args []string) error {
 			}
 		}
 
-		admitterCache := map[string]interface{}{}
-
+		i := 0
 		convertedData = []interface{}{}
+
 		for filename, unfilteredData := range fileDatas {
 			if err != nil {
 				return err
 			}
 
-			glog.Errorf("running admitters")
-			data, err := plugin.RunAdmitters(filename, unfilteredData, kubeNative, admitterCache)
+			config := &plugin.AdmitterContext{
+				Filename:   filename,
+				KubeNative: kubeNative,
+			}
+
+			// using context because it allows for easy copying of
+			// common info and ability to add arbitrary info
+			// per loop
+			ctx := context.WithValue(context.Background(), "config", config)
+			ctx = context.WithValue(ctx, "index", i)
+
+			data, err := plugin.RunAdmitters(ctx, unfilteredData)
 			if err != nil {
 				return err
 			}
@@ -190,6 +201,7 @@ func short(c *cobra.Command, args []string) error {
 				}
 				convertedData = append(convertedData, objs...)
 			}
+			i = i + 1
 		}
 	}
 
