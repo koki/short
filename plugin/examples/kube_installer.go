@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os/exec"
@@ -14,7 +13,7 @@ var KokiPlugin kokiPlugin
 
 type kokiPlugin struct{}
 
-func (k *kokiPlugin) Admit(filename string, data []map[string]interface{}, toKube bool, cache map[string]interface{}) ([]map[string]interface{}, error) {
+func (k *kokiPlugin) Admit(filename string, data []map[string]interface{}, toKube bool, cache map[string]interface{}) (interface{}, error) {
 	if !toKube {
 		return data, nil
 	}
@@ -94,7 +93,7 @@ func (k *kokiPlugin) Install(buf *bytes.Buffer) error {
 	return nil
 }
 
-func generatePodSpec(configMapName, configMapMountPath, appName, image, port string, cmd []string) ([]map[string]interface{}, error) {
+func generatePodSpec(configMapName, configMapMountPath, appName, image, port string, cmd []string) (interface{}, error) {
 	container := types.Container{
 		Name:    appName,
 		Image:   image,
@@ -143,17 +142,5 @@ func generatePodSpec(configMapName, configMapMountPath, appName, image, port str
 		},
 	}
 
-	toRets := []map[string]interface{}{}
-	toRet := map[string]interface{}{}
-
-	b, err := json.Marshal(rc)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(b, &toRet)
-
-	toRets = append(toRets, toRet)
-
-	return toRets, err
+	return rc, nil
 }

@@ -48,7 +48,7 @@ type Installer interface {
 
 type Admitter interface {
 	// This is called with every input file when this plugin is activated
-	Admit(string, []map[string]interface{}, bool, map[string]interface{}) ([]map[string]interface{}, error)
+	Admit(string, []map[string]interface{}, bool, map[string]interface{}) (interface{}, error)
 }
 
 type PluginConfig struct {

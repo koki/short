@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"plugin"
@@ -28,5 +29,24 @@ func Admit(pluginName string, filename string, datas []map[string]interface{}, t
 	}
 
 	glog.V(3).Infof("Admitting resources from filename %s ", filename)
-	return admitter.Admit(filename, datas, toKube, cache)
+	result, err := admitter.Admit(filename, datas, toKube, cache)
+	if err != nil {
+		return nil, err
+	}
+
+	toRet := map[string]interface{}{}
+	toRets := []map[string]interface{}{}
+
+	b, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(b, &toRet)
+	if err != nil {
+		return nil, fmt.Errorf("Error unmarshalling admitter output to map[string]interface{} %v", err)
+	}
+	toRets = append(toRets, toRet)
+
+	return toRets, nil
 }
