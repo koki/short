@@ -222,9 +222,8 @@ func short(c *cobra.Command, args []string) error {
 
 	fmt.Printf("%s\n", buf.String())
 
-	if dryRun {
-		return nil
+	if kubeNative && !dryRun {
+		return plugin.RunInstallers(buf)
 	}
-
-	return plugin.RunInstallers(buf)
+	return nil
 }
