@@ -19,14 +19,20 @@ var (
 		Short:        "Manage short plugins",
 		SilenceUsage: true,
 		Example: `
- # Install a new plugin targetting "plugin-target"
- short plugin install plugin-target --path=/absolute/path/to/plugin/binary
+ # Install a new plugin named "plugin-name"
+ short plugin install plugin-name --path=/absolute/path/to/plugin/binary
 
  # List installed plugins
  short plugin ls 
 
- # Remove installed plugin targetting "plugin-target"
- short rm plugin plugin-target
+ # Remove installed plugin named "plugin-name"
+ short rm plugin plugin-name
+
+ # activate plugin
+ short plugin activate plugin-name
+
+ # deactivate plugin
+ short plugin deactivate plugin-name
 `,
 	}
 
@@ -144,7 +150,7 @@ func installPlugin(c *cobra.Command, args []string) error {
 func listPlugins(c *cobra.Command, args []string) error {
 	plugins := plugin.ListPlugins()
 
-	fmt.Println("PLUGIN NAME \t\t ADMITTER \t INSTALLER")
+	fmt.Println("PLUGIN NAME \t\t ADMITTER \t INSTALLER \t ACTIVE")
 
 	for k, v := range plugins {
 		installer := "false"
@@ -168,7 +174,15 @@ func listPlugins(c *cobra.Command, args []string) error {
 			}
 		}
 
-		fmt.Printf("%-8s \t\t %-6s \t %-6s\n", k, admitter, installer)
+		active := "false"
+
+		if admitter == "true*" && installer == "true*" {
+			active = "true"
+			admitter = "true"
+			installer = "true"
+		}
+
+		fmt.Printf("%-8s \t\t %-6s \t %-6s \t %-6s\n", k, admitter, installer, active)
 	}
 
 	return nil
