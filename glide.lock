@@ -1,10 +1,12 @@
-hash: 385ae28e09b27cf5bd402826e7fff50dcfc9600b39a0dbd1dfc16792f566b35c
-updated: 2017-12-25T15:57:09.038283212-08:00
+hash: 6c17552140d95b2290548305875ebf76c3afc4d98701c65372fcb73078895a0b
+updated: 2018-03-04T23:36:38.644163365-08:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
   - log
+- name: github.com/fsnotify/fsnotify
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-openapi/jsonpointer
@@ -24,6 +26,18 @@ imports:
   version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+- name: github.com/hashicorp/hcl
+  version: 23c074d0eceb2b8a5bfdbb271ab780cde70f05a8
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/printer
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/json-iterator/go
@@ -38,6 +52,8 @@ imports:
   version: cfb55aafdaf3ec08f0db22699ab822c50091b1c4
 - name: github.com/kr/text
   version: 7cafcd837844e784b526369c9bce262804aebc60
+- name: github.com/magiconair/properties
+  version: 2c9e9502788518c97fe44e8955cd069417ee89df
 - name: github.com/mailru/easyjson
   version: 2f5df55504ebc322e4d52d34df6a1f5b503bf26d
   subpackages:
@@ -46,16 +62,30 @@ imports:
   - jwriter
 - name: github.com/mattn/go-runewidth
   version: 97311d9f7767e3d6f422ea06661bc2c7a19e8a5d
+- name: github.com/mitchellh/mapstructure
+  version: 00c29f56e2386353d58c599509e8dc3801b0d716
 - name: github.com/nsf/termbox-go
   version: aa4a75b1c20a2b03751b1a9f7e41d58bd6f71c43
+- name: github.com/pelletier/go-toml
+  version: 05bcc0fb0d3e60da4b8dd5bd7e0ea563eb4ca943
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
+- name: github.com/spf13/afero
+  version: bbf41cb36dffe15dff5bf7e18c447801e7ffe163
+  subpackages:
+  - mem
+- name: github.com/spf13/cast
+  version: 8965335b8c7107321228e3e3702cab9832751bac
 - name: github.com/spf13/cobra
   version: b3426bbac13d7110c4d8fce456ea0012f79f3b8b
+- name: github.com/spf13/jwalterweatherman
+  version: 7c0cea34c8ece3fbeb2b27ab9b59511d360fb394
 - name: github.com/spf13/pflag
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
+- name: github.com/spf13/viper
+  version: aafc9e6bc7b7bb53ddaa75a5ef49a17d6e654be5
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
@@ -63,6 +93,11 @@ imports:
   - http2/hpack
   - idna
   - lex/httplex
+- name: golang.org/x/sys
+  version: 95c6576299259db960f6c5b9b69ea52422860fce
+  subpackages:
+  - unix
+  - windows
 - name: golang.org/x/text
   version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:

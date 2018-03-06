@@ -13,6 +13,8 @@ import:
   version: bc1325710437b54535daa5d6877ca62df7bd76db
 - package: k8s.io/apiextensions-apiserver
   version: 98ecf7bbd60f9f11a72000e4f05203f542136219
+- package: k8s.io/kube-aggregator
+  version: dbe4c5de52899eca980328b8754ec28804336d51
 
 - package: github.com/kr/pretty
 - package: github.com/koki/json

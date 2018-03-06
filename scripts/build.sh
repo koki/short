@@ -14,4 +14,4 @@ cd $src_dir/..
 mkdir -p bin
 
 #build a static go binary
-CGO_ENABLED=0 go build -ldflags "-X github.com/koki/short/cmd.GITCOMMIT=$VERSION -extldflags -static -w" -o bin/short
+CGO_ENABLED=0 go build -ldflags "-X github.com/koki/short/cmd.GITCOMMIT=$VERSION" -o bin/short
