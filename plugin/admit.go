@@ -2,13 +2,13 @@ package plugin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"plugin"
 
 	"github.com/golang/glog"
 
+	"github.com/koki/json"
 	"github.com/koki/short/parser"
 )
 
@@ -47,20 +47,21 @@ func Admit(ctx context.Context, objects []map[string]interface{}) ([]map[string]
 
 		if cfg.KubeNative {
 			object, err = parser.ParseKokiNativeObject(untypedObject)
+
+			if len(untypedObject) != 1 {
+				return nil, fmt.Errorf("Invalid input data")
+			}
+
+			for k := range untypedObject {
+				cfg.ResourceType = k
+			}
+
 		} else {
 			object, err = parser.ParseSingleKubeNative(untypedObject)
 		}
 
 		if err != nil {
 			return nil, err
-		}
-
-		if len(untypedObject) != 1 {
-			return nil, fmt.Errorf("Invalid input data")
-		}
-
-		for k := range untypedObject {
-			cfg.ResourceType = k
 		}
 
 		admissionCtx := context.WithValue(ctx, "config", cfg)

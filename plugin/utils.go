@@ -212,11 +212,16 @@ func RunInstallers(buf *bytes.Buffer) error {
 }
 
 func RunAdmitters(ctx context.Context, objects []map[string]interface{}) ([]map[string]interface{}, error) {
+	if len(getActiveAdmitters()) == 0 {
+		return objects, nil
+	}
+
 	filtered := []map[string]interface{}{}
 	cfg := ctx.Value("config").(*AdmitterContext)
 	if cfg == nil {
 		return nil, fmt.Errorf("Empty admitter config")
 	}
+
 	for _, admitter := range getActiveAdmitters() {
 		cfg.PluginName = admitter
 		admissionCtx := context.WithValue(ctx, "config", cfg)
