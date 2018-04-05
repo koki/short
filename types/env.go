@@ -8,6 +8,32 @@ import (
 	util "github.com/koki/structurederrors"
 )
 
+type EnvFromType string
+
+const (
+	EnvFromTypeSecret EnvFromType = "secret"
+	EnvFromTypeConfig EnvFromType = "config"
+
+	EnvFromTypeCPULimits              EnvFromType = "limits.cpu"
+	EnvFromTypeMemLimits              EnvFromType = "limits.memory"
+	EnvFromTypeEphemeralStorageLimits EnvFromType = "limits.ephemeral-storage"
+
+	EnvFromTypeCPURequests              EnvFromType = "requests.cpu"
+	EnvFromTypeMemRequests              EnvFromType = "requests.memory"
+	EnvFromTypeEphemeralStorageRequests EnvFromType = "requests.ephemeral-storage"
+
+	EnvFromTypeMetadataName       EnvFromType = "metadata.name"
+	EnvFromTypeMetadataNamespace  EnvFromType = "metadata.namespace"
+	EnvFromTypeMetadataLabels     EnvFromType = "metadata.labels"
+	EnvFromTypeMetadataAnnotation EnvFromType = "metadata.annotations"
+
+	EnvFromTypeSpecNodename           EnvFromType = "spec.nodeName"
+	EnvFromTypeSpecServiceAccountName EnvFromType = "spec.serviceAccountName"
+
+	EnvFromTypeStatusHostIP EnvFromType = "status.hostIP"
+	EnvFromTypeStatusPodIP  EnvFromType = "status.podIP"
+)
+
 type EnvFrom struct {
 	Key      string `json:"key,omitempty"`
 	From     string `json:"from,omitempty"`
@@ -28,8 +54,8 @@ type Env struct {
 type EnvType int
 
 const (
-	EnvFromType EnvType = iota
-	EnvValType
+	EnvFromEnvType EnvType = iota
+	EnvValEnvType
 )
 
 func (e EnvFrom) Optional() *bool {
@@ -42,25 +68,25 @@ func (e EnvFrom) Optional() *bool {
 }
 
 func (e *Env) SetVal(val EnvVal) {
-	e.Type = EnvValType
+	e.Type = EnvValEnvType
 	e.Val = &val
 }
 
 func (e *Env) SetFrom(from EnvFrom) {
-	e.Type = EnvFromType
+	e.Type = EnvFromEnvType
 	e.From = &from
 }
 
 func EnvWithVal(val EnvVal) Env {
 	return Env{
-		Type: EnvValType,
+		Type: EnvValEnvType,
 		Val:  &val,
 	}
 }
 
 func EnvWithFrom(from EnvFrom) Env {
 	return Env{
-		Type: EnvFromType,
+		Type: EnvFromEnvType,
 		From: &from,
 	}
 }
@@ -113,9 +139,9 @@ func (e Env) MarshalJSON() ([]byte, error) {
 	var b []byte
 	var err error
 	switch e.Type {
-	case EnvValType:
+	case EnvValEnvType:
 		b, err = json.Marshal(UnparseEnvVal(*e.Val))
-	case EnvFromType:
+	case EnvFromEnvType:
 		b, err = json.Marshal(e.From)
 	default:
 		return []byte{}, util.InvalidInstanceError(e.Type)
