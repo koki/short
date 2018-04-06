@@ -8,6 +8,98 @@ import (
 	util "github.com/koki/structurederrors"
 )
 
+type EnvFromType string
+
+const (
+	EnvFromTypeSecret EnvFromType = "secret"
+	EnvFromTypeConfig EnvFromType = "config"
+
+	EnvFromTypeCPULimits              EnvFromType = "limits.cpu"
+	EnvFromTypeMemLimits              EnvFromType = "limits.memory"
+	EnvFromTypeEphemeralStorageLimits EnvFromType = "limits.ephemeral-storage"
+
+	EnvFromTypeCPURequests              EnvFromType = "requests.cpu"
+	EnvFromTypeMemRequests              EnvFromType = "requests.memory"
+	EnvFromTypeEphemeralStorageRequests EnvFromType = "requests.ephemeral-storage"
+
+	EnvFromTypeMetadataName       EnvFromType = "metadata.name"
+	EnvFromTypeMetadataNamespace  EnvFromType = "metadata.namespace"
+	EnvFromTypeMetadataLabels     EnvFromType = "metadata.labels"
+	EnvFromTypeMetadataAnnotation EnvFromType = "metadata.annotations"
+
+	EnvFromTypeSpecNodename           EnvFromType = "spec.nodeName"
+	EnvFromTypeSpecServiceAccountName EnvFromType = "spec.serviceAccountName"
+
+	EnvFromTypeStatusHostIP EnvFromType = "status.hostIP"
+	EnvFromTypeStatusPodIP  EnvFromType = "status.podIP"
+)
+
+func NewEnv(key, val string) (Env, error) {
+	if key == "" {
+		return Env{}, fmt.Errorf("Env key cannnot be empty")
+	}
+	return Env{
+		Type: EnvValEnvType,
+		Val: &EnvVal{
+			Key: key,
+			Val: val,
+		},
+	}, nil
+}
+
+func NewEnvFrom(key string, from EnvFromType) (Env, error) {
+	if key == "" {
+		return Env{}, fmt.Errorf("Env key cannot be empty")
+	}
+	if from == EnvFromTypeConfig || from == EnvFromTypeSecret {
+		return Env{}, fmt.Errorf("%s not supported. Use NewEnvFromSecret() or NewEnvFromConfig() for building new envs from Secret or ConfigMap resources", from)
+	}
+	required := false
+	return Env{
+		Type: EnvFromEnvType,
+		From: &EnvFrom{
+			Key:      key,
+			From:     string(from),
+			Required: &required,
+		},
+	}, nil
+}
+
+func NewEnvFromSecretOrConfig(resType EnvFromType, key, resName, resKey string) (Env, error) {
+	if key == "" {
+		return Env{}, fmt.Errorf("Env key cannot be empty")
+	}
+	if resType != EnvFromTypeSecret && resType != EnvFromTypeConfig {
+		return Env{}, fmt.Errorf("%s not supported. Use NewEnvFrom() for building new envs from resources other than Secret or ConfigMap resources", resType)
+	}
+	format := fmt.Sprintf("%s", resType)
+	fromVal := ""
+	if resKey != "" {
+		format = format + ":%s:%s"
+		fromVal = fmt.Sprintf(format, resName, resKey)
+	} else {
+		format = format + ":%s"
+		fromVal = fmt.Sprintf(format, resName)
+	}
+	required := true
+	return Env{
+		Type: EnvFromEnvType,
+		From: &EnvFrom{
+			Key:      key,
+			From:     fromVal,
+			Required: &required,
+		},
+	}, nil
+}
+
+func NewEnvFromSecret(key, secretName, secretKey string) (Env, error) {
+	return NewEnvFromSecretOrConfig(EnvFromTypeSecret, key, secretName, secretKey)
+}
+
+func NewEnvFromConfig(key, configName, configKey string) (Env, error) {
+	return NewEnvFromSecretOrConfig(EnvFromTypeConfig, key, configName, configKey)
+}
+
 type EnvFrom struct {
 	Key      string `json:"key,omitempty"`
 	From     string `json:"from,omitempty"`
@@ -28,8 +120,8 @@ type Env struct {
 type EnvType int
 
 const (
-	EnvFromType EnvType = iota
-	EnvValType
+	EnvFromEnvType EnvType = iota
+	EnvValEnvType
 )
 
 func (e EnvFrom) Optional() *bool {
@@ -42,25 +134,25 @@ func (e EnvFrom) Optional() *bool {
 }
 
 func (e *Env) SetVal(val EnvVal) {
-	e.Type = EnvValType
+	e.Type = EnvValEnvType
 	e.Val = &val
 }
 
 func (e *Env) SetFrom(from EnvFrom) {
-	e.Type = EnvFromType
+	e.Type = EnvFromEnvType
 	e.From = &from
 }
 
 func EnvWithVal(val EnvVal) Env {
 	return Env{
-		Type: EnvValType,
+		Type: EnvValEnvType,
 		Val:  &val,
 	}
 }
 
 func EnvWithFrom(from EnvFrom) Env {
 	return Env{
-		Type: EnvFromType,
+		Type: EnvFromEnvType,
 		From: &from,
 	}
 }
@@ -113,9 +205,9 @@ func (e Env) MarshalJSON() ([]byte, error) {
 	var b []byte
 	var err error
 	switch e.Type {
-	case EnvValType:
+	case EnvValEnvType:
 		b, err = json.Marshal(UnparseEnvVal(*e.Val))
-	case EnvFromType:
+	case EnvFromEnvType:
 		b, err = json.Marshal(e.From)
 	default:
 		return []byte{}, util.InvalidInstanceError(e.Type)

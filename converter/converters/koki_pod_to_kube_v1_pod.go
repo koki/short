@@ -1709,7 +1709,7 @@ func revertEnv(envs []types.Env) ([]v1.EnvVar, []v1.EnvFromSource, error) {
 
 	for i := range envs {
 		e := envs[i]
-		if e.Type == types.EnvValType {
+		if e.Type == types.EnvValEnvType {
 			envVar := v1.EnvVar{
 				Name:  e.Val.Key,
 				Value: e.Val.Val,
