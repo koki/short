@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"fmt"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -181,9 +182,10 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 		}, nil
 	}
 	if kokiSource.Flex != nil {
+		flexVol, err := revertFlexPersistentVolume(kokiSource.Flex)
 		return v1.PersistentVolumeSource{
-			FlexVolume: revertFlexVolume(kokiSource.Flex),
-		}, nil
+			FlexVolume: flexVol,
+		}, err
 	}
 	if kokiSource.Vsphere != nil {
 		return v1.PersistentVolumeSource{
@@ -307,6 +309,44 @@ func revertPersistentVolumeSource(kokiSource types.PersistentVolumeSource) (v1.P
 	}
 
 	return v1.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kokiSource, "didn't find any supported volume source")
+}
+
+func revertFlexPersistentVolume(source *types.FlexVolume) (*v1.FlexPersistentVolumeSource, error) {
+	secretRef, err := revertSecretRef(source.SecretRef)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.FlexPersistentVolumeSource{
+		Driver:    source.Driver,
+		FSType:    source.FSType,
+		SecretRef: secretRef,
+		ReadOnly:  source.ReadOnly,
+		Options:   source.Options,
+	}, nil
+}
+
+func revertSecretRef(kokiRef string) (*v1.SecretReference, error) {
+	if len(kokiRef) == 0 {
+		return nil, nil
+	}
+	parts := strings.Split(kokiRef, "/")
+
+	var name, namespace string
+
+	name = parts[0]
+	if len(parts) == 2 {
+		namespace = parts[0]
+		name = parts[1]
+	}
+
+	if len(parts) > 2 {
+		return nil, fmt.Errorf("Unknown format for secret reference %s", kokiRef)
+	}
+
+	return &v1.SecretReference{
+		Namespace: namespace,
+		Name:      name,
+	}, nil
 }
 
 func revertReclaimPolicy(kokiPolicy types.PersistentVolumeReclaimPolicy) v1.PersistentVolumeReclaimPolicy {

@@ -1,0 +1,17 @@
+params:
+- name: "the name and selector of the rc"
+  default: default
+- containers: "list of containers managed by this replication controller"
+  default: []
+- volumes: "list of volumes used by the containers managed by the replication controller"
+  default: {}
+replication_controller:
+  version: v1
+  name: ${name}
+  selector:
+    name: ${name}
+  pod_meta:
+    name: ${name}
+  containers:
+  - ${containers...}
+  volumes: ${volumes}

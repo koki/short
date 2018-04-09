@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"fmt"
 	"strings"
 
 	"k8s.io/api/core/v1"
@@ -183,7 +184,7 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 	}
 	if kubeSource.FlexVolume != nil {
 		return types.PersistentVolumeSource{
-			Flex: convertFlexVolume(kubeSource.FlexVolume),
+			Flex: convertFlexPersistentVolume(kubeSource.FlexVolume),
 		}, nil
 	}
 	if kubeSource.VsphereVolume != nil {
@@ -313,6 +314,24 @@ func convertPersistentVolumeSource(kubeSource v1.PersistentVolumeSource) (types.
 	}
 
 	return types.PersistentVolumeSource{}, serrors.InvalidInstanceErrorf(kubeSource, "didn't find any supported volume source")
+}
+
+func convertFlexPersistentVolume(source *v1.FlexPersistentVolumeSource) *types.FlexVolume {
+	return &types.FlexVolume{
+		Driver:    source.Driver,
+		FSType:    source.FSType,
+		SecretRef: convertSecretRef(source.SecretRef),
+		ReadOnly:  source.ReadOnly,
+		Options:   source.Options,
+	}
+}
+
+func convertSecretRef(kubeRef *v1.SecretReference) string {
+	if kubeRef == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s/%s", kubeRef.Namespace, kubeRef.Name)
 }
 
 func convertReclaimPolicy(kubePolicy v1.PersistentVolumeReclaimPolicy) types.PersistentVolumeReclaimPolicy {

@@ -1,0 +1,9 @@
+config_map:
+  name: "test"
+  data:
+    name: "perceptor"
+    image: "gcr.io/gke-verification/blackducksoftware/perceptor:latest"
+    config_map: "perceptor-config"
+    config_map_mount_path: "/etc/perceptor"
+    port: "3001"
+    cmd: "./perceptor"
