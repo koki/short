@@ -330,6 +330,9 @@ func convertSecretRef(kubeRef *v1.SecretReference) string {
 	if kubeRef == nil {
 		return ""
 	}
+	if len(kubeRef.Namespace) == 0 {
+		return kubeRef.Name
+	}
 
 	return fmt.Sprintf("%s/%s", kubeRef.Namespace, kubeRef.Name)
 }
