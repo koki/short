@@ -10,8 +10,6 @@ It's a fork that makes `encoding/json` better for users.
 
 * `omitempty` actually omits zero-valued structs.
 
-* Miscellaneous utilities for dealing with JSON represented as `map[string]interface{}`, including an implementation of path-based indexing.
-
 ## How to use it
 
 `github.com/koki/json` is a drop-in replacement for `encoding/json`. The decoder implementation is different, but the library API remains unchanged. Use this package's `json.Unmarshal` if you want paths for your decoder errors. Use `json.Marshal` if you want to omit zero-valued structs.

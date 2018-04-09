@@ -1,0 +1,15 @@
+imports: 
+- pcp: ./pcp.yaml
+- base: ./rc.yaml
+  params:
+    name: ${pcp.name}
+    volumes:
+      ${pcp.name}:
+        vol_type: projected
+        sources:
+        - config: ${pcp.config_map}
+    containers: 
+    - name: ${pcp.name}
+      image: ${pcp.image}
+replication_controller:
+  ${base}

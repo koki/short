@@ -1,0 +1,10 @@
+pod:
+  containers:
+  - expose:
+    - 80
+    image: nginx
+    name: nginx
+  labels:
+    name: nginx
+  name: nginx
+  version: v1
