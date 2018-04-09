@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/koki/short/client"
 	"github.com/koki/short/parser"
-	"github.com/koki/short/plugin"
 	serrors "github.com/koki/structurederrors"
 )
 
@@ -99,7 +97,6 @@ func init() {
 	flag.CommandLine.Parse([]string{})
 
 	RootCmd.AddCommand(versionCmd)
-	RootCmd.AddCommand(pluginCmd)
 }
 
 func short(c *cobra.Command, args []string) error {
@@ -165,23 +162,7 @@ func short(c *cobra.Command, args []string) error {
 		i := 0
 		convertedData = []interface{}{}
 
-		for filename, unfilteredData := range fileDatas {
-			if err != nil {
-				return err
-			}
-
-			config := &plugin.AdmitterContext{
-				Filename:   filename,
-				KubeNative: kubeNative,
-			}
-
-			// using context because it allows for easy copying of
-			// common info and ability to add arbitrary info
-			// per loop
-			ctx := context.WithValue(context.Background(), "config", config)
-			ctx = context.WithValue(ctx, "index", i)
-
-			data, err := plugin.RunAdmitters(ctx, unfilteredData)
+		for filename, data := range fileDatas {
 			if err != nil {
 				return err
 			}
@@ -222,8 +203,5 @@ func short(c *cobra.Command, args []string) error {
 
 	fmt.Printf("%s\n", buf.String())
 
-	if kubeNative && !dryRun {
-		return plugin.RunInstallers(buf)
-	}
 	return nil
 }
