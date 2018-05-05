@@ -1,0 +1,7 @@
+mutatingwh_config:
+  name: example-config
+  rules:
+    podimage.example.com:
+    - v1/pods
+  version: admissionregistration.k8s.io/v1beta1
+

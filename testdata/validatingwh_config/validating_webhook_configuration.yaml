@@ -1,0 +1,18 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: vwc
+webhooks:
+  - name: vwc.example.com
+    rules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+        resources:
+          - pods
+    failurePolicy: Fail
+    clientConfig:
+      url: vwc.example.com 

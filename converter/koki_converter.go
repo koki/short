@@ -6,6 +6,7 @@ import (
 	serrors "github.com/koki/structurederrors"
 
 	admissionregv1alpha1 "k8s.io/api/admissionregistration/v1alpha1"
+	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	apps "k8s.io/api/apps/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
@@ -100,6 +101,10 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_StorageClass_to_Kube_StorageClass(kokiObj)
 	case *types.VolumeWrapper:
 		return &kokiObj.Volume, nil
+	case *types.MutatingWebhookConfigWrapper:
+		return converters.Convert_Koki_MutatingWebhookConfiguration_to_Kube_MutatingWebhookConfiguration(kokiObj)
+	case *types.ValidatingWebhookConfigWrapper:
+		return converters.Convert_Koki_ValidatingWebhookConfiguration_to_Kube_ValidtingWebhookConfiguration(kokiObj)
 	default:
 		return nil, serrors.TypeErrorf(kokiObj, "can't convert from unsupported koki type")
 	}
@@ -175,7 +180,10 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_StatefulSet_to_Koki_StatefulSet(kubeObj)
 	case *storagev1.StorageClass, *storagev1beta1.StorageClass:
 		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
-
+	case *admissionregv1beta1.MutatingWebhookConfiguration:
+		return converters.Convert_Kube_MutatingWebhookConfiguration_to_Koki_MutatingWebhookConfiguration(kubeObj)
+	case *admissionregv1beta1.ValidatingWebhookConfiguration:
+		return converters.Convert_Kube_ValidatingWebhookConfiguration_to_Koki_ValidatingWebhookConfiguration(kubeObj)
 	default:
 		return nil, serrors.TypeErrorf(kubeObj, "can't convert from unsupported kube type")
 	}

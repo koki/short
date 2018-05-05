@@ -301,5 +301,5 @@ func parseNodeExprs(s string) (*v1.NodeSelectorTerm, error) {
 		})
 	}
 
-	return &v1.NodeSelectorTerm{reqs}, nil
+	return &v1.NodeSelectorTerm{reqs, nil}, nil
 }
