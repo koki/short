@@ -9,7 +9,7 @@ import (
 )
 
 type ValidatingWebhookConfigWrapper struct {
-	ValidatingWebhookConfig ValidatingWebhookConfig `json:"validatingwh_config"`
+	ValidatingWebhookConfig ValidatingWebhookConfig `json:"validating_config"`
 }
 
 type ValidatingWebhookConfig struct {
@@ -19,14 +19,7 @@ type ValidatingWebhookConfig struct {
 	Namespace   string            `json:"namespace,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
-
 	Rules map[string][]ValidatingWebhookRuleWithOperations `json:"rules,omitempty"`
-}
-
-type ValidatingWebhookRule struct {
-	Groups    []string
-	Versions  []string
-	Resources []string
 }
 
 type ValidatingWebhookRuleWithOperations struct {

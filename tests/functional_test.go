@@ -155,6 +155,20 @@ func TestInitializerConfiguration(t *testing.T) {
 	}
 }
 
+func TestMutatingWebhookConfiguration(t *testing.T) {
+	err := testResource("mutating_config", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestValidatingWebhookConfiguration(t *testing.T) {
+	err := testResource("validating_config", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPodDisruptionPolicy(t *testing.T) {
 	err := testResource("pod_disruption_policy", testFuncGenerator(t))
 	if err != nil {

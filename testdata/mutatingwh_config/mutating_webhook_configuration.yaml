@@ -1,18 +1,40 @@
-apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1beta1
 metadata:
-  name: vwc
-webhooks:
-  - name: vwc.example.com
-    rules:
-      - apiGroups:
-          - ""
-        apiVersions:
-          - v1
-        operations:
-          - CREATE
-        resources:
-          - pods
-    failurePolicy: Fail
-    clientConfig:
-      url: vwc.example.com
+  name: test
+  labels: 
+   a: b
+   c: d
+  namespace: default
+  annotations:
+   e: f
+   g: h
+webhooks: 
+ - name: webhook_name
+   clientConfig:
+     url: https://google.com
+     caBundle: 1234353143523589584875931403940394032aasjifenfjenkfn
+     service:
+       name: svc_name
+       namespace: svc_ns
+       path: /webhook
+   rules:
+   - operations:
+     - UPDATE
+     - CREATE
+     apiGroups:
+     - admissionregistration
+     apiVersions:
+     - v1beta1
+     resources:
+     - test
+   failurePolicy: fail
+   namespaceSelector:
+     matchLabels:
+       a: b
+     matchExpressions:
+     -  key: a
+        operator: In
+        values:
+        - b
+        - c
