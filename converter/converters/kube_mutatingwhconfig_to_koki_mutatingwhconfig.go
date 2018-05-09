@@ -48,10 +48,37 @@ func convertMutatingWebhook(webhook admissionregv1beta1.Webhook) (name string, k
 	if len(webhook.Rules) != 0 {
 		for i := range webhook.Rules {
 			rule := webhook.Rules[i]
+
+			//Bitmap to check if all operations are present
+			kokiOperationsArr := []string{}
+			var allOperationsPresent uint8 = 0
+			for _, operation := range(rule.Operations) {
+				kokiOperationsArr = append(kokiOperationsArr, string(operation))
+				if string(operation) == "CREATE" {
+					allOperationsPresent = allOperationsPresent | 0x1
+				}
+				if string(operation) == "UPDATE" {
+					allOperationsPresent = allOperationsPresent | 0x2
+				}
+				if string(operation) == "DELETE" {
+					allOperationsPresent = allOperationsPresent | 0x4
+				}
+				if string(operation) == "CONNECT" {
+					allOperationsPresent = allOperationsPresent | 0x8
+				}
+			}
+
+			var kokiOperations string = ""
+			if allOperationsPresent == 0xF {
+				kokiOperations = "*"
+			} else {
+				kokiOperations = strings.Join(kokiOperationsArr,"|")
+			}
+
 			kokiRule := types.MutatingWebhookRuleWithOperations{
 				Groups:    rule.APIGroups,
 				Versions:  rule.APIVersions,
-				Operations: rule.Operations,
+				Operations: kokiOperations,
 				Resources: rule.Resources,
 			}
 			rules = append(rules, kokiRule)
@@ -69,29 +96,17 @@ func convertMutatingWebhook(webhook admissionregv1beta1.Webhook) (name string, k
 	s2 := []string{s1Str, servicePath}
 	kokiService := strings.Join(s2, ":")
 
-	//construct namespaceselector
-	namespaceselector := webhook.NamespaceSelector
-	matchLabels := namespaceselector.MatchLabels
-	matchExpressions := namespaceselector.MatchExpressions
-	var kokiNamespaceSelector map[string]string
-	kokiNamespaceSelector = make(map[string]string)
-	for key := range matchLabels {
-		kokiNamespaceSelector[key] = matchLabels[key]
-	}
+	//get selector
+	selector, _, err := convertRSLabelSelector(webhook.NamespaceSelector, nil)
 
-	for _, matchExpression := range matchExpressions {
-		kokiNamespaceSelector[matchExpression.Key] = strings.Join(matchExpression.Values[:], ",")
-	}
-
+	//align the structure using above variables
  	kokiWebhook = types.Webhook {
 		Name: name,
 		Client: *kokiWebhookConfig.URL,
-		//CaBundle: string(kokiWebhookConfig.CABundle[:]),
-		//CaBundle: bytes.NewBuffer(kokiWebhookConfig.CABundle).String(),
 		CaBundle: kokiWebhookConfig.CABundle,
 		Service: kokiService,
 		FailurePolicy: webhook.FailurePolicy,
-		NSSelector: kokiNamespaceSelector,
+		Selector: selector,
 		Rules: rules,
 	}
 	return name, kokiWebhook, err

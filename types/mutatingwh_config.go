@@ -31,13 +31,14 @@ type Webhook struct {
 	Service        string            `json:"service,omitempty"`
 	FailurePolicy  *v1beta1.FailurePolicyType            `json:"on_fail,omitempty"`
 	Rules          []MutatingWebhookRuleWithOperations `json:"rules,omitempty"`
-	NSSelector     map[string]string            `json:"ns_selector,omitempty"`
+	Selector *RSSelector `json:"selector,omitempty"`
 }
 
 type MutatingWebhookRuleWithOperations struct {
 	Groups    []string		`json:"groups,omitempty"`
 	Versions  []string		`json:"versions,omitempty"`
-	Operations  []v1beta1.OperationType  `json:"operations,omitempty"`
+	//Operations  []v1beta1.OperationType  `json:"operations,omitempty"`
+	Operations  string  `json:"operations,omitempty"`
 	Resources []string		`json:"resources,omitempty"`
 }
 
@@ -92,21 +93,9 @@ func (i *MutatingWebhookRuleWithOperations) UnmarshalJSON(data []byte) error {
 	if i.Resources, ok = ruleStruct["resources"]; !ok{
 		return serrors.InvalidInstanceError("couldn't parse JSON: Resources cannot be empty")
 	}
-	for _, operation := range(ruleStruct["operations"]) {
-		switch operation {
-		case "*":
-			i.Operations = append(i.Operations, v1beta1.OperationAll)
-		case "CREATE":
-			i.Operations = append(i.Operations, v1beta1.Create)
-		case "UPDATE":
-			i.Operations = append(i.Operations, v1beta1.Update)
-		case "DELETE":
-			i.Operations = append(i.Operations, v1beta1.Delete)
-		case "CONNECT":
-			i.Operations = append(i.Operations, v1beta1.Connect)
-		default:
-			return serrors.InvalidInstanceError("couldn't parse JSON: Unknown Operation type")
-		}
+
+	if len(ruleStruct["operations"]) > 0 {
+		i.Operations = ruleStruct["operations"][0]
 	}
 
 	return nil
@@ -121,12 +110,9 @@ func (i MutatingWebhookRuleWithOperations) MarshalJSON() ([]byte, error) {
 	var ruleType string
 	ruleType = "struct"
 
-	if len(i.Resources) == 1 && len(i.Versions) == 1 && len(i.Groups) == 1 && len(i.Operations) == 1 {
+	if len(i.Resources) == 1 && len(i.Versions) == 1 && len(i.Groups) == 1 && len(i.Operations) == 0 {
 		ruleString := strings.Join(append(append(i.Groups, i.Versions...), i.Resources...), "/")
-
-		for _, operation := range(i.Operations) {
-			ruleString = ruleString + "/" + string(operation)
-		}
+		ruleString = ruleString + "/" + string(i.Operations)
 		rule = ruleString
 		ruleType = "string"
 	}

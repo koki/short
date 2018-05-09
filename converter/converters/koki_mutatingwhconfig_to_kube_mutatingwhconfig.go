@@ -55,14 +55,7 @@ func revertMWC(kokiWebhook types.Webhook) admissionregv1beta1.Webhook {
 	}
 
 	kubeWebhookRules := revertMWCRules(kokiWebhook.Rules)
-
-	kubeSelector, _, _ := revertRSSelector("lala", kokiWebhook.NSSelector, nil)
-	//kubeSelector, _, err := revertRSSelector("lala", kokiWebhook.NSSelector, nil)
-	/*
-	if err != nil {
-		return nil, err
-	}
-	*/
+	kubeSelector, _, _ := revertRSSelector(kokiWebhook.Name, kokiWebhook.Selector, nil)
 	kubeWebhook := admissionregv1beta1.Webhook {
 		Name: kokiWebhook.Name,
 		ClientConfig: kubeWebhookClientConfig,
@@ -84,8 +77,25 @@ func revertMWCRules(kokiRules []types.MutatingWebhookRuleWithOperations) []admis
 			APIVersions:  kokiRule.Versions,
 			Resources:  kokiRule.Resources,
 		}
+		kokiOperations := strings.Split(kokiRule.Operations, "|")
+		kubeOperations := []admissionregv1beta1.OperationType{}
+		for _, operation := range(kokiOperations) {
+			switch operation {
+			case "*":
+				kubeOperations = append(kubeOperations, admissionregv1beta1.OperationAll)
+			case "CREATE":
+				kubeOperations = append(kubeOperations, admissionregv1beta1.Create)
+			case "UPDATE":
+				kubeOperations = append(kubeOperations, admissionregv1beta1.Update)
+			case "DELETE":
+				kubeOperations = append(kubeOperations, admissionregv1beta1.Delete)
+			case "CONNECT":
+				kubeOperations = append(kubeOperations, admissionregv1beta1.Connect)
+			}
+		}
+
 		kubeRule := admissionregv1beta1.RuleWithOperations {
-			Operations:  kokiRule.Operations,
+			Operations:  kubeOperations,
 			Rule: internalRule,
 		}
 		kubeRules = append(kubeRules, kubeRule)

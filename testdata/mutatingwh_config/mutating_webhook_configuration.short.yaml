@@ -13,18 +13,15 @@ mutating_webhook:
       caBundle: 1234353143523589584875931403940394032aasjifenfjenkfn
       client: https://google.com
       name: webhook_name
-      ns_selector:
-        a: b,c
       on_fail: fail
       rules:
       - groups:
         - admissionregistration
         operations:
-        - UPDATE
-        - CREATE
+        - UPDATE|CREATE
         resources:
         - test
         versions:
         - v1beta1
+      selector: a=b&a=b,c
       service: svc_ns/svc_name:/webhook
-
