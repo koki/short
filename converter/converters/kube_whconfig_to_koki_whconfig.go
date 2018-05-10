@@ -4,35 +4,56 @@ import (
 	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	"strings"
 	"github.com/koki/short/types"
-	//"bytes"
 )
 
-func Convert_Kube_MutatingWebhookConfiguration_to_Koki_MutatingWebhookConfiguration(kubeMutatingConfig *admissionregv1beta1.MutatingWebhookConfiguration) (*types.MutatingWebhookConfigWrapper, error) {
+func Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
 	var err error
-	kokiWrapper := &types.MutatingWebhookConfigWrapper{}
-	kokiMutatingConfig := &kokiWrapper.MutatingWebhookConfig
+	switch kind {
+	case "MutatingWebhookConfiguration":
+		kokiWrapper := &types.MutatingWebhookConfigWrapper{}
+		kokiConfig := &kokiWrapper.WebhookConfig
+		kubeConfig := webhookConfig.(*admissionregv1beta1.MutatingWebhookConfiguration)
+		kokiConfig.Name = kubeConfig.Name
+		kokiConfig.Namespace = kubeConfig.Namespace
+		kokiConfig.Version = kubeConfig.APIVersion
+		kokiConfig.Cluster = kubeConfig.ClusterName
+		kokiConfig.Labels = kubeConfig.Labels
+		kokiConfig.Annotations = kubeConfig.Annotations
 
-	kokiMutatingConfig.Name = kubeMutatingConfig.Name
-	kokiMutatingConfig.Namespace = kubeMutatingConfig.Namespace
-	kokiMutatingConfig.Version = kubeMutatingConfig.APIVersion
-	kokiMutatingConfig.Cluster = kubeMutatingConfig.ClusterName
-	kokiMutatingConfig.Labels = kubeMutatingConfig.Labels
-	kokiMutatingConfig.Annotations = kubeMutatingConfig.Annotations
+		webhooks, err := convertWebhooks(kubeConfig.Webhooks)
+		if err != nil {
+			return nil, err
+		}
+		kokiConfig.Webhooks = webhooks
+		return kokiWrapper, nil
+	case "ValidatingWebhookConfiguration":
+		kokiWrapper := &types.ValidatingWebhookConfigWrapper{}
+		kokiConfig := &kokiWrapper.WebhookConfig
+		kubeConfig := webhookConfig.(*admissionregv1beta1.ValidatingWebhookConfiguration)
+		kokiConfig.Name = kubeConfig.Name
+		kokiConfig.Namespace = kubeConfig.Namespace
+		kokiConfig.Version = kubeConfig.APIVersion
+		kokiConfig.Cluster = kubeConfig.ClusterName
+		kokiConfig.Labels = kubeConfig.Labels
+		kokiConfig.Annotations = kubeConfig.Annotations
 
-	webhooks, err := convertMutatingWebhooks(kubeMutatingConfig.Webhooks)
-	if err != nil {
+		webhooks, err := convertWebhooks(kubeConfig.Webhooks)
+		if err != nil {
+			return nil, err
+		}
+		kokiConfig.Webhooks = webhooks
+		return kokiWrapper, nil
+	default:
 		return nil, err
 	}
-	kokiMutatingConfig.Webhooks = webhooks
-	return kokiWrapper, nil
 }
 
-func convertMutatingWebhooks(webhooks []admissionregv1beta1.Webhook) (map[string]types.Webhook, error) {
+func convertWebhooks(webhooks []admissionregv1beta1.Webhook) (map[string]types.Webhook, error) {
 	kokiWebhooks := map[string]types.Webhook{}
 
 	for i := range webhooks {
 		webhook := webhooks[i]
-		name, kokiWebhook, err := convertMutatingWebhook(webhook)
+		name, kokiWebhook, err := convertWebhook(webhook)
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +63,8 @@ func convertMutatingWebhooks(webhooks []admissionregv1beta1.Webhook) (map[string
 	return kokiWebhooks, nil
 }
 
-func convertMutatingWebhook(webhook admissionregv1beta1.Webhook) (name string, kokiWebhook types.Webhook, err error) {
-	var rules []types.MutatingWebhookRuleWithOperations = nil
+func convertWebhook(webhook admissionregv1beta1.Webhook) (name string, kokiWebhook types.Webhook, err error) {
+	var rules []types.WebhookRuleWithOperations = nil
 	name = webhook.Name
 	if len(webhook.Rules) != 0 {
 		for i := range webhook.Rules {
@@ -75,7 +96,7 @@ func convertMutatingWebhook(webhook admissionregv1beta1.Webhook) (name string, k
 				kokiOperations = strings.Join(kokiOperationsArr,"|")
 			}
 
-			kokiRule := types.MutatingWebhookRuleWithOperations{
+			kokiRule := types.WebhookRuleWithOperations{
 				Groups:    rule.APIGroups,
 				Versions:  rule.APIVersions,
 				Operations: kokiOperations,

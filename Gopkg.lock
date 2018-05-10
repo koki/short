@@ -53,19 +53,19 @@
   branch = "master"
   name = "github.com/koki/structurederrors"
   packages = ["."]
-  revision = "5a728381eca193d3a3c364256d01295346519936"
+  revision = "6b997eb5e2cadc3ba8649b3c9958644057bf3ddf"
 
 [[projects]]
-  branch = "master"
   name = "github.com/kr/pretty"
   packages = ["."]
-  revision = "cfb55aafdaf3ec08f0db22699ab822c50091b1c4"
+  revision = "73f6ac0b30a98e433b289500d779f50c1a6f0712"
+  version = "v0.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/kr/text"
   packages = ["."]
-  revision = "7cafcd837844e784b526369c9bce262804aebc60"
+  revision = "e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -89,7 +89,7 @@
   branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "5a49b82160547cc98fca189a677a1c14eff796f8"
+  revision = "21a4d435a86280a2927985fd6296de56cbce453e"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -116,10 +116,9 @@
     "http/httpguts",
     "http2",
     "http2/hpack",
-    "idna",
-    "lex/httplex"
+    "idna"
   ]
-  revision = "640f4622ab692b87c2f3a94265e6f579fe38263d"
+  revision = "f73e4c9ed3b7ebdd5f699a16a880c2b1994e50dd"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -185,7 +184,7 @@
     "storage/v1",
     "storage/v1beta1"
   ]
-  revision = "b7d77fa220f5130ec63c2ca7167dd9653449c64d"
+  revision = "8ab7c6a2fbd1724a52514855629cec31a8f86929"
 
 [[projects]]
   branch = "master"
@@ -194,7 +193,7 @@
     "pkg/apis/apiextensions",
     "pkg/apis/apiextensions/v1beta1"
   ]
-  revision = "a5c89ff2aef18eb9de1e8ef5ac81e8be76a8d716"
+  revision = "e798125b68b9e62ce80c2b4f1157e96da7b3b1c7"
 
 [[projects]]
   branch = "master"
@@ -230,7 +229,7 @@
     "pkg/watch",
     "third_party/forked/golang/reflect"
   ]
-  revision = "bd236513a4e35622d9007dff11eab07631645cd5"
+  revision = "dd7876c087d16d10b82489a4dac9e3f4427176ca"
 
 [[projects]]
   branch = "master"
@@ -239,7 +238,7 @@
     "pkg/apis/apiregistration",
     "pkg/apis/apiregistration/v1beta1"
   ]
-  revision = "ad964a138dba711d606550fc5f18a035261f025d"
+  revision = "29c7989121fc30258c674f31aff9bbd393dfab5e"
 
 [solve-meta]
   analyzer-name = "dep"

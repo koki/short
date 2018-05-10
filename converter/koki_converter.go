@@ -102,9 +102,9 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 	case *types.VolumeWrapper:
 		return &kokiObj.Volume, nil
 	case *types.MutatingWebhookConfigWrapper:
-		return converters.Convert_Koki_MutatingWebhookConfiguration_to_Kube_MutatingWebhookConfiguration(kokiObj)
+		return converters.Convert_Koki_WebhookConfiguration_to_Kube_WebhookConfiguration(kokiObj, "MutatingWebhookConfiguration")
 	case *types.ValidatingWebhookConfigWrapper:
-		return converters.Convert_Koki_ValidatingWebhookConfiguration_to_Kube_ValidtingWebhookConfiguration(kokiObj)
+		return converters.Convert_Koki_WebhookConfiguration_to_Kube_WebhookConfiguration(kokiObj, "ValidatingWebhookConfiguration")
 	default:
 		return nil, serrors.TypeErrorf(kokiObj, "can't convert from unsupported koki type")
 	}
@@ -181,9 +181,9 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	case *storagev1.StorageClass, *storagev1beta1.StorageClass:
 		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
 	case *admissionregv1beta1.MutatingWebhookConfiguration:
-		return converters.Convert_Kube_MutatingWebhookConfiguration_to_Koki_MutatingWebhookConfiguration(kubeObj)
+		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, "MutatingWebhookConfiguration")
 	case *admissionregv1beta1.ValidatingWebhookConfiguration:
-		return converters.Convert_Kube_ValidatingWebhookConfiguration_to_Koki_ValidatingWebhookConfiguration(kubeObj)
+		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, "ValidatingWebhookConfiguration")
 	default:
 		return nil, serrors.TypeErrorf(kubeObj, "can't convert from unsupported kube type")
 	}

@@ -30,7 +30,7 @@ data, err := json.Marshal(bar)
 
 ```go
 // 1. Parse.
-obj := map[string]interface{}
+obj := make(map[string]interface{})
 parsedObj := Foo{}
 err := json.Unmarshal(data, &obj)
 ...

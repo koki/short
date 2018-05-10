@@ -7,24 +7,47 @@ import (
 	"strings"
 )
 
-func Convert_Koki_MutatingWebhookConfiguration_to_Kube_MutatingWebhookConfiguration(mutatingWebhookConfig *types.MutatingWebhookConfigWrapper) (*admissionregv1beta1.MutatingWebhookConfiguration, error) {
-	kubeMutatingWebhookConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
-	kokiMutatingWebhookConfig := &mutatingWebhookConfig.MutatingWebhookConfig
+func Convert_Koki_WebhookConfiguration_to_Kube_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
 
-	kubeMutatingWebhookConfig.Name = kokiMutatingWebhookConfig.Name
-	kubeMutatingWebhookConfig.Namespace = kokiMutatingWebhookConfig.Namespace
-	if len(kokiMutatingWebhookConfig.Version) == 0 {
-		kubeMutatingWebhookConfig.APIVersion = "admissionregistration/v1beta1"
-	} else {
-		kubeMutatingWebhookConfig.APIVersion = kokiMutatingWebhookConfig.Version
+	switch kind {
+	case "MutatingWebhookConfiguration":
+		kokiWebhookConfig := webhookConfig.(*types.MutatingWebhookConfigWrapper).WebhookConfig
+		kubeWebhookConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
+		kubeWebhookConfig.Name = kokiWebhookConfig.Name
+		kubeWebhookConfig.Namespace = kokiWebhookConfig.Namespace
+		if len(kokiWebhookConfig.Version) == 0 {
+			kubeWebhookConfig.APIVersion = "admissionregistration/v1beta1"
+		} else {
+			kubeWebhookConfig.APIVersion = kokiWebhookConfig.Version
+		}
+		kubeWebhookConfig.Kind = kind
+		kubeWebhookConfig.ClusterName = kokiWebhookConfig.Cluster
+		kubeWebhookConfig.Labels = kokiWebhookConfig.Labels
+		kubeWebhookConfig.Annotations = kokiWebhookConfig.Annotations
+		kubeWebhookConfig.Webhooks = revertMWCs(kokiWebhookConfig.Webhooks)
+		return kubeWebhookConfig, nil
+	case "ValidatingWebhookConfiguration":
+		kokiWebhookConfig := webhookConfig.(*types.ValidatingWebhookConfigWrapper).WebhookConfig
+		kubeWebhookConfig := &admissionregv1beta1.ValidatingWebhookConfiguration{}
+		kubeWebhookConfig.Name = kokiWebhookConfig.Name
+		kubeWebhookConfig.Namespace = kokiWebhookConfig.Namespace
+		if len(kokiWebhookConfig.Version) == 0 {
+			kubeWebhookConfig.APIVersion = "admissionregistration/v1beta1"
+		} else {
+			kubeWebhookConfig.APIVersion = kokiWebhookConfig.Version
+		}
+		kubeWebhookConfig.Kind = kind
+		kubeWebhookConfig.ClusterName = kokiWebhookConfig.Cluster
+		kubeWebhookConfig.Labels = kokiWebhookConfig.Labels
+		kubeWebhookConfig.Annotations = kokiWebhookConfig.Annotations
+		kubeWebhookConfig.Webhooks = revertMWCs(kokiWebhookConfig.Webhooks)
+		return kubeWebhookConfig, nil
+	default:
+		return nil, nil
 	}
-	kubeMutatingWebhookConfig.Kind = "MutatingWebhookConfiguration"
-	kubeMutatingWebhookConfig.ClusterName = kokiMutatingWebhookConfig.Cluster
-	kubeMutatingWebhookConfig.Labels = kokiMutatingWebhookConfig.Labels
-	kubeMutatingWebhookConfig.Annotations = kokiMutatingWebhookConfig.Annotations
 
-	kubeMutatingWebhookConfig.Webhooks = revertMWCs(kokiMutatingWebhookConfig.Webhooks)
-	return kubeMutatingWebhookConfig, nil
+
+
 }
 
 func revertMWCs(kokiWebhooks map[string]types.Webhook) []admissionregv1beta1.Webhook {
@@ -67,7 +90,7 @@ func revertMWC(kokiWebhook types.Webhook) admissionregv1beta1.Webhook {
 	return kubeWebhook
 }
 
-func revertMWCRules(kokiRules []types.MutatingWebhookRuleWithOperations) []admissionregv1beta1.RuleWithOperations {
+func revertMWCRules(kokiRules []types.WebhookRuleWithOperations) []admissionregv1beta1.RuleWithOperations {
 	var kubeRules []admissionregv1beta1.RuleWithOperations
 
 	for i := range kokiRules {
