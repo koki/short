@@ -17,41 +17,41 @@ type ValidatingWebhookConfigWrapper struct {
 }
 
 type WebhookConfig struct {
-	Version     string            `json:"version,omitempty"`
-	Cluster     string            `json:"cluster,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	Namespace   string            `json:"namespace,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Version     string             `json:"version,omitempty"`
+	Cluster     string             `json:"cluster,omitempty"`
+	Name        string             `json:"name,omitempty"`
+	Namespace   string             `json:"namespace,omitempty"`
+	Labels      map[string]string  `json:"labels,omitempty"`
+	Annotations map[string]string  `json:"annotations,omitempty"`
 	Webhooks    map[string]Webhook `json:"webhooks,omitempty"`
 }
 
 type Webhook struct {
-	Name           string            `json:"name,omitempty"`
-	Client         string            `json:"client,omitempty"`
-	CaBundle       []byte            `json:"caBundle,omitempty"`
-	Service        string            `json:"service,omitempty"`
-	FailurePolicy  *v1beta1.FailurePolicyType            `json:"on_fail,omitempty"`
-	Rules          []WebhookRuleWithOperations `json:"rules,omitempty"`
-	Selector *RSSelector `json:"selector,omitempty"`
+	Name          string                      `json:"name,omitempty"`
+	Client        string                      `json:"client,omitempty"`
+	CaBundle      []byte                      `json:"caBundle,omitempty"`
+	Service       string                      `json:"service,omitempty"`
+	FailurePolicy *v1beta1.FailurePolicyType  `json:"on_fail,omitempty"`
+	Rules         []WebhookRuleWithOperations `json:"rules,omitempty"`
+	Selector      *RSSelector                 `json:"selector,omitempty"`
 }
 
 type WebhookRuleWithOperations struct {
-	Groups    []string		`json:"groups,omitempty"`
-	Versions  []string		`json:"versions,omitempty"`
-	Operations  string  `json:"operations,omitempty"`
-	Resources []string		`json:"resources,omitempty"`
+	Groups     []string `json:"groups,omitempty"`
+	Versions   []string `json:"versions,omitempty"`
+	Operations string   `json:"operations,omitempty"`
+	Resources  []string `json:"resources,omitempty"`
 }
 
 type LabelSelector struct {
-	MatchLabels map[string]string `json:"matchLabels,omitempty" protobuf:"bytes,1,rep,name=matchLabels"`
+	MatchLabels      map[string]string          `json:"matchLabels,omitempty" protobuf:"bytes,1,rep,name=matchLabels"`
 	MatchExpressions []LabelSelectorRequirement `json:"matchExpressions,omitempty" protobuf:"bytes,2,rep,name=matchExpressions"`
 }
 
 type LabelSelectorRequirement struct {
-	Key string `json:"key" patchStrategy:"merge" patchMergeKey:"key" protobuf:"bytes,1,opt,name=key"`
-	Operator string `json:"operator" protobuf:"bytes,2,opt,name=operator,casttype=LabelSelectorOperator"`
-	Values []string `json:"values,omitempty" protobuf:"bytes,3,rep,name=values"`
+	Key      string   `json:"key" patchStrategy:"merge" patchMergeKey:"key" protobuf:"bytes,1,opt,name=key"`
+	Operator string   `json:"operator" protobuf:"bytes,2,opt,name=operator,casttype=LabelSelectorOperator"`
+	Values   []string `json:"values,omitempty" protobuf:"bytes,3,rep,name=values"`
 }
 
 func (i *WebhookRuleWithOperations) UnmarshalJSON(data []byte) error {
@@ -85,13 +85,13 @@ func (i *WebhookRuleWithOperations) UnmarshalJSON(data []byte) error {
 	}
 
 	var ok bool
-	if i.Groups, ok = ruleStruct["groups"]; !ok{
+	if i.Groups, ok = ruleStruct["groups"]; !ok {
 		return serrors.InvalidInstanceError("couldn't parse JSON: Groups cannot be empty")
 	}
-	if i.Versions, ok = ruleStruct["versions"]; !ok{
+	if i.Versions, ok = ruleStruct["versions"]; !ok {
 		return serrors.InvalidInstanceError("couldn't parse JSON: Versions cannot be empty")
 	}
-	if i.Resources, ok = ruleStruct["resources"]; !ok{
+	if i.Resources, ok = ruleStruct["resources"]; !ok {
 		return serrors.InvalidInstanceError("couldn't parse JSON: Resources cannot be empty")
 	}
 
@@ -118,11 +118,11 @@ func (i WebhookRuleWithOperations) MarshalJSON() ([]byte, error) {
 		ruleType = "string"
 	}
 	if ruleType == "struct" {
-		rule = map[string]interface{} {
-			"groups" : i.Groups,
-			"versions" : i.Versions,
-			"resources" : i.Resources,
-			"operations" : i.Operations,
+		rule = map[string]interface{}{
+			"groups":     i.Groups,
+			"versions":   i.Versions,
+			"resources":  i.Resources,
+			"operations": i.Operations,
 		}
 	}
 

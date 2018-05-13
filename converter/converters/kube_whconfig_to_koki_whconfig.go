@@ -6,6 +6,13 @@ import (
 	"github.com/koki/short/types"
 )
 
+const (
+	create string = "CREATE"
+	update string = "UPDATE"
+	delete string = "DELETE"
+	connect string = "CONNECT"
+)
+
 func Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
 	var err error
 	switch kind {
@@ -70,27 +77,29 @@ func convertWebhook(webhook admissionregv1beta1.Webhook) (name string, kokiWebho
 		for i := range webhook.Rules {
 			rule := webhook.Rules[i]
 
-			//Bitmap to check if all operations are present
 			kokiOperationsArr := []string{}
-			var allOperationsPresent uint8 = 0
+			var createOp bool = false
+			var updateOp bool = false
+			var deleteOp bool = false
+			var connectOp bool = false
 			for _, operation := range(rule.Operations) {
 				kokiOperationsArr = append(kokiOperationsArr, string(operation))
-				if string(operation) == "CREATE" {
-					allOperationsPresent = allOperationsPresent | 0x1
+				if string(operation) == create {
+					createOp = true
 				}
-				if string(operation) == "UPDATE" {
-					allOperationsPresent = allOperationsPresent | 0x2
+				if string(operation) == update {
+					updateOp = true
 				}
-				if string(operation) == "DELETE" {
-					allOperationsPresent = allOperationsPresent | 0x4
+				if string(operation) == delete {
+					deleteOp = true
 				}
-				if string(operation) == "CONNECT" {
-					allOperationsPresent = allOperationsPresent | 0x8
+				if string(operation) == connect {
+					connectOp = true
 				}
 			}
 
 			var kokiOperations string = ""
-			if allOperationsPresent == 0xF {
+			if createOp && updateOp && deleteOp && connectOp {
 				kokiOperations = "*"
 			} else {
 				kokiOperations = strings.Join(kokiOperationsArr,"|")
