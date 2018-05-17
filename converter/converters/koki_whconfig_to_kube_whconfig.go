@@ -2,52 +2,44 @@ package converters
 
 import (
 	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/koki/short/types"
 	"strings"
 )
 
-func Convert_Koki_WebhookConfiguration_to_Kube_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
+const apiVersion string = "admissionregistration/v1beta1"
 
+func Convert_Koki_WebhookConfiguration_to_Kube_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
 	switch kind {
-	case "MutatingWebhookConfiguration":
+	case types.MutatingKind:
 		kokiWebhookConfig := webhookConfig.(*types.MutatingWebhookConfigWrapper).WebhookConfig
 		kubeWebhookConfig := &admissionregv1beta1.MutatingWebhookConfiguration{}
-		kubeWebhookConfig.Name = kokiWebhookConfig.Name
-		kubeWebhookConfig.Namespace = kokiWebhookConfig.Namespace
-		if len(kokiWebhookConfig.Version) == 0 {
-			kubeWebhookConfig.APIVersion = "admissionregistration/v1beta1"
-		} else {
-			kubeWebhookConfig.APIVersion = kokiWebhookConfig.Version
-		}
-		kubeWebhookConfig.Kind = kind
-		kubeWebhookConfig.ClusterName = kokiWebhookConfig.Cluster
-		kubeWebhookConfig.Labels = kokiWebhookConfig.Labels
-		kubeWebhookConfig.Annotations = kokiWebhookConfig.Annotations
+		convertMetaKokiToKube(&kubeWebhookConfig.TypeMeta, &kubeWebhookConfig.ObjectMeta, kokiWebhookConfig, kind)
 		kubeWebhookConfig.Webhooks = revertMWCs(kokiWebhookConfig.Webhooks)
 		return kubeWebhookConfig, nil
-	case "ValidatingWebhookConfiguration":
+	case types.ValidatingKind:
 		kokiWebhookConfig := webhookConfig.(*types.ValidatingWebhookConfigWrapper).WebhookConfig
 		kubeWebhookConfig := &admissionregv1beta1.ValidatingWebhookConfiguration{}
-		kubeWebhookConfig.Name = kokiWebhookConfig.Name
-		kubeWebhookConfig.Namespace = kokiWebhookConfig.Namespace
-		if len(kokiWebhookConfig.Version) == 0 {
-			kubeWebhookConfig.APIVersion = "admissionregistration/v1beta1"
-		} else {
-			kubeWebhookConfig.APIVersion = kokiWebhookConfig.Version
-		}
-		kubeWebhookConfig.Kind = kind
-		kubeWebhookConfig.ClusterName = kokiWebhookConfig.Cluster
-		kubeWebhookConfig.Labels = kokiWebhookConfig.Labels
-		kubeWebhookConfig.Annotations = kokiWebhookConfig.Annotations
+		convertMetaKokiToKube(&kubeWebhookConfig.TypeMeta, &kubeWebhookConfig.ObjectMeta, kokiWebhookConfig, kind)
 		kubeWebhookConfig.Webhooks = revertMWCs(kokiWebhookConfig.Webhooks)
 		return kubeWebhookConfig, nil
 	default:
 		return nil, nil
 	}
+}
 
-
-
+func convertMetaKokiToKube(typeMeta *metav1.TypeMeta, objectMeta *metav1.ObjectMeta, kokiWebhookConfig types.WebhookConfig, kind string) () {
+	objectMeta.Name = kokiWebhookConfig.Name
+	objectMeta.Namespace = kokiWebhookConfig.Namespace
+	if len(kokiWebhookConfig.Version) == 0 {
+		typeMeta.APIVersion = apiVersion
+	} else {
+		typeMeta.APIVersion = kokiWebhookConfig.Version
+	}
+	typeMeta.Kind = kind
+	objectMeta.ClusterName = kokiWebhookConfig.Cluster
+	objectMeta.Labels = kokiWebhookConfig.Labels
+	objectMeta.Annotations = kokiWebhookConfig.Annotations
 }
 
 func revertMWCs(kokiWebhooks map[string]types.Webhook) []admissionregv1beta1.Webhook {
@@ -62,23 +54,35 @@ func revertMWCs(kokiWebhooks map[string]types.Webhook) []admissionregv1beta1.Web
 
 func revertMWC(kokiWebhook types.Webhook) admissionregv1beta1.Webhook {
 
+	//set servicereference
 	kokiServiceStringSplit := strings.Split(kokiWebhook.Service, ":")
 	kokiNamespaceStringSplit := strings.Split(kokiServiceStringSplit[0], "/")
-
-	kubeServiceReference := admissionregv1beta1.ServiceReference {
-		Namespace: kokiNamespaceStringSplit[0],
-		Name: kokiNamespaceStringSplit[1],
-		Path: &kokiServiceStringSplit[1],
+	var kubeServiceReference admissionregv1beta1.ServiceReference
+	if len(kokiNamespaceStringSplit) > 0 {
+		kubeServiceReference.Namespace = kokiNamespaceStringSplit[0]
+	}
+	if len(kokiNamespaceStringSplit) > 1 {
+		kubeServiceReference.Name = kokiNamespaceStringSplit[1]
+	}
+	if len(kokiServiceStringSplit) > 1 {
+		kubeServiceReference.Path = &kokiServiceStringSplit[1]
 	}
 
-	kubeWebhookClientConfig := admissionregv1beta1.WebhookClientConfig {
-		CABundle: kokiWebhook.CaBundle,
-		URL: &kokiWebhook.Client,
-		Service: &kubeServiceReference,
+	//set client config
+	var kubeWebhookClientConfig admissionregv1beta1.WebhookClientConfig
+	if len(kokiWebhook.CaBundle) != 0 {
+		kubeWebhookClientConfig.CABundle = kokiWebhook.CaBundle
+	}
+	if len(kokiWebhook.Client) != 0 {
+		kubeWebhookClientConfig.URL = &kokiWebhook.Client
+	}
+	if len(kubeServiceReference.Name) != 0 || len(kubeServiceReference.Namespace) != 0 || kubeServiceReference.Path != nil {
+		kubeWebhookClientConfig.Service = &kubeServiceReference
 	}
 
 	kubeWebhookRules := revertMWCRules(kokiWebhook.Rules)
 	kubeSelector, _, _ := revertRSSelector(kokiWebhook.Name, kokiWebhook.Selector, nil)
+
 	kubeWebhook := admissionregv1beta1.Webhook {
 		Name: kokiWebhook.Name,
 		ClientConfig: kubeWebhookClientConfig,
@@ -100,7 +104,8 @@ func revertMWCRules(kokiRules []types.WebhookRuleWithOperations) []admissionregv
 			APIVersions:  kokiRule.Versions,
 			Resources:  kokiRule.Resources,
 		}
-		kokiOperations := strings.Split(kokiRule.Operations, "|")
+
+		kokiOperations := strings.Split(kokiRule.Operations[0], "|")
 		kubeOperations := []admissionregv1beta1.OperationType{}
 		for _, operation := range(kokiOperations) {
 			switch operation {

@@ -181,9 +181,9 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 	case *storagev1.StorageClass, *storagev1beta1.StorageClass:
 		return converters.Convert_Kube_StorageClass_to_Koki_StorageClass(kubeObj)
 	case *admissionregv1beta1.MutatingWebhookConfiguration:
-		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, "MutatingWebhookConfiguration")
+		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, types.MutatingKind)
 	case *admissionregv1beta1.ValidatingWebhookConfiguration:
-		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, "ValidatingWebhookConfiguration")
+		return converters.Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(kubeObj, types.ValidatingKind)
 	default:
 		return nil, serrors.TypeErrorf(kubeObj, "can't convert from unsupported kube type")
 	}

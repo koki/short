@@ -15,13 +15,6 @@ mutating_webhook:
       name: webhook_name
       on_fail: fail
       rules:
-      - groups:
-        - admissionregistration
-        operations:
-        - UPDATE|CREATE
-        resources:
-        - test
-        versions:
-        - v1beta1
+      - admissionregistration/v1beta1/test/UPDATE|CREATE
       selector: a=b&a=b,c
       service: svc_ns/svc_name:/webhook

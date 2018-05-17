@@ -17,4 +17,3 @@ validating_webhook:
       rules:
       - admissionregistration/v1beta1/test/UPDATE|CREATE
       selector: a=b&a=b,c
-      service: svc_ns/svc_name:/webhook

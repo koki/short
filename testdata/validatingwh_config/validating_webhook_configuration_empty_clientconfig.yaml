@@ -1,0 +1,33 @@
+kind: ValidatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1beta1
+metadata:
+  name: test
+  labels: 
+   a: b
+   c: d
+  namespace: default
+  annotations:
+   e: f
+   g: h
+webhooks: 
+ - name: webhook_name
+   rules:
+   - operations:
+     - UPDATE
+     - CREATE
+     apiGroups:
+     - admissionregistration
+     apiVersions:
+     - v1beta1
+     resources:
+     - test
+   failurePolicy: fail
+   namespaceSelector:
+     matchLabels:
+       a: b
+     matchExpressions:
+     -  key: a
+        operator: In
+        values:
+        - b
+        - c

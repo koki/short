@@ -4,46 +4,28 @@ import (
 	admissionregv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	"strings"
 	"github.com/koki/short/types"
-)
-
-const (
-	create string = "CREATE"
-	update string = "UPDATE"
-	delete string = "DELETE"
-	connect string = "CONNECT"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(webhookConfig interface{}, kind string) (interface{}, error) {
 	var err error
 	switch kind {
-	case "MutatingWebhookConfiguration":
+	case types.MutatingKind:
 		kokiWrapper := &types.MutatingWebhookConfigWrapper{}
 		kokiConfig := &kokiWrapper.WebhookConfig
 		kubeConfig := webhookConfig.(*admissionregv1beta1.MutatingWebhookConfiguration)
-		kokiConfig.Name = kubeConfig.Name
-		kokiConfig.Namespace = kubeConfig.Namespace
-		kokiConfig.Version = kubeConfig.APIVersion
-		kokiConfig.Cluster = kubeConfig.ClusterName
-		kokiConfig.Labels = kubeConfig.Labels
-		kokiConfig.Annotations = kubeConfig.Annotations
-
+		convertMeta(kokiConfig, kubeConfig.TypeMeta, kubeConfig.ObjectMeta)
 		webhooks, err := convertWebhooks(kubeConfig.Webhooks)
 		if err != nil {
 			return nil, err
 		}
 		kokiConfig.Webhooks = webhooks
 		return kokiWrapper, nil
-	case "ValidatingWebhookConfiguration":
+	case types.ValidatingKind:
 		kokiWrapper := &types.ValidatingWebhookConfigWrapper{}
 		kokiConfig := &kokiWrapper.WebhookConfig
 		kubeConfig := webhookConfig.(*admissionregv1beta1.ValidatingWebhookConfiguration)
-		kokiConfig.Name = kubeConfig.Name
-		kokiConfig.Namespace = kubeConfig.Namespace
-		kokiConfig.Version = kubeConfig.APIVersion
-		kokiConfig.Cluster = kubeConfig.ClusterName
-		kokiConfig.Labels = kubeConfig.Labels
-		kokiConfig.Annotations = kubeConfig.Annotations
-
+		convertMeta(kokiConfig, kubeConfig.TypeMeta, kubeConfig.ObjectMeta)
 		webhooks, err := convertWebhooks(kubeConfig.Webhooks)
 		if err != nil {
 			return nil, err
@@ -53,6 +35,15 @@ func Convert_Kube_WebhookConfiguration_to_Koki_WebhookConfiguration(webhookConfi
 	default:
 		return nil, err
 	}
+}
+
+func convertMeta(kokiConfig *types.WebhookConfig, typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) (){
+	kokiConfig.Name = objectMeta.Name
+	kokiConfig.Namespace = objectMeta.Namespace
+	kokiConfig.Version = typeMeta.APIVersion
+	kokiConfig.Cluster = objectMeta.ClusterName
+	kokiConfig.Labels = objectMeta.Labels
+	kokiConfig.Annotations = objectMeta.Annotations
 }
 
 func convertWebhooks(webhooks []admissionregv1beta1.Webhook) (map[string]types.Webhook, error) {
@@ -84,25 +75,25 @@ func convertWebhook(webhook admissionregv1beta1.Webhook) (name string, kokiWebho
 			var connectOp bool = false
 			for _, operation := range(rule.Operations) {
 				kokiOperationsArr = append(kokiOperationsArr, string(operation))
-				if string(operation) == create {
+				if operation == admissionregv1beta1.Create {
 					createOp = true
 				}
-				if string(operation) == update {
+				if operation == admissionregv1beta1.Update {
 					updateOp = true
 				}
-				if string(operation) == delete {
+				if operation == admissionregv1beta1.Delete {
 					deleteOp = true
 				}
-				if string(operation) == connect {
+				if operation == admissionregv1beta1.Connect {
 					connectOp = true
 				}
 			}
 
-			var kokiOperations string = ""
+			var kokiOperations []string
 			if createOp && updateOp && deleteOp && connectOp {
-				kokiOperations = "*"
+				kokiOperations = append(kokiOperations, "*")
 			} else {
-				kokiOperations = strings.Join(kokiOperationsArr,"|")
+				kokiOperations = append(kokiOperations, strings.Join(kokiOperationsArr,"|"))
 			}
 
 			kokiRule := types.WebhookRuleWithOperations{
@@ -114,25 +105,30 @@ func convertWebhook(webhook admissionregv1beta1.Webhook) (name string, kokiWebho
 			rules = append(rules, kokiRule)
 		}
 	}
+	var kokiService = ""
 	var kokiWebhookConfig = webhook.ClientConfig
-
 	//construct service
-	serviceReference := *kokiWebhookConfig.Service
-	service := serviceReference.Name
-	serviceNS := serviceReference.Namespace
-	servicePath := *serviceReference.Path
-	s1 := []string{serviceNS, service}
-	s1Str := strings.Join(s1, "/")
-	s2 := []string{s1Str, servicePath}
-	kokiService := strings.Join(s2, ":")
-
+	if kokiWebhookConfig.Service != nil {
+		serviceReference := *kokiWebhookConfig.Service
+		service := serviceReference.Name
+		serviceNS := serviceReference.Namespace
+		servicePath := *serviceReference.Path
+		s1 := []string{serviceNS, service}
+		s1Str := strings.Join(s1, "/")
+		s2 := []string{s1Str, servicePath}
+		kokiService = strings.Join(s2, ":")
+	}
 	//get selector
 	selector, _, err := convertRSLabelSelector(webhook.NamespaceSelector, nil)
 
+	var kokiURL = ""
+	if kokiWebhookConfig.URL != nil {
+		kokiURL = *kokiWebhookConfig.URL
+	}
 	//align the structure using above variables
  	kokiWebhook = types.Webhook {
 		Name: name,
-		Client: *kokiWebhookConfig.URL,
+		Client: kokiURL,
 		CaBundle: kokiWebhookConfig.CABundle,
 		Service: kokiService,
 		FailurePolicy: webhook.FailurePolicy,

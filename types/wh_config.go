@@ -8,6 +8,11 @@ import (
 	"k8s.io/api/admissionregistration/v1beta1"
 )
 
+const (
+	MutatingKind string = "MutatingWebhookConfiguration"
+	ValidatingKind string = "ValidatingWebhookConfiguration"
+)
+
 type MutatingWebhookConfigWrapper struct {
 	WebhookConfig WebhookConfig `json:"mutating_webhook"`
 }
@@ -39,7 +44,7 @@ type Webhook struct {
 type WebhookRuleWithOperations struct {
 	Groups     []string `json:"groups,omitempty"`
 	Versions   []string `json:"versions,omitempty"`
-	Operations string   `json:"operations,omitempty"`
+	Operations []string   `json:"operations,omitempty"`
 	Resources  []string `json:"resources,omitempty"`
 }
 
@@ -59,25 +64,26 @@ func (i *WebhookRuleWithOperations) UnmarshalJSON(data []byte) error {
 
 	strErr1 := json.Unmarshal(data, &ruleString)
 	if strErr1 == nil {
-		parts := strings.SplitN(ruleString, "/", 3)
-		if len(parts) < 2 {
+		parts := strings.SplitN(ruleString, "/", 4)
+		if len(parts) < 3 {
 			return serrors.InvalidValueForTypeErrorf(ruleString, i, "couldn't parse JSON: Invalid format")
 		}
 
-		if len(parts) == 2 {
+		if len(parts) == 3 {
 			i.Groups = []string{""}
 			i.Versions = []string{parts[0]}
 			i.Resources = []string{parts[1]}
+			i.Operations = []string{parts[2]}
 			return nil
 		}
 
 		i.Groups = []string{parts[0]}
 		i.Versions = []string{parts[1]}
 		i.Resources = []string{parts[2]}
+		i.Operations = []string{parts[3]}
 
 		return nil
 	}
-	//var ruleStruct WebhookRuleWithOperations
 	var ruleStruct map[string][]string
 	strErr2 := json.Unmarshal(data, &ruleStruct)
 	if strErr2 != nil {
@@ -96,9 +102,8 @@ func (i *WebhookRuleWithOperations) UnmarshalJSON(data []byte) error {
 	}
 
 	if len(ruleStruct["operations"]) > 0 {
-		i.Operations = ruleStruct["operations"][0]
+		i.Operations = ruleStruct["operations"]
 	}
-
 	return nil
 }
 
@@ -111,9 +116,8 @@ func (i WebhookRuleWithOperations) MarshalJSON() ([]byte, error) {
 	var ruleType string
 	ruleType = "struct"
 
-	if len(i.Resources) == 1 && len(i.Versions) == 1 && len(i.Groups) == 1 && len(i.Operations) == 0 {
-		ruleString := strings.Join(append(append(i.Groups, i.Versions...), i.Resources...), "/")
-		ruleString = ruleString + "/" + string(i.Operations)
+	if len(i.Resources) == 1 && len(i.Versions) == 1 && len(i.Groups) == 1 && len(i.Operations) == 1 {
+		ruleString := strings.Join(append(append(append(i.Groups, i.Versions...), i.Resources...), i.Operations...), "/")
 		rule = ruleString
 		ruleType = "string"
 	}
