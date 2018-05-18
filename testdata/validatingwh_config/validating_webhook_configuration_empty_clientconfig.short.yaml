@@ -1,0 +1,17 @@
+validating_webhook:
+  annotations:
+    e: f
+    g: h
+  labels:
+    a: b
+    c: d
+  name: test
+  namespace: default
+  version: admissionregistration.k8s.io/v1beta1
+  webhooks:
+    webhook_name:
+      name: webhook_name
+      on_fail: fail
+      rules:
+      - admissionregistration/v1beta1/test/UPDATE|CREATE
+      selector: a=b&a=b,c

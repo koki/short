@@ -1,0 +1,19 @@
+validating_webhook:
+  annotations:
+    e: f
+    g: h
+  labels:
+    a: b
+    c: d
+  name: test
+  namespace: default
+  version: admissionregistration.k8s.io/v1beta1
+  webhooks:
+    webhook_name:
+      caBundle: 1234353143523589584875931403940394032aasjifenfjenkfn
+      client: https://google.com
+      name: webhook_name
+      on_fail: fail
+      rules:
+      - admissionregistration/v1beta1/test/UPDATE|CREATE
+      selector: a=b&a=b,c

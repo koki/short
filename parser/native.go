@@ -270,6 +270,20 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, volume)
 			}
 			return volume, nil
+		case "mutating_webhook":
+			mutatingConfig := &types.MutatingWebhookConfigWrapper{}
+			err := json.Unmarshal(bytes, mutatingConfig)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, mutatingConfig)
+			}
+			return mutatingConfig, nil
+		case "validating_webhook":
+			validatingConfig := &types.ValidatingWebhookConfigWrapper{}
+			err := json.Unmarshal(bytes, validatingConfig)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, validatingConfig)
+			}
+			return validatingConfig, nil
 		}
 		return nil, serrors.TypeErrorf(objMap, "Unexpected key (%s)", k)
 	}

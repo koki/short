@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/fsnotify/fsnotify"
-  packages = ["."]
-  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
-  version = "v1.4.7"
-
-[[projects]]
   name = "github.com/ghodss/yaml"
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
@@ -35,23 +29,6 @@
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/hashicorp/hcl"
-  packages = [
-    ".",
-    "hcl/ast",
-    "hcl/parser",
-    "hcl/printer",
-    "hcl/scanner",
-    "hcl/strconv",
-    "hcl/token",
-    "json/parser",
-    "json/scanner",
-    "json/token"
-  ]
-  revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
-
-[[projects]]
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
@@ -70,43 +47,31 @@
     ".",
     "jsonutil"
   ]
-  revision = "421acd14c16a19b04e5e9f59c9ebf48adc159e93"
+  revision = "e521cbda08e38a4d446cf3df04f927a6da8c002d"
 
 [[projects]]
   branch = "master"
   name = "github.com/koki/structurederrors"
   packages = ["."]
-  revision = "5a728381eca193d3a3c364256d01295346519936"
+  revision = "6b997eb5e2cadc3ba8649b3c9958644057bf3ddf"
 
 [[projects]]
-  branch = "master"
   name = "github.com/kr/pretty"
   packages = ["."]
-  revision = "cfb55aafdaf3ec08f0db22699ab822c50091b1c4"
+  revision = "73f6ac0b30a98e433b289500d779f50c1a6f0712"
+  version = "v0.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/kr/text"
   packages = ["."]
-  revision = "7cafcd837844e784b526369c9bce262804aebc60"
-
-[[projects]]
-  name = "github.com/magiconair/properties"
-  packages = ["."]
-  revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
-  version = "v1.7.6"
+  revision = "e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/mapstructure"
-  packages = ["."]
-  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
 
 [[projects]]
   name = "github.com/modern-go/concurrent"
@@ -124,28 +89,7 @@
   branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "3e24a7b6661e09b87a9f49d693034219f81602fa"
-
-[[projects]]
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
-  version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/spf13/afero"
-  packages = [
-    ".",
-    "mem"
-  ]
-  revision = "63644898a8da0bc22138abf860edaf5277b6102e"
-  version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/spf13/cast"
-  packages = ["."]
-  revision = "8965335b8c7107321228e3e3702cab9832751bac"
-  version = "v1.2.0"
+  revision = "21a4d435a86280a2927985fd6296de56cbce453e"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -154,22 +98,10 @@
   version = "v0.0.2"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/spf13/jwalterweatherman"
-  packages = ["."]
-  revision = "7c0cea34c8ece3fbeb2b27ab9b59511d360fb394"
-
-[[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
-  version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/spf13/viper"
-  packages = ["."]
-  revision = "8dc2790b029dc41e2b8ff772c63c26adbb1db70d"
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -181,18 +113,12 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = [
+    "http/httpguts",
     "http2",
     "http2/hpack",
-    "idna",
-    "lex/httplex"
+    "idna"
   ]
-  revision = "61147c48b25b599e5b561d2e9c4f3e1ef489ca41"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "3b87a42e500a6dc65dae1a55d0b641295971163e"
+  revision = "f73e4c9ed3b7ebdd5f699a16a880c2b1994e50dd"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -232,6 +158,7 @@
   name = "k8s.io/api"
   packages = [
     "admissionregistration/v1alpha1",
+    "admissionregistration/v1beta1",
     "apps/v1",
     "apps/v1beta1",
     "apps/v1beta2",
@@ -257,7 +184,7 @@
     "storage/v1",
     "storage/v1beta1"
   ]
-  revision = "8759fda11383a1087cf16b1500ce5804fa9f32e7"
+  revision = "8ab7c6a2fbd1724a52514855629cec31a8f86929"
 
 [[projects]]
   branch = "master"
@@ -266,7 +193,7 @@
     "pkg/apis/apiextensions",
     "pkg/apis/apiextensions/v1beta1"
   ]
-  revision = "63d2ac876c27ef8ae23cf03816279ab619a0159d"
+  revision = "e798125b68b9e62ce80c2b4f1157e96da7b3b1c7"
 
 [[projects]]
   branch = "master"
@@ -302,7 +229,7 @@
     "pkg/watch",
     "third_party/forked/golang/reflect"
   ]
-  revision = "5d4f0da8e5fde7cbadf8ab3ce5cfb76f86dd854e"
+  revision = "dd7876c087d16d10b82489a4dac9e3f4427176ca"
 
 [[projects]]
   branch = "master"
@@ -311,11 +238,11 @@
     "pkg/apis/apiregistration",
     "pkg/apis/apiregistration/v1beta1"
   ]
-  revision = "a0e9884615e8d8b2ee24a99b4ba70b9abe7ae050"
+  revision = "29c7989121fc30258c674f31aff9bbd393dfab5e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7721fa2b7a6a15a66ae44cb3fa2c60fc85a4a74b2ffd0e845972d0d330c7a25b"
+  inputs-digest = "50ff24697b5b4d7b7bc4e839bf3a65d2bb980249ab3b3d87195ccdb9020d3152"
   solver-name = "gps-cdcl"
   solver-version = 1
