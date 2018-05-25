@@ -1546,14 +1546,16 @@ func revertVolumeMounts(mounts []types.VolumeMount) []v1.VolumeMount {
 }
 
 func revertMountPropagation(prop types.MountPropagation) *v1.MountPropagationMode {
-	var mode v1.MountPropagationMode
+	mode := v1.MountPropagationHostToContainer
 
-	if prop == types.MountPropagationHostToContainer {
-		mode = v1.MountPropagationHostToContainer
-	}
 	if prop == types.MountPropagationBidirectional {
 		mode = v1.MountPropagationBidirectional
 	}
+
+	if prop == types.MountPropagationNone {
+		mode = v1.MountPropagationNone
+	}
+
 	return &mode
 }
 

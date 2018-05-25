@@ -1268,6 +1268,8 @@ func convertMountPropagation(p v1.MountPropagationMode) (types.MountPropagation,
 		return types.MountPropagationHostToContainer, nil
 	} else if p == v1.MountPropagationBidirectional {
 		return types.MountPropagationBidirectional, nil
+	} else if p == v1.MountPropagationNone {
+		return types.MountPropagationNone, nil
 	}
 	return "", serrors.InvalidInstanceError(p)
 }

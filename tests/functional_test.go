@@ -107,7 +107,7 @@ func TestStatefulSets(t *testing.T) {
 }
 
 func TestStorageClass(t *testing.T) {
-	err := testResource("stateful_sets", testFuncGenerator(t))
+	err := testResource("storage_class", testFuncGenerator(t))
 	if err != nil {
 		t.Fatal(err)
 	}

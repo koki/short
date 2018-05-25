@@ -79,6 +79,7 @@ type MountPropagation string
 const (
 	MountPropagationHostToContainer MountPropagation = "host-to-container"
 	MountPropagationBidirectional   MountPropagation = "bidirectional"
+	MountPropagationNone            MountPropagation = "none"
 )
 
 type TerminationMessagePolicy string

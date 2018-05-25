@@ -4,6 +4,7 @@ pod_preset:
   mounts:
   - mount: /cache
     store: cache-volume
+    propagation: host-to-container
   name: allow-database
   selector:
     role: frontend
