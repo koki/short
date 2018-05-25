@@ -25,7 +25,7 @@ spec:
         resources: {}
         volumeMounts:
         - mountPath: /usr/share/nginx/html
-          mountPropagation: ""
+          mountPropagation: "HostToContainer"
           name: www
       terminationGracePeriodSeconds: 10
   updateStrategy:

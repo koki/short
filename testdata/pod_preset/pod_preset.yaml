@@ -11,7 +11,7 @@ spec:
       role: frontend
   volumeMounts:
   - mountPath: /cache
-    mountPropagation: ""
+    mountPropagation: "HostToContainer"
     name: cache-volume
   volumes:
   - emptyDir: {}

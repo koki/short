@@ -9,4 +9,4 @@ parameters:
   secretNamespace: ""
   secretName: ""
 allowVolumeExpansion: true
-volumeBindingMode: WaitForFirstCustomer
+volumeBindingMode: WaitForFirstConsumer
