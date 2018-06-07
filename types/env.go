@@ -65,10 +65,7 @@ func NewEnvFrom(key string, from EnvFromType) (Env, error) {
 	}, nil
 }
 
-func NewEnvFromSecretOrConfig(resType EnvFromType, key, resName, resKey string) (Env, error) {
-	if key == "" {
-		return Env{}, fmt.Errorf("Env key cannot be empty")
-	}
+func NewEnvFromSecretOrConfig(resType EnvFromType, prefix, resName, resKey string) (Env, error) {
 	if resType != EnvFromTypeSecret && resType != EnvFromTypeConfig {
 		return Env{}, fmt.Errorf("%s not supported. Use NewEnvFrom() for building new envs from resources other than Secret or ConfigMap resources", resType)
 	}
@@ -85,7 +82,7 @@ func NewEnvFromSecretOrConfig(resType EnvFromType, key, resName, resKey string) 
 	return Env{
 		Type: EnvFromEnvType,
 		From: &EnvFrom{
-			Key:      key,
+			Key:      prefix,
 			From:     fromVal,
 			Required: &required,
 		},
