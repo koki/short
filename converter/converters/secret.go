@@ -66,7 +66,7 @@ func Convert_Koki_Secret_to_Kube_v1_Secret(kokiSecretWrapper *types.SecretWrappe
 	kubeSecret.Labels = kokiSecret.Labels
 	kubeSecret.Annotations = kokiSecret.Annotations
 	kubeSecret.Data = kokiSecret.Data
-	kubeSecret.StringData = kubeSecret.StringData
+	kubeSecret.StringData = kokiSecret.StringData
 
 	t, err := revertSecretType(kokiSecret.SecretType)
 	if err != nil {
