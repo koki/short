@@ -285,6 +285,7 @@ pod:
    ro: false
    force_non_root: false
    uid: 0
+   gid: 0
    selinux: 
     level: ""
     role: ""

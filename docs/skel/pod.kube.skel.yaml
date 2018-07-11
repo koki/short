@@ -416,6 +416,7 @@ spec:
      type: ""
      level: ""
     runAsUser: 0
+    runAsGroup: 0
     runAsNonRoot: false
     readOnlyRootFilesystem: false
     allowPrivilegeEscalation: false
@@ -578,6 +579,7 @@ spec:
      type: ""
      level: ""
     runAsUser: 0
+    runAsGroup: 0
     runAsNonRoot: false
     readOnlyRootFilesystem: false
     allowPrivilegeEscalation: false
@@ -604,6 +606,7 @@ spec:
    type: ""
    level: ""
   runAsUser: 0
+  runAsGroup: 0
   runAsNonRoot: false
   supplementalGroups: 
    - 

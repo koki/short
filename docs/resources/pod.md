@@ -180,6 +180,7 @@ Here are some example pod anti affinity expressions
 | rw and ro | `bool` | `readOnlyFileSystem` | Mutually inverse flags that denote if the file system is read-only or read-write|
 | force_non_root | `bool` | `runAsNonRoot` | Indicates that the container must run as non-root user |
 | uid | `int64` | `runAsUser` | Indicates that the container must run as a particular user |
+| gid | `int64` | `runAsGroup` | Indicates that the container must run as a particular group |
 | selinux | `Selinux` | `seLinuxOptions` | SELinux context for the container. More information below |
 | liveness_probe | `Probe`| `livenessProbe`| A probe to check if the container is running and alive. See [Probe Overview](#probe-overview)|
 | readiness_probe| `Probe` | `readinessProbe` | A probe to check if the container is ready. See [Probe Overview](#probe-overview)|  
