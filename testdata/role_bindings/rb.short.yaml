@@ -1,0 +1,43 @@
+role_binding:
+  name: fluentd-read
+  role: rbac.authorization.k8s.io.ClusterRole:fluentd-read
+  subjects:
+  - ServiceAccount:logging:fluentd
+  version: rbac.authorization.k8s.io/v1
+---
+role_binding:
+  labels:
+    k8s-addon: dns-controller.addons.k8s.io
+  name: kops:dns-controller
+  role: rbac.authorization.k8s.io.ClusterRole:kops\:dns-controller
+  subjects:
+  - rbac.authorization.k8s.io.User:system\:serviceaccount\:kube-system\:dns-controller
+  version: rbac.authorization.k8s.io/v1
+---
+role_binding:
+  labels:
+    k8s-addon: kube-dns.addons.k8s.io
+  name: kube-dns-autoscaler
+  role: rbac.authorization.k8s.io.ClusterRole:kube-dns-autoscaler
+  subjects:
+  - ServiceAccount:kube-system:kube-dns-autoscaler
+  version: rbac.authorization.k8s.io/v1
+---
+role_binding:
+  name: kubeadm:node-proxier
+  role: rbac.authorization.k8s.io.ClusterRole:system\:node-proxier
+  subjects:
+  - ServiceAccount:kube-system:kube-proxy
+  version: rbac.authorization.k8s.io/v1
+---
+role_binding:
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+    k8s-addon: rbac.addons.k8s.io
+    kubernetes.io/cluster-service: "true"
+  name: kubelet-cluster-admin
+  role: rbac.authorization.k8s.io.ClusterRole:system\:node
+  subjects:
+  - rbac.authorization.k8s.io.User:kubelet
+  version: rbac.authorization.k8s.io/v1
+

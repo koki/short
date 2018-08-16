@@ -1,0 +1,39 @@
+role:
+  labels:
+    k8s-addon: kube-dns.addons.k8s.io
+  name: kube-dns-autoscaler
+  rules:
+  - groups:
+    - ""
+    resources:
+    - nodes
+    verbs:
+    - list
+  - groups:
+    - ""
+    resources:
+    - replicationcontrollers/scale
+    verbs:
+    - get
+    - update
+  - groups:
+    - extensions
+    resources:
+    - deployments/scale
+    - replicasets/scale
+    verbs:
+    - get
+    - update
+  - groups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - create
+  - non_resource_urls:
+    - /api
+    verbs:
+    - all
+  version: rbac.authorization.k8s.io/v1
+

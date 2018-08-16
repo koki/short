@@ -228,6 +228,20 @@ func ParseKokiNativeObject(obj interface{}) (interface{}, error) {
 				return nil, serrors.InvalidValueForTypeContextError(err, objMap, replicationController)
 			}
 			return replicationController, nil
+		case "role":
+			role := &types.RoleWrapper{}
+			err := json.Unmarshal(bytes, role)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, role)
+			}
+			return role, nil
+		case "role_binding":
+			roleBinding := &types.RoleBindingWrapper{}
+			err := json.Unmarshal(bytes, roleBinding)
+			if err != nil {
+				return nil, serrors.InvalidValueForTypeContextError(err, objMap, roleBinding)
+			}
+			return roleBinding, nil
 		case "secret":
 			secret := &types.SecretWrapper{}
 			err := json.Unmarshal(bytes, secret)
