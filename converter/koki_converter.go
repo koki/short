@@ -89,6 +89,10 @@ func DetectAndConvertFromKokiObj(kokiObj interface{}) (interface{}, error) {
 		return converters.Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(kokiObj)
 	case *types.ReplicaSetWrapper:
 		return converters.Convert_Koki_ReplicaSet_to_Kube_ReplicaSet(kokiObj)
+	case *types.RoleWrapper:
+		return converters.Convert_Koki_Role_to_Kube(kokiObj)
+	case *types.RoleBindingWrapper:
+		return converters.Convert_Koki_RoleBinding_to_Kube(kokiObj)
 	case *types.SecretWrapper:
 		return converters.Convert_Koki_Secret_to_Kube_v1_Secret(kokiObj)
 	case *types.ServiceWrapper:
@@ -170,6 +174,10 @@ func DetectAndConvertFromKubeObj(kubeObj runtime.Object) (interface{}, error) {
 		return converters.Convert_Kube_v1_ReplicationController_to_Koki_ReplicationController(kubeObj)
 	case *appsv1beta2.ReplicaSet, *exts.ReplicaSet:
 		return converters.Convert_Kube_ReplicaSet_to_Koki_ReplicaSet(kubeObj)
+	case *rbac.Role:
+		return converters.Convert_Kube_Role_to_Koki(kubeObj)
+	case *rbac.RoleBinding:
+		return converters.Convert_Kube_RoleBinding_to_Koki(kubeObj)
 	case *v1.Secret:
 		return converters.Convert_Kube_v1_Secret_to_Koki_Secret(kubeObj)
 	case *v1.Service:
