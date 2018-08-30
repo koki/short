@@ -1382,6 +1382,11 @@ func revertSecurityContext(container types.Container) (*v1.SecurityContext, erro
 		mark = true
 	}
 
+	if container.GID != nil {
+		sc.RunAsGroup = container.GID
+		mark = true
+	}
+
 	if container.AddCapabilities != nil || container.DelCapabilities != nil {
 		caps := &v1.Capabilities{}
 		var capMark bool

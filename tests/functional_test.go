@@ -225,6 +225,20 @@ func TestClusterRoleBinding(t *testing.T) {
 	}
 }
 
+func TestRole(t *testing.T) {
+	err := testResource("roles", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRoleBinding(t *testing.T) {
+	err := testResource("role_bindings", testFuncGenerator(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCertificateSigningRequest(t *testing.T) {
 	err := testResource("csrs", testFuncGenerator(t))
 	if err != nil {
