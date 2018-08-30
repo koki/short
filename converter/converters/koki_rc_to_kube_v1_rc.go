@@ -41,13 +41,6 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 		if len(kubeSpec.Template.Labels) == 0 {
 			if len(kubeSpec.Selector) > 0 {
 				kubeSpec.Template.Labels = kubeSpec.Selector
-			} else {
-				kubeSpec.Template.Labels = map[string]string{
-					"koki.io/selector.name": kokiRC.Name,
-				}
-				kubeSpec.Selector = map[string]string{
-					"koki.io/selector.name": kokiRC.Name,
-				}
 			}
 		}
 	}
