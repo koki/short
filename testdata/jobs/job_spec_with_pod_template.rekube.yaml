@@ -1,17 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  creationTimestamp: null
   name: example-job
 spec:
-  selector:
-    matchLabels:
-      koki.io/selector.name: example-job
   template:
     metadata:
-      creationTimestamp: null
-      labels:
-        koki.io/selector.name: example-job
       name: example-job
     spec:
       containers:
@@ -25,5 +18,3 @@ spec:
         name: pi
         resources: {}
       restartPolicy: Never
-status: {}
-

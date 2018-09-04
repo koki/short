@@ -36,18 +36,10 @@ func Convert_Koki_ReplicationController_to_Kube_v1_ReplicationController(rc *typ
 		return nil, serrors.ContextualizeErrorf(err, "pod template")
 	}
 
-	// Make sure there's at least one Label in the Template and the Selector.
 	if kubeSpec.Template != nil {
 		if len(kubeSpec.Template.Labels) == 0 {
 			if len(kubeSpec.Selector) > 0 {
 				kubeSpec.Template.Labels = kubeSpec.Selector
-			} else {
-				kubeSpec.Template.Labels = map[string]string{
-					"koki.io/selector.name": kokiRC.Name,
-				}
-				kubeSpec.Selector = map[string]string{
-					"koki.io/selector.name": kokiRC.Name,
-				}
 			}
 		}
 	}

@@ -3,3 +3,12 @@ kind: Job
 metadata:
   # Unique key of the Job instance
   name: example-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis

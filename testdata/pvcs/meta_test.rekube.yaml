@@ -1,12 +1,4 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   name: myclaim
-spec:
-  resources: {}
-  selector:
-    matchLabels:
-      koki.io/selector.name: myclaim
-status: {}
-

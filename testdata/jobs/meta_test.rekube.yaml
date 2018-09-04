@@ -1,18 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  creationTimestamp: null
   name: example-job
 spec:
   selector:
     matchLabels:
-      koki.io/selector.name: example-job
+      app: redis
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        koki.io/selector.name: example-job
+        app: redis
     spec:
-      containers: null
-status: {}
-
+      containers:
+      - image: redis
+        name: redis
+        resources: {}

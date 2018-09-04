@@ -1,3 +1,8 @@
 daemon_set:
+  containers:
+  - image: redis
+    name: redis
   name: daemonset-example
+  selector:
+    app: redis
   version: apps/v1beta2

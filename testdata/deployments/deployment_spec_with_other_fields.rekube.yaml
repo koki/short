@@ -4,7 +4,6 @@ metadata:
   annotations:
     meta: _test
   clusterName: test_cluster
-  creationTimestamp: null
   labels:
     app: meta_test
   name: meta_test
@@ -16,15 +15,14 @@ spec:
   revisionHistoryLimit: 32
   selector:
     matchLabels:
-      koki.io/selector.name: meta_test
+      app: redis
   strategy:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        koki.io/selector.name: meta_test
+        app: redis
     spec:
-      containers: null
-status: {}
-
+      containers:
+      - image: redis
+        name: redis

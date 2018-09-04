@@ -2,6 +2,9 @@ deployment:
   annotations:
     meta: _test
   cluster: test_cluster
+  containers:
+  - image: redis
+    name: redis
   labels:
     app: meta_test
   max_revs: 32
@@ -10,5 +13,6 @@ deployment:
   namespace: test
   paused: true
   progress_deadline: 32
-  replicas_status: {}
+  selector:
+    app: redis
   version: apps/v1beta1
