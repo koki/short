@@ -3,12 +3,15 @@ deployment:
     meta: _test
   cluster: test_cluster
   condition:
-  - last_change: 2017-01-01T00:00:00Z
+  - last_change: "2017-01-01T00:00:00Z"
     message: some message about this condition
     reason: reasonForCondition
     status: "true"
-    timestamp: 2017-01-01T00:00:00Z
+    timestamp: "2017-01-01T00:00:00Z"
     type: available
+  containers:
+  - image: redis
+    name: redis
   generation_observed: 1
   hash_collisions: 1
   labels:
@@ -24,6 +27,4 @@ deployment:
     ready: 1
     total: 1
     updated: 1
-  selector:
-    koki.io/selector.name: meta_test
   version: apps/v1beta1

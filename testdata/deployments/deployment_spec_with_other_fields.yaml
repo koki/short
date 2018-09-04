@@ -5,7 +5,7 @@ metadata:
   labels:
     app: meta_test
   annotations:
-    meta: _test 
+    meta: _test
   namespace: test
   clusterName: test_cluster
 spec:
@@ -13,3 +13,11 @@ spec:
   revisionHistoryLimit: 32
   paused: true
   progressDeadlineSeconds: 32
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis

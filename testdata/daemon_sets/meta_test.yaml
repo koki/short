@@ -3,3 +3,12 @@ kind: DaemonSet
 metadata:
   # Unique key of the DaemonSet instance
   name: daemonset-example
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis

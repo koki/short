@@ -14,16 +14,13 @@ spec:
   paused: true
   progressDeadlineSeconds: 32
   revisionHistoryLimit: 32
-  selector:
-    matchLabels:
-      koki.io/selector.name: meta_test
   strategy:
     type: RollingUpdate
   template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        koki.io/selector.name: meta_test
+    spec:
+      containers:
+      - name: redis
+        image: redis
 status:
   availableReplicas: 1
   collisionCount: 1
