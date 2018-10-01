@@ -1237,7 +1237,7 @@ func convertVolumeMounts(mounts []v1.VolumeMount) ([]types.VolumeMount, error) {
 			if err != nil {
 				return nil, err
 			}
-			km.Propagation = propagation
+			km.Propagation = &propagation
 		}
 		access := "rw"
 		if mount.ReadOnly {
