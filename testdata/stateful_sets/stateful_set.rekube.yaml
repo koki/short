@@ -22,7 +22,6 @@ spec:
           protocol: TCP
         volumeMounts:
         - mountPath: /usr/share/nginx/html
-          mountPropagation: HostToContainer
           name: www
       terminationGracePeriodSeconds: 10
   updateStrategy:

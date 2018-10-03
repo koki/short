@@ -71,7 +71,7 @@ type ContainerStateTerminated struct {
 
 type VolumeMount struct {
 	MountPath   string           `json:"mount,omitempty"`
-	Propagation MountPropagation `json:"propagation,omitempty"`
+	Propagation *MountPropagation `json:"propagation,omitempty"`
 	Store       string           `json:"store,omitempty"`
 }
 
