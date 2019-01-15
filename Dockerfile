@@ -20,4 +20,7 @@ RUN mkdir -p /go/src/github.com/koki/short
 WORKDIR /go/src/github.com/koki/short
 COPY .* /go/src/github.com/koki/short/
 
+RUN scripts/test.sh
+
 ENTRYPOINT ["scripts/ci.sh"]
+
