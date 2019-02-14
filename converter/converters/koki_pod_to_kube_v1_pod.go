@@ -1639,7 +1639,7 @@ func revertProbe(probe *types.Probe) (*v1.Probe, error) {
 
 			kubeProbe.HTTPGet = &v1.HTTPGetAction{
 				Scheme: scheme,
-				Path:   urlStruct.Path,
+				Path:   urlStruct.RequestURI(),
 				Host:   host,
 				Port:   port,
 			}
