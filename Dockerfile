@@ -1,7 +1,5 @@
 FROM golang:1.8
 
-RUN cat /etc/os-release
-
 RUN apt-get update
 
 RUN wget http://http.us.debian.org/debian/pool/non-free/x/xml2rfc/xml2rfc_2.4.8-1_all.deb
@@ -20,4 +18,7 @@ RUN mkdir -p /go/src/github.com/koki/short
 WORKDIR /go/src/github.com/koki/short
 COPY .* /go/src/github.com/koki/short/
 
+RUN /go/src/github.com/koki/short/scripts/test.sh
+
 ENTRYPOINT ["scripts/ci.sh"]
+
